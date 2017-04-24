@@ -3,7 +3,7 @@ var COS = require('../sdk/advanced_api');
 var filepath = path.resolve(__dirname, '40mb.zip');
 
 var params = {
-    Bucket : 'coco',    /* 必须 */
+    Bucket : 'test',    /* 必须 */
     Region : 'cn-south',  //cn-south、cn-north、cn-east  /* 必须 */
     Key : '40mb.zip',    /* 必须 */
     FilePath : filepath,    /* 必须 */

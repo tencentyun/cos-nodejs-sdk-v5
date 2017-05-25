@@ -1,6 +1,6 @@
 # cos-nodejs-sdk-v5
 
-腾讯云 COS Nodejs SDK（XML API）
+腾讯云 COS Nodejs SDK（[XML API](https://www.qcloud.com/document/product/436/7751)）
 
 [releases](https://github.com/tencentyun/cos-nodejs-sdk-v5/releases)
 

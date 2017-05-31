@@ -224,7 +224,7 @@ function sliceUploadFile() {
         cos.sliceUploadFile({
             Bucket: config.Bucket, /* 必须 */
             Region: config.Region,
-            Key: 'p.exe', /* 必须 */
+            Key: filename, /* 必须 */
             FilePath: filepath, /* 必须 */
             SliceSize: 1024 * 1024,  //1MB  /* 非必须 */
             AsyncLimit: 5, /* 非必须 */

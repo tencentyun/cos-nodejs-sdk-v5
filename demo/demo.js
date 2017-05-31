@@ -202,7 +202,6 @@ function headObject() {
     });
 }
 
-var util = require('util');
 function getObjectACL() {
     cos.getObjectACL({
         Bucket: config.Bucket,

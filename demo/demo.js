@@ -218,7 +218,8 @@ function getObjectACL() {
 function sliceUploadFile() {
     // 创建测试文件
     var filename = '3mb.zip';
-    util.createFile(path.resolve(__dirname, filename), 1024 * 1024 * 3, function (err) {
+    var filepath = path.resolve(__dirname, filename);
+    util.createFile(filepath, 1024 * 1024 * 3, function (err) {
         // 调用方法
         cos.sliceUploadFile({
             Bucket: config.Bucket, /* 必须 */

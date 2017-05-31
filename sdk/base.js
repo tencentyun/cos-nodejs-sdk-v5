@@ -1582,7 +1582,7 @@ function MultipartComplete(params, callback) {
 
         data = data || {};
 
-        return callback(null, data.CompleteMultipartUpload || {});
+        return callback(null, data.CompleteMultipartUploadResult || {});
     });
 }
 

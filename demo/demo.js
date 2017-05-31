@@ -52,6 +52,22 @@ function deleteObject() {
     });
 }
 
+function deleteMultipleObject() {
+    cos.deleteMultipleObject({
+        Bucket: config.Bucket,
+        Region: config.Region,
+        Objects :  [
+            {Key : '1mb.zip'},
+            {Key : '3mb.zip'},
+        ]
+    }, function (err, data) {
+        if (err) {
+            return console.log(err);
+        }
+        console.log(JSON.stringify(data, null, '  '));
+    });
+}
+
 function getBucket() {
     cos.getBucket({
         Bucket: config.Bucket,
@@ -335,5 +351,6 @@ getService();
 // putObjectCopy();
 // headObject();
 // deleteObject();
+// deleteMultipleObject();
 // getObjectACL();
 // sliceUploadFile();

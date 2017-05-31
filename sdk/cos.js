@@ -7,7 +7,7 @@ var advance = require('./advance');
 // 对外暴露的类
 var COS = function (options) {
     options = options || {};
-    this.Appid = options.AppId || options.Appid;
+    this.AppId = options.AppId;
     this.SecretId = options.SecretId;
     this.SecretKey = options.SecretKey;
 };

@@ -10,14 +10,16 @@ var fs = require('fs');
  * 获取用户的 bucket 列表
  * @param  {Object}   callback   回调函数，必须，下面为参数列表
  * 无特殊参数
+ * @param  {function}   callback      回调函数，必须
  */
 function getService(params, callback) {
+    if (typeof params === 'function') {
+        callback = params;
+        params = {};
+    }
     return submitRequest.call(this, {
         url: 'http://service.cos.myqcloud.com',
         method: 'GET',
-        Appid: params.Appid,
-        SecretId: params.SecretId,
-        SecretKey: params.SecretKey
     }, function (err, data) {
         if (err) {
             return callback(err);
@@ -33,7 +35,6 @@ function getService(params, callback) {
             if (!(buckets instanceof Array)) {
                 buckets = [buckets];
             }
-
             data.ListAllMyBucketsResult.Buckets = buckets;
         }
 
@@ -57,9 +58,6 @@ function headBucket(params, callback) {
         Bucket: params.Bucket,
         Region: params.Region,
         method: 'HEAD',
-        Appid: params.Appid,
-        SecretId: params.SecretId,
-        SecretKey: params.SecretKey
     }, function (err, body) {
         if (err) {
             var statusCode = err.statusCode;
@@ -113,9 +111,6 @@ function getBucket(params, callback) {
         Bucket: params.Bucket,
         Region: params.Region,
         qs: reqParams,
-        Appid: params.Appid,
-        SecretId: params.SecretId,
-        SecretKey: params.SecretKey
     }, function (err, data) {
         if (err) {
             return callback(err);
@@ -161,17 +156,12 @@ function putBucket(params, callback) {
     headers['x-cos-grant-read'] = params['GrantRead'];
     headers['x-cos-grant-write'] = params['GrantWrite'];
     headers['x-cos-grant-full-control'] = params['GrantFullControl'];
-
-    var appid = params.Appid || this.Appid || '';
-
+    var appId = this.AppId || '';
     return submitRequest.call(this, {
         method: 'PUT',
         Bucket: params.Bucket,
         Region: params.Region,
         headers: headers,
-        Appid: params.Appid,
-        SecretId: params.SecretId,
-        SecretKey: params.SecretKey
     }, function (err, data) {
         if (err) {
             return callback(err);
@@ -183,7 +173,7 @@ function putBucket(params, callback) {
             Location: getUrl({
                 bucket: params.Bucket,
                 region: params.Region,
-                appid: appid
+                appId: appId
             })
         });
     });
@@ -204,9 +194,6 @@ function deleteBucket(params, callback) {
         method: 'DELETE',
         Bucket: params.Bucket,
         Region: params.Region,
-        Appid: params.Appid,
-        SecretId: params.SecretId,
-        SecretKey: params.SecretKey
     }, function (err, data) {
         if (err) {
             if (err.statusCode && err.statusCode == 204) {
@@ -240,9 +227,6 @@ function getBucketACL(params, callback) {
         Bucket: params.Bucket,
         Region: params.Region,
         action: '/?acl',
-        Appid: params.Appid,
-        SecretId: params.SecretId,
-        SecretKey: params.SecretKey
     }, function (err, data) {
         if (err) {
             return callback(err);
@@ -290,9 +274,6 @@ function putBucketACL(params, callback) {
         Region: params.Region,
         action: '/?acl',
         headers: headers,
-        Appid: params.Appid,
-        SecretId: params.SecretId,
-        SecretKey: params.SecretKey
     }, function (err, data) {
         if (err) {
             return callback(err);
@@ -320,9 +301,6 @@ function getBucketCORS(params, callback) {
         Bucket: params.Bucket,
         Region: params.Region,
         action: '/?cors',
-        Appid: params.Appid,
-        SecretId: params.SecretId,
-        SecretKey: params.SecretKey
     }, function (err, data) {
         if (err) {
             return callback(err);
@@ -425,7 +403,6 @@ function putBucketCORS(params, callback) {
 
     headers['Content-MD5'] = util.binaryBase64(util.md5(xml));
 
-
     return submitRequest.call(this, {
         method: 'PUT',
         Bucket: params.Bucket,
@@ -434,9 +411,6 @@ function putBucketCORS(params, callback) {
         action: '/?cors',
         headers: headers,
         needHeaders: true,
-        Appid: params.Appid,
-        SecretId: params.SecretId,
-        SecretKey: params.SecretKey
     }, function (err, data) {
         if (err) {
             return callback(err);
@@ -467,9 +441,6 @@ function putBucketPolicy(params, callback) {
         headers: headers,
         json: true,
         needHeaders: true,
-        Appid: params.Appid,
-        SecretId: params.SecretId,
-        SecretKey: params.SecretKey
     }, function (err, data) {
         if (err) {
 
@@ -516,9 +487,6 @@ function deleteBucketCORS(params, callback) {
         Region: params.Region,
         action: '/?cors',
         needHeaders: true,
-        Appid: params.Appid,
-        SecretId: params.SecretId,
-        SecretKey: params.SecretKey
     }, function (err, data) {
         if (err) {
             if (err.statusCode && err.statusCode == 204) {
@@ -550,9 +518,6 @@ function getBucketLocation(params, callback) {
         Bucket: params.Bucket,
         Region: params.Region,
         action: '/?location',
-        Appid: params.Appid,
-        SecretId: params.SecretId,
-        SecretKey: params.SecretKey
     }, function (err, data) {
         if (err) {
             return callback(err);
@@ -578,9 +543,6 @@ function getBucketPolicy(params, callback) {
         Region: params.Region,
         action: '/?policy',
         rawBody: true,
-        Appid: params.Appid,
-        SecretId: params.SecretId,
-        SecretKey: params.SecretKey
     }, function (err, data) {
         if (err) {
             if (err.statusCode && err.statusCode == 403) {
@@ -632,9 +594,6 @@ function getBucketTagging(params, callback) {
         Bucket: params.Bucket,
         Region: params.Region,
         action: '/?tagging',
-        Appid: params.Appid,
-        SecretId: params.SecretId,
-        SecretKey: params.SecretKey
     }, function (err, data) {
         if (err) {
             return callback(err);
@@ -695,9 +654,6 @@ function putBucketTagging(params, callback) {
         action: '/?tagging',
         headers: headers,
         needHeaders: true,
-        Appid: params.Appid,
-        SecretId: params.SecretId,
-        SecretKey: params.SecretKey
     }, function (err, data) {
         if (err) {
             if (err.statusCode && err.statusCode == 204) {
@@ -731,9 +687,6 @@ function deleteBucketTagging(params, callback) {
         Region: params.Region,
         action: '/?tagging',
         needHeaders: true,
-        Appid: params.Appid,
-        SecretId: params.SecretId,
-        SecretKey: params.SecretKey
     }, function (err, data) {
         if (err) {
             if (err.statusCode && err.statusCode == 204) {
@@ -758,9 +711,6 @@ function getBucketLifecycle(params, callback) {
         Bucket: params.Bucket,
         Region: params.Region,
         action: '/?lifecycle',
-        Appid: params.Appid,
-        SecretId: params.SecretId,
-        SecretKey: params.SecretKey
     }, function (err, data) {
         if (err) {
             return callback(err);
@@ -795,9 +745,6 @@ function putBucketLifecycle(params, callback) {
         action: '/?lifecycle',
         headers: headers,
         needHeaders: true,
-        Appid: params.Appid,
-        SecretId: params.SecretId,
-        SecretKey: params.SecretKey
     }, function (err, data) {
         if (err) {
             if (err.statusCode && err.statusCode == 204) {
@@ -821,9 +768,6 @@ function deleteBucketLifecycle(params, callback) {
         Region: params.Region,
         action: '/?lifecycle',
         needHeaders: true,
-        Appid: params.Appid,
-        SecretId: params.SecretId,
-        SecretKey: params.SecretKey
     }, function (err, data) {
         if (err) {
             if (err.statusCode && err.statusCode == 204) {
@@ -868,9 +812,6 @@ function headObject(params, callback) {
         Key: params.Key,
         headers: headers,
         needHeaders: true,
-        Appid: params.Appid,
-        SecretId: params.SecretId,
-        SecretKey: params.SecretKey
     }, function (err, data) {
         if (err) {
             var statusCode = err.statusCode;
@@ -945,9 +886,6 @@ function getObject(params, callback) {
             qs: reqParams,
             needHeaders: true,
             rawBody: true,
-            Appid: params.Appid,
-            SecretId: params.SecretId,
-            SecretKey: params.SecretKey
         }, function (err, data) {
             if (err) {
                 var statusCode = err.statusCode;
@@ -975,9 +913,6 @@ function getObject(params, callback) {
         qs: reqParams,
         needHeaders: true,
         rawBody: true,
-        Appid: params.Appid,
-        SecretId: params.SecretId,
-        SecretKey: params.SecretKey
     }, function (err, data) {
         if (err) {
             var statusCode = err.statusCode;
@@ -1059,9 +994,6 @@ function putObject(params, callback) {
         headers: headers,
         body: readStream,
         needHeaders: true,
-        Appid: params.Appid,
-        SecretId: params.SecretId,
-        SecretKey: params.SecretKey
     }, function (err, data) {
         if (err) {
             return callback(err);
@@ -1097,9 +1029,6 @@ function deleteObject(params, callback) {
         Bucket: params.Bucket,
         Region: params.Region,
         Key: params.Key,
-        Appid: params.Appid,
-        SecretId: params.SecretId,
-        SecretKey: params.SecretKey
     }, function (err, data) {
         if (err) {
             var statusCode = err.statusCode;
@@ -1142,9 +1071,6 @@ function getObjectACL(params, callback) {
         Region: params.Region,
         Key: params.Key,
         action: '?acl',
-        Appid: params.Appid,
-        SecretId: params.SecretId,
-        SecretKey: params.SecretKey
     }, function (err, data) {
         if (err) {
             return callback(err);
@@ -1190,9 +1116,6 @@ function putObjectACL(params, callback) {
         action: '?acl',
         headers: headers,
         needHeaders: true,
-        Appid: params.Appid,
-        SecretId: params.SecretId,
-        SecretKey: params.SecretKey
     }, function (err, data) {
         if (err) {
             return callback(err);
@@ -1228,9 +1151,6 @@ function optionsObject(params, callback) {
         Key: params.Key,
         headers: headers,
         needHeaders: true,
-        Appid: params.Appid,
-        SecretId: params.SecretId,
-        SecretKey: params.SecretKey
     }, function (err, data) {
         if (err) {
             if (err.statusCode && err.statusCode == 403) {
@@ -1319,9 +1239,6 @@ function putObjectCopy(params, callback) {
         Key: params.Key,
         headers: headers,
         needHeaders: true,
-        Appid: params.Appid,
-        SecretId: params.SecretId,
-        SecretKey: params.SecretKey
     }, function (err, data) {
         if (err) {
             return callback(err);
@@ -1334,7 +1251,7 @@ function putObjectCopy(params, callback) {
 }
 
 
-function deleteMultiplDeleteMultipleObjectObject(params, callback) {
+function deleteMultipleObject(params, callback) {
     var headers = {};
 
     headers['Content-Type'] = 'application/xml';
@@ -1362,9 +1279,6 @@ function deleteMultiplDeleteMultipleObjectObject(params, callback) {
         action: '/?delete',
         headers: headers,
         needHeaders: true,
-        Appid: params.Appid,
-        SecretId: params.SecretId,
-        SecretKey: params.SecretKey
     }, function (err, data) {
         if (err) {
             return callback(err);
@@ -1444,9 +1358,6 @@ function MultipartInit(params, callback) {
         action: '?uploads',
         headers: headers,
         needHeaders: true,
-        Appid: params.Appid,
-        SecretId: params.SecretId,
-        SecretKey: params.SecretKey
     }, function (err, data) {
         if (err) {
             return callback(err);
@@ -1500,9 +1411,6 @@ function MultipartUpload(params, callback) {
         action: action,
         headers: headers,
         needHeaders: true,
-        Appid: params.Appid,
-        SecretId: params.SecretId,
-        SecretKey: params.SecretKey
     }, function (err, data) {
         if (err) {
             return callback(err);
@@ -1572,9 +1480,6 @@ function MultipartComplete(params, callback) {
         body: xml,
         headers: headers,
         needHeaders: true,
-        Appid: params.Appid,
-        SecretId: params.SecretId,
-        SecretKey: params.SecretKey
     }, function (err, data) {
         if (err) {
             return callback(err);
@@ -1622,9 +1527,6 @@ function MultipartList(params, callback) {
         Bucket: params.Bucket,
         Region: params.Region,
         action: '/?uploads&' + querystring.stringify(reqParams),
-        Appid: params.Appid,
-        SecretId: params.SecretId,
-        SecretKey: params.SecretKey
     }, function (err, data) {
         if (err) {
             return callback(err);
@@ -1684,9 +1586,6 @@ function MultipartListPart(params, callback) {
         Region: params.Region,
         Key: params.Key,
         qs: reqParams,
-        Appid: params.Appid,
-        SecretId: params.SecretId,
-        SecretKey: params.SecretKey
     }, function (err, data) {
         if (err) {
             return callback(err);
@@ -1729,9 +1628,6 @@ function MultipartAbort(params, callback) {
         Key: params.Key,
         qs: reqParams,
         needHeaders: true,
-        Appid: params.Appid,
-        SecretId: params.SecretId,
-        SecretKey: params.SecretKey
     }, function (err, data) {
         if (err) {
             return callback(err);
@@ -1770,9 +1666,9 @@ function getUrl(params) {
     var region = params.region;
     var object = params.object;
     var action = params.action;
-    var appid = params.appid;
+    var appId = params.appId;
 
-    var url = 'http://' + bucket + '-' + appid + '.' + region + '.myqcloud.com';
+    var url = 'http://' + bucket + '-' + appId + '.' + region + '.myqcloud.com';
 
     if (object) {
         url += '/' + encodeURIComponent(object);
@@ -1842,9 +1738,9 @@ function submitRequest(params, callback) {
 
     var qs = params.qs;
 
-    var appid = params.Appid || this.Appid || '';
-    var secretId = params.SecretId || this.SecretId || '';
-    var secretKey = params.SecretKey || this.SecretKey || '';
+    var appId = this.AppId || '';
+    var secretId = this.SecretId || '';
+    var secretKey = this.SecretKey || '';
 
     var opt = {
         url: url || getUrl({
@@ -1852,7 +1748,7 @@ function submitRequest(params, callback) {
             region: region,
             object: object,
             action: action,
-            appid: appid,
+            appId: appId,
             secretId: secretId,
             secretKey: secretKey
         }),
@@ -1970,13 +1866,13 @@ exports.optionsObject = optionsObject;
 exports.putObjectCopy = putObjectCopy;
 
 // 分块上传相关方法
-exports.MultipartInit = MultipartInit;
-exports.MultipartUpload = MultipartUpload;
-exports.MultipartComplete = MultipartComplete;
-exports.MultipartList = MultipartList;
-exports.MultipartListPart = MultipartListPart;
-exports.MultipartAbort = MultipartAbort;
-exports.DeleteMultipleObject = deleteMultiplDeleteMultipleObjectObject;
+exports.multipartInit = MultipartInit;
+exports.multipartUpload = MultipartUpload;
+exports.multipartComplete = MultipartComplete;
+exports.multipartList = MultipartList;
+exports.multipartListPart = MultipartListPart;
+exports.multipartAbort = MultipartAbort;
+exports.deleteMultipleObject = deleteMultipleObject;
 
 // 工具方法
 exports.getAuth = getAuth;

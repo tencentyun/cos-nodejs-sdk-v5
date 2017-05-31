@@ -207,7 +207,7 @@ function getAllListParts(params, callback) {
     params.UploadList = UploadList;
     var self = this;
 
-    self.MultipartList(params, function (err, data) {
+    self.multipartList(params, function (err, data) {
         if (err) {
             return callback(err);
         }
@@ -251,7 +251,7 @@ function getUploadId(params, callback) {
             });
         } else {
             // 不存在 UploadId, 直接初始化生成 UploadId
-            self.MultipartInit({
+            self.multipartInit({
                 Bucket: Bucket,
                 Region: Region,
                 Key: Key,
@@ -311,7 +311,7 @@ function getUploadedParts(params, callback) {
 
     params.Parts = Parts;
 
-    self.MultipartListPart({
+    self.multipartListPart({
         Bucket: Bucket,
         Region: Region,
         Key: Key,
@@ -598,7 +598,7 @@ function uploadSliceItem(params, callback) {
 
     var ContentSha1 = SliceList[PartNumber * 1 - 1].ETag;
 
-    self.MultipartUpload({
+    self.multipartUpload({
         Bucket: Bucket,
         Region: Region,
         Key: Key,
@@ -638,7 +638,7 @@ function uploadSliceComplete(params, callback) {
         Parts.push(PartItem);
     }
 
-    self.MultipartComplete({
+    self.multipartComplete({
         Bucket: Bucket,
         Region: Region,
         Key: Key,
@@ -761,7 +761,7 @@ function abortUploadTaskArray(params, callback) {
 
         var UploadId = AbortItem.UploadID;
 
-        self.MultipartAbort({
+        self.multipartAbort({
             Bucket: Bucket,
             Region: Region,
             Key: AbortItem.Key,

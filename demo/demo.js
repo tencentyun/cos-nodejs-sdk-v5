@@ -11,7 +11,7 @@ var cos = new COS({
 });
 
 function getService() {
-    cos.getService({}, function (err, data) {
+    cos.getService(function (err, data) {
         return console.log(err || data);
     });
 }
@@ -95,7 +95,7 @@ function headBucket() {
 
 function putBucket() {
     cos.putBucket({
-        Bucket: 'test-new',
+        Bucket: 'testnew',
         Region: config.Region
     }, function (err, data) {
         if (err) {
@@ -107,7 +107,7 @@ function putBucket() {
 
 function deleteBucket() {
     cos.deleteBucket({
-        Bucket: 'test-new',
+        Bucket: 'testnew',
         Region: config.Region
     }, function (err, data) {
         if (err) {
@@ -135,9 +135,9 @@ function putBucketACL() {
     cos.putBucketACL({
         Bucket: config.Bucket,
         Region: config.Region,
-        //GrantWrite : 'uin="1111", uin="2222"',
-        ACL: 'public-read',
-        // ACL: 'private'
+        // GrantWrite : 'uin="1111", uin="2222"',
+        // ACL: 'public-read',
+        ACL: 'private'
     }, function (err, data) {
         if (err) {
             return console.log(err);
@@ -166,7 +166,7 @@ function putBucketCORS() {
         Region: config.Region,
         CORSRules: [{
             "AllowedOrigin": ["*"],
-            "AllowedMethod": ["PUT", "GET", "POST", "DELETE", "HEAD"],
+            "AllowedMethod": ["GET", "POST", "PUT", "DELETE", "HEAD"],
             "AllowedHeader": ["origin", "accept", "content-type", "authorzation"],
             "ExposeHeader": ["ETag"],
             "MaxAgeSeconds": "300"
@@ -175,7 +175,6 @@ function putBucketCORS() {
         if (err) {
             return console.log(err);
         }
-
         console.log(JSON.stringify(data, null, '  '));
     });
 }
@@ -188,6 +187,7 @@ function getBucketLocation() {
         if (err) {
             return console.log(err);
         }
+        console.log(JSON.stringify(data, null, '  '));
     });
 }
 

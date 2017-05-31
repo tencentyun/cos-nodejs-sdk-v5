@@ -68,7 +68,6 @@ var getAuth = function (opt) {
 
     //pathname = encodeURIComponent(pathname);
 
-
     // 步骤二：构成 FormatString
     var formatString = [method, pathname, obj2str(queryParams), obj2str(headers), ''].join('\n');
 
@@ -81,7 +80,7 @@ var getAuth = function (opt) {
     var stringToSign = ['sha1', qSignTime, res, ''].join('\n');
 
     // 步骤四：计算 Signature
-    var qSignature = crypto.createHmac('sha1', signKey).update(stringToSign).digest('hex');//CryptoJS.HmacSHA1(stringToSign, signKey).toString();
+    var qSignature = crypto.createHmac('sha1', signKey).update(stringToSign).digest('hex');
 
     // 步骤五：构造 Authorization
     var authorization = [

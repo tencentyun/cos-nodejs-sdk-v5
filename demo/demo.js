@@ -4,7 +4,11 @@ var COS = require('../index');
 var util = require('./util');
 var config = require('./config');
 
-var cos = new COS(config);
+var cos = new COS({
+    AppId: config.AppId,
+    SecretId: config.SecretId,
+    SecretKey: config.SecretKey,
+});
 
 function getService() {
     cos.getService({}, function (err, data) {
@@ -19,8 +23,8 @@ function putObject() {
         // 调用方法
         var filepath = path.resolve(__dirname, filename);
         cos.putObject({
-            Bucket: 'test', /* 必须 */
-            Region: 'cn-south',
+            Bucket: config.Bucket, /* 必须 */
+            Region: config.Region,
             Key: filename, /* 必须 */
             Body: fs.createReadStream(filepath), /* 必须 */
             ContentLength: fs.statSync(filepath).size, /* 必须 */
@@ -36,8 +40,8 @@ function putObject() {
 
 function deleteObject() {
     cos.deleteObject({
-        Bucket: 'test',
-        Region: 'cn-south',
+        Bucket: config.Bucket,
+        Region: config.Region,
         Key: '1mb.zip'
     }, function (err, data) {
         if (err) {
@@ -50,8 +54,8 @@ function deleteObject() {
 
 function getBucket() {
     cos.getBucket({
-        Bucket: 'test',
-        Region: 'cn-south'
+        Bucket: config.Bucket,
+        Region: config.Region
     }, function (err, data) {
         if (err) {
             return console.log(err);
@@ -63,8 +67,8 @@ function getBucket() {
 
 function headBucket() {
     cos.headBucket({
-        Bucket: 'test',
-        Region: 'cn-south'
+        Bucket: config.Bucket,
+        Region: config.Region
     }, function (err, data) {
         if (err) {
             return console.log(err);
@@ -76,7 +80,7 @@ function headBucket() {
 function putBucket() {
     cos.putBucket({
         Bucket: 'test-new',
-        Region: 'cn-south'
+        Region: config.Region
     }, function (err, data) {
         if (err) {
             return console.log(err);
@@ -88,7 +92,7 @@ function putBucket() {
 function deleteBucket() {
     cos.deleteBucket({
         Bucket: 'test-new',
-        Region: 'cn-south'
+        Region: config.Region
     }, function (err, data) {
         if (err) {
             return console.log(err);
@@ -99,8 +103,8 @@ function deleteBucket() {
 
 function getBucketACL() {
     cos.getBucketACL({
-        Bucket: 'test',
-        Region: 'cn-south'
+        Bucket: config.Bucket,
+        Region: config.Region
     }, function (err, data) {
         if (err) {
             return console.log(err);
@@ -113,8 +117,8 @@ function getBucketACL() {
 function putBucketACL() {
     // 该接口存在问题，不可以设置 ACL 为 'public-read' 也不能设置 GrandWrite 等
     cos.putBucketACL({
-        Bucket: 'test',
-        Region: 'cn-south',
+        Bucket: config.Bucket,
+        Region: config.Region,
         //GrantWrite : 'uin="1111", uin="2222"',
         ACL: 'public-read',
         // ACL: 'private'
@@ -129,8 +133,8 @@ function putBucketACL() {
 
 function getBucketCORS() {
     cos.getBucketCORS({
-        Bucket: 'test',
-        Region: 'cn-south'
+        Bucket: config.Bucket,
+        Region: config.Region
     }, function (err, data) {
         if (err) {
             return console.log(err);
@@ -142,8 +146,8 @@ function getBucketCORS() {
 function putBucketCORS() {
     //  该接口存在问题，Content-MD5 错误
     cos.putBucketCORS({
-        Bucket: 'test',
-        Region: 'cn-south',
+        Bucket: config.Bucket,
+        Region: config.Region,
         CORSRules: [{
             "AllowedOrigin": ["*"],
             "AllowedMethod": ["PUT", "GET", "POST", "DELETE", "HEAD"],
@@ -162,8 +166,8 @@ function putBucketCORS() {
 
 function getBucketLocation() {
     cos.getBucketLocation({
-        Bucket: 'test',
-        Region: 'cn-south'
+        Bucket: config.Bucket,
+        Region: config.Region
     }, function (err, data) {
         if (err) {
             return console.log(err);
@@ -173,8 +177,8 @@ function getBucketLocation() {
 
 function getObject() {
     cos.getObject({
-        Bucket: 'test',
-        Region: 'cn-south',
+        Bucket: config.Bucket,
+        Region: config.Region,
         Key: '1mb.zip',
         Output: fs.createWriteStream(path.resolve(__dirname, '1mb.out.zip'))
     }, function (err, data) {
@@ -187,8 +191,8 @@ function getObject() {
 
 function headObject() {
     cos.headObject({
-        Bucket: 'test',
-        Region: 'cn-south',
+        Bucket: config.Bucket,
+        Region: config.Region,
         Key: '1mb.zip'
     }, function (err, data) {
         if (err) {
@@ -199,11 +203,10 @@ function headObject() {
 }
 
 var util = require('util');
-var inspect = require('eyes').inspector({maxLength: false})
 function getObjectACL() {
     cos.getObjectACL({
-        Bucket: 'test',
-        Region: 'cn-south',
+        Bucket: config.Bucket,
+        Region: config.Region,
         Key: '1mb.zip'
     }, function (err, data) {
         if (err) {
@@ -219,8 +222,8 @@ function sliceUploadFile() {
     util.createFile(path.resolve(__dirname, filename), 1024 * 1024 * 3, function (err) {
         // 调用方法
         cos.sliceUploadFile({
-            Bucket: 'test', /* 必须 */
-            Region: 'cn-south',
+            Bucket: config.Bucket, /* 必须 */
+            Region: config.Region,
             Key: 'p.exe', /* 必须 */
             FilePath: filepath, /* 必须 */
             SliceSize: 1024 * 1024,  //1MB  /* 非必须 */
@@ -261,12 +264,13 @@ function putBucketPolicy() {
                         "name/cos:AbortMultipartUpload",
                         "name/cos:AppendObject"
                     ],
-                    "resource": ["qcs::cos:cn-south:uid/1250000000:test-1250000000.cn-south.myqcloud.com//1250000000/test/*"] // 1250000000 是 appid
+                    // "resource": ["qcs::cos:cn-south:uid/1250000000:test-1250000000.cn-south.myqcloud.com//1250000000/test/*"] // 1250000000 是 appid
+                    "resource": ["qcs::cos:" + config.Region + ":uid/" + config.AppId + ":" + config.Bucket + "-" + config.AppId + "." + config.Region + ".myqcloud.com//" + config.AppId + "/" + config.Bucket + "/*"] // 1250000000 是 appid
                 }
             ]
         },
-        Bucket: 'test',
-        Region: 'cn-south'
+        Bucket: config.Bucket,
+        Region: config.Region
     }, function (err, data) {
         if (err) {
             console.log(err);
@@ -278,8 +282,8 @@ function putBucketPolicy() {
 
 function getBucketPolicy() {
     cos.getBucketPolicy({
-        Bucket: 'test',
-        Region: 'cn-south'
+        Bucket: config.Bucket,
+        Region: config.Region
     }, function (err, data) {
         if (err) {
             console.log(err);
@@ -291,10 +295,10 @@ function getBucketPolicy() {
 
 function putObjectCopy() {
     cos.putObjectCopy({
-        Bucket: 'test',
-        Region: 'cn-south',
+        Bucket: config.Bucket,
+        Region: config.Region,
         Key: '1mb.copy.zip',
-        CopySource: 'test-1251902136.cn-south.myqcloud.com/1mb.zip',
+        CopySource: config.Bucket + '-' + config.AppId + '.' + config.Region + '.myqcloud.com/1mb.zip',
     }, function (err, data) {
         if (err) {
             console.log(err);
@@ -304,7 +308,17 @@ function putObjectCopy() {
     });
 }
 
+function getAuth() {
+    var key = '1mb.zip';
+    var auth = cos.getAuth({
+        Method: 'get',
+        Key: key
+    });
+    console.log('http://' + config.Bucket + '-' + config.AppId + '.' + config.Region + '.myqcloud.com/' + key + '?sign=' + encodeURIComponent(auth));
+}
+
 getService();
+// getAuth();
 // getBucket();
 // headBucket();
 // putBucket();

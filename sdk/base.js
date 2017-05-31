@@ -1746,17 +1746,17 @@ function MultipartAbort(params, callback) {
 /**
  * 获取签名
  * @param  {object}  params  参数对象，必须
- *     @param  {string}  params.method     Bucket名称，必须
- *     @param  {string}  params.pathname     地域名称，必须
- *     @param  {string}  params.params        object名称，必须
- *     @param  {string}  params.headers        object名称，必须
+ *     @param  {string}  params.Method     请求方法，必须
+ *     @param  {string}  params.Key        object名称，必须
  * @return  {string}  data  返回签名字符串
  */
 function getAuth(params) {
-    var options = util.extend({}, params);
-    options.SecretId = params.SecretId || this.SecretId || '';
-    options.SecretKey = params.SecretKey || this.SecretKey || '';
-    return util.getAuth(options);
+    return util.getAuth({
+        method: params.Method || 'get',
+        pathname: '/' + (params.Key + ''),
+        secretId: params.SecretId || this.SecretId || '',
+        secretKey: params.SecretKey || this.SecretKey || ''
+    });
 }
 
 
@@ -1874,7 +1874,6 @@ function submitRequest(params, callback) {
     opt.headers.Authorization = util.getAuth({
         method: opt.method,
         pathname: object || '/',
-        appid: appid,
         secretId: secretId,
         secretKey: secretKey
     });

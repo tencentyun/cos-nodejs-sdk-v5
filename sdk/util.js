@@ -46,10 +46,10 @@ var getAuth = function (opt) {
     var now = parseInt(new Date().getTime() / 1000) - 1;
     var expired = now; // now + ';' + (now + 60) + ''; // 签名过期时间为当前 + 3600s
 
-    if (opt.expires) {
-        expired += (opt.expires * 1);
-    } else {
+    if (opt.expires === undefined) {
         expired += 3600;
+    } else {
+        expired += (opt.expires * 1) || 0;
     }
 
     // 要用到的 Authorization 参数列表

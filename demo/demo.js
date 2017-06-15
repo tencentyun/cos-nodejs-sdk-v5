@@ -16,50 +16,19 @@ function getService() {
     });
 }
 
-function putObject() {
-    // 创建测试文件
-    var filename = '1mb.zip';
-    util.createFile(path.resolve(__dirname, filename), 1024 * 1024, function (err) {
-        // 调用方法
-        var filepath = path.resolve(__dirname, filename);
-        cos.putObject({
-            Bucket: config.Bucket, /* 必须 */
-            Region: config.Region,
-            Key: filename, /* 必须 */
-            Body: fs.createReadStream(filepath), /* 必须 */
-            ContentLength: fs.statSync(filepath).size, /* 必须 */
-        }, function (err, data) {
-            if (err) {
-                console.log(err);
-            } else {
-                console.log(JSON.stringify(data, null, '  '));
-            }
-        });
+function getAuth() {
+    var key = '1mb.zip';
+    var auth = cos.getAuth({
+        Method: 'get',
+        Key: key
     });
+    console.log('http://' + config.Bucket + '-' + config.AppId + '.' + config.Region + '.myqcloud.com/' + key + '?sign=' + encodeURIComponent(auth));
 }
 
-function deleteObject() {
-    cos.deleteObject({
-        Bucket: config.Bucket,
-        Region: config.Region,
-        Key: '1mb.zip'
-    }, function (err, data) {
-        if (err) {
-            return console.log(err);
-        }
-
-        console.log(JSON.stringify(data, null, '  '));
-    });
-}
-
-function deleteMultipleObject() {
-    cos.deleteMultipleObject({
-        Bucket: config.Bucket,
-        Region: config.Region,
-        Objects :  [
-            {Key : '1mb.zip'},
-            {Key : '3mb.zip'},
-        ]
+function putBucket() {
+    cos.putBucket({
+        Bucket: 'testnew',
+        Region: config.Region
     }, function (err, data) {
         if (err) {
             return console.log(err);
@@ -93,22 +62,16 @@ function headBucket() {
     });
 }
 
-function putBucket() {
-    cos.putBucket({
-        Bucket: 'testnew',
-        Region: config.Region
-    }, function (err, data) {
-        if (err) {
-            return console.log(err);
-        }
-        console.log(JSON.stringify(data, null, '  '));
-    });
-}
-
-function deleteBucket() {
-    cos.deleteBucket({
-        Bucket: 'testnew',
-        Region: config.Region
+function putBucketACL() {
+    cos.putBucketACL({
+        Bucket: config.Bucket,
+        Region: config.Region,
+        // GrantFullControl: 'uin="1001", uin="1002"',
+        // GrantWrite: 'uin="1001", uin="1002"',
+        // GrantRead: 'uin="1001", uin="1002"',
+        // ACL: 'public-read-write',
+        // ACL: 'public-read',
+        ACL: 'private'
     }, function (err, data) {
         if (err) {
             return console.log(err);
@@ -125,37 +88,7 @@ function getBucketACL() {
         if (err) {
             return console.log(err);
         }
-
         console.log(data.AccessControlList.Grant);
-    });
-}
-
-function putBucketACL() {
-    // 该接口存在问题，不可以设置 ACL 为 'public-read' 也不能设置 GrandWrite 等
-    cos.putBucketACL({
-        Bucket: config.Bucket,
-        Region: config.Region,
-        // GrantWrite : 'uin="1111", uin="2222"',
-        // ACL: 'public-read',
-        ACL: 'private'
-    }, function (err, data) {
-        if (err) {
-            return console.log(err);
-        }
-
-        console.log(JSON.stringify(data, null, '  '));
-    });
-}
-
-function getBucketCORS() {
-    cos.getBucketCORS({
-        Bucket: config.Bucket,
-        Region: config.Region
-    }, function (err, data) {
-        if (err) {
-            return console.log(err);
-        }
-        console.log(JSON.stringify(data, null, '  '));
     });
 }
 
@@ -179,8 +112,8 @@ function putBucketCORS() {
     });
 }
 
-function getBucketLocation() {
-    cos.getBucketLocation({
+function getBucketCORS() {
+    cos.getBucketCORS({
         Bucket: config.Bucket,
         Region: config.Region
     }, function (err, data) {
@@ -188,75 +121,6 @@ function getBucketLocation() {
             return console.log(err);
         }
         console.log(JSON.stringify(data, null, '  '));
-    });
-}
-
-function getObject() {
-    cos.getObject({
-        Bucket: config.Bucket,
-        Region: config.Region,
-        Key: '1mb.zip',
-        Output: fs.createWriteStream(path.resolve(__dirname, '1mb.out.zip'))
-    }, function (err, data) {
-        if (err) {
-            return console.log(err);
-        }
-        console.log(JSON.stringify(data, null, '  '));
-    });
-}
-
-function headObject() {
-    cos.headObject({
-        Bucket: config.Bucket,
-        Region: config.Region,
-        Key: '1mb.zip'
-    }, function (err, data) {
-        if (err) {
-            return console.log(err);
-        }
-        console.log(JSON.stringify(data, null, '  '));
-    });
-}
-
-function getObjectACL() {
-    cos.getObjectACL({
-        Bucket: config.Bucket,
-        Region: config.Region,
-        Key: '1mb.zip'
-    }, function (err, data) {
-        if (err) {
-            return console.log(err);
-        }
-        console.log(JSON.stringify(data, null, '  '));
-    });
-}
-
-function sliceUploadFile() {
-    // 创建测试文件
-    var filename = '3mb.zip';
-    var filepath = path.resolve(__dirname, filename);
-    util.createFile(filepath, 1024 * 1024 * 3, function (err) {
-        // 调用方法
-        cos.sliceUploadFile({
-            Bucket: config.Bucket, /* 必须 */
-            Region: config.Region,
-            Key: filename, /* 必须 */
-            FilePath: filepath, /* 必须 */
-            SliceSize: 1024 * 1024,  //1MB  /* 非必须 */
-            AsyncLimit: 5, /* 非必须 */
-            onProgress: function (progressData, percent) {
-                console.log(progressData, percent);
-            },
-            onHashProgress: function (hashProgress, percent) {
-                console.log(hashProgress, percent);
-            }
-        }, function (err, data) {
-            if (err) {
-                console.log(err);
-            } else {
-                console.log(JSON.stringify(data, null, '  '));
-            }
-        });
     });
 }
 
@@ -296,6 +160,30 @@ function putBucketPolicy() {
     });
 }
 
+function getBucketLocation() {
+    cos.getBucketLocation({
+        Bucket: config.Bucket,
+        Region: config.Region
+    }, function (err, data) {
+        if (err) {
+            return console.log(err);
+        }
+        console.log(JSON.stringify(data, null, '  '));
+    });
+}
+
+function deleteBucket() {
+    cos.deleteBucket({
+        Bucket: 'testnew',
+        Region: config.Region
+    }, function (err, data) {
+        if (err) {
+            return console.log(err);
+        }
+        console.log(JSON.stringify(data, null, '  '));
+    });
+}
+
 function getBucketPolicy() {
     cos.getBucketPolicy({
         Bucket: config.Bucket,
@@ -306,6 +194,31 @@ function getBucketPolicy() {
         } else {
             console.log(JSON.stringify(data, null, '  '));
         }
+    });
+}
+
+function putObject() {
+    // 创建测试文件
+    var filename = '1mb.zip';
+    util.createFile(path.resolve(__dirname, filename), 1024 * 1024, function (err) {
+        // 调用方法
+        var filepath = path.resolve(__dirname, filename);
+        cos.putObject({
+            Bucket: config.Bucket, /* 必须 */
+            Region: config.Region,
+            Key: filename, /* 必须 */
+            Body: fs.createReadStream(filepath), /* 必须 */
+            ContentLength: fs.statSync(filepath).size, /* 必须 */
+            onProgress: function (processData, percent) {
+                console.log(processData, percent);
+            },
+        }, function (err, data) {
+            if (err) {
+                console.log(err);
+            } else {
+                console.log(JSON.stringify(data, null, '  '));
+            }
+        });
     });
 }
 
@@ -324,33 +237,143 @@ function putObjectCopy() {
     });
 }
 
-function getAuth() {
-    var key = '1mb.zip';
-    var auth = cos.getAuth({
-        Method: 'get',
-        Key: key
+function getObject() {
+    cos.getObject({
+        Bucket: config.Bucket,
+        Region: config.Region,
+        Key: '1mb.zip',
+        Output: fs.createWriteStream(path.resolve(__dirname, '1mb.out.zip'))
+    }, function (err, data) {
+        if (err) {
+            return console.log(err);
+        }
+        console.log(JSON.stringify(data, null, '  '));
     });
-    console.log('http://' + config.Bucket + '-' + config.AppId + '.' + config.Region + '.myqcloud.com/' + key + '?sign=' + encodeURIComponent(auth));
+}
+
+function headObject() {
+    cos.headObject({
+        Bucket: config.Bucket,
+        Region: config.Region,
+        Key: '1mb.zip'
+    }, function (err, data) {
+        if (err) {
+            return console.log(err);
+        }
+        console.log(JSON.stringify(data, null, '  '));
+    });
+}
+
+function putObjectACL() {
+    cos.putBucketACL({
+        Bucket: config.Bucket,
+        Region: config.Region,
+        Key: '1mb.zip',
+        // GrantFullControl: 'uin="1001", uin="1002"',
+        // GrantWrite: 'uin="1001", uin="1002"',
+        // GrantRead: 'uin="1001", uin="1002"',
+        // ACL: 'public-read-write',
+        // ACL: 'public-read',
+        ACL: 'private'
+    }, function (err, data) {
+        if (err) {
+            return console.log(err);
+        }
+        console.log(JSON.stringify(data, null, '  '));
+    });
+}
+
+function getObjectACL() {
+    cos.getObjectACL({
+        Bucket: config.Bucket,
+        Region: config.Region,
+        Key: '1mb.zip'
+    }, function (err, data) {
+        if (err) {
+            return console.log(err);
+        }
+        console.log(JSON.stringify(data, null, '  '));
+    });
+}
+
+function deleteObject() {
+    cos.deleteObject({
+        Bucket: config.Bucket,
+        Region: config.Region,
+        Key: '1mb.zip'
+    }, function (err, data) {
+        if (err) {
+            return console.log(err);
+        }
+
+        console.log(JSON.stringify(data, null, '  '));
+    });
+}
+
+function deleteMultipleObject() {
+    cos.deleteMultipleObject({
+        Bucket: config.Bucket,
+        Region: config.Region,
+        Objects: [
+            {Key: '1mb.zip'},
+            {Key: '3mb.zip'},
+        ]
+    }, function (err, data) {
+        if (err) {
+            return console.log(err);
+        }
+        console.log(JSON.stringify(data, null, '  '));
+    });
+}
+
+function sliceUploadFile() {
+    // 创建测试文件
+    var filename = '100mb.zip';
+    var filepath = path.resolve(__dirname, filename);
+    util.createFile(filepath, 1024 * 1024 * 10, function (err) {
+        // 调用方法
+        cos.sliceUploadFile({
+            Bucket: config.Bucket, /* 必须 */
+            Region: config.Region,
+            Key: filename, /* 必须 */
+            FilePath: filepath, /* 必须 */
+            SliceSize: 1024 * 1024,  //1MB  /* 非必须 */
+            AsyncLimit: 5, /* 非必须 */
+            onHashProgress: function (progressData) {
+                console.log(JSON.stringify(progressData));
+            },
+            onProgress: function (progressData) {
+                console.log(JSON.stringify(progressData));
+            },
+        }, function (err, data) {
+            if (err) {
+                console.log(err);
+            } else {
+                console.log(JSON.stringify(data, null, '  '));
+            }
+        });
+    });
 }
 
 getService();
 // getAuth();
+// putBucket();
 // getBucket();
 // headBucket();
-// putBucket();
-// deleteBucket();
-// getBucketACL();
 // putBucketACL();
-// getBucketCORS();
+// getBucketACL();
 // putBucketCORS();
+// getBucketCORS();
 // putBucketPolicy();
 // getBucketPolicy();
 // getBucketLocation();
-// getObject();
+// deleteBucket();
 // putObject();
 // putObjectCopy();
+// getObject();
 // headObject();
+// putObjectACL();
+// getObjectACL();
 // deleteObject();
 // deleteMultipleObject();
-// getObjectACL();
 // sliceUploadFile();

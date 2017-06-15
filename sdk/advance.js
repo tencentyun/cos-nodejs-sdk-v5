@@ -1,6 +1,7 @@
 var fs = require('fs');
-var EventProxy = require('eventproxy');
+var _ = require('lodash');
 var Async = require('async');
+var EventProxy = require('eventproxy');
 var util = require('./util');
 
 
@@ -77,7 +78,6 @@ function sliceUploadFile (params, callback) {
             if (err) {
                 return proxy.emit('error', err);
             }
-
             proxy.emit('get_slice_etag', data);
         });
 
@@ -378,7 +378,7 @@ function getSliceETag(params, cb) {
 
             SliceETag[PartNumber - 1].ETag = '"' + sha1 + '"';
 
-            if (HashProgressCallback && (typeof HashProgressCallback == 'function')) {
+            if (HashProgressCallback && (typeof HashProgressCallback === 'function')) {
                 ++FinishSliceCount;
                 HashProgressCallback({
                     PartNumber: PartNumber,
@@ -451,7 +451,7 @@ function fixSliceList(params) {
             continue;
         }
 
-        if (SliceETag[PartNumber - 1].ETag == ETag) {
+        if (SliceETag[PartNumber - 1].ETag === ETag) {
             SliceETag[PartNumber - 1].Uploaded = true;
         }
     }
@@ -468,10 +468,8 @@ function fixSliceList(params) {
  SliceSize (文件分块大小)
  FileSize (文件大小)
  ProgressCallback (上传成功之后的回调函数)
-
  */
 function uploadSliceList(params, cb) {
-    console.log('---------------- upload file -----------------');
     var Bucket = params.Bucket;
     var Region = params.Region;
     var Key = params.Key;
@@ -483,41 +481,49 @@ function uploadSliceList(params, cb) {
     var FilePath = params.FilePath;
     var ProgressCallback = params.ProgressCallback;
     var SliceCount = Math.ceil(FileSize / SliceSize);
-    var FinishSliceCount = 0;
+    var FinishSize = 0;
     var self = this;
+    var needUploadSlices = SliceList.filter(function (SliceItem) {
+        if (SliceItem['Uploaded']) {
+            FinishSize += SliceItem['PartNumber'] >= SliceCount ? (FileSize % SliceSize || SliceSize) : SliceSize;
+        }
+        return !SliceItem['Uploaded'];
+    });
 
-    console.log('file name : ' + Key);
+    var onFileProgress = (function () {
+        var time0 = Date.now();
+        var size0 = FinishSize;
+        var timer;
+        var update = function () {
+            timer = 0;
+            if (ProgressCallback && (typeof ProgressCallback === 'function')) {
+                var time1 = Date.now();
+                var speed = parseInt((FinishSize - size0) / (time1 - time0) * 100) / 100;
+                var percent = parseInt(FinishSize / FileSize * 100) / 100;
+                ProgressCallback({
+                    loaded: FinishSize,
+                    total: FileSize,
+                    speed: speed,
+                    percent: percent
+                });
+            }
+        };
+        return function (immediately) {
+            if (immediately) {
+                clearTimeout(timer);
+                update();
+            } else {
+                if (timer) return;
+                timer = setTimeout(update, 100);
+            }
+        };
+    })();
 
-    Async.mapLimit(SliceList, AsyncLimit, function (SliceItem, callback) {
+    Async.mapLimit(needUploadSlices, AsyncLimit, function (SliceItem, asyncCallback) {
         var PartNumber = SliceItem['PartNumber'];
         var ETag = SliceItem['ETag'];
-        var Uploaded = SliceItem['Uploaded'];
-
-        if (Uploaded) {
-            process.nextTick(function () {
-
-                ++FinishSliceCount;
-                if (ProgressCallback && (typeof ProgressCallback == 'function')) {
-                    // 分块上传成功，触发进度回调
-                    ProgressCallback({
-                        PartNumber: PartNumber,
-                        SliceSize: SliceSize,
-                        FileSize: FileSize
-                    }, parseInt(FinishSliceCount / SliceCount * 100) / 100);
-                }
-
-                callback(null, {
-                    ETag: ETag,
-                    PartNumber: PartNumber
-                });
-            });
-
-            return;
-        }
-
-        console.log('Async uploading...-----  ' + PartNumber);
-
-
+        var currentSize = Math.min(FileSize, SliceItem['PartNumber'] * SliceSize) - (SliceItem['PartNumber'] - 1) * SliceSize;
+        var preAddSize = 0;
         uploadSliceItem.call(self, {
             Bucket: Bucket,
             Region: Region,
@@ -527,40 +533,32 @@ function uploadSliceList(params, cb) {
             PartNumber: PartNumber,
             UploadId: UploadId,
             FilePath: FilePath,
-            SliceList: SliceList
+            SliceList: SliceList,
+            onProgress: function (data) {
+                FinishSize += data.loaded - preAddSize;
+                preAddSize = data.loaded;
+                onFileProgress();
+            },
         }, function (err, data) {
             if (err) {
-                return callback(err);
+                console.log('error');
+                FinishSize -= preAddSize;
+            } else {
+                FinishSize += currentSize - preAddSize;
             }
-            ++FinishSliceCount;
-
-            callback(null, data);
-
-            if (ProgressCallback && (typeof ProgressCallback == 'function')) {
-                // 分块上传成功，触发进度回调
-                ProgressCallback({
-                    PartNumber: PartNumber,
-                    SliceSize: SliceSize,
-                    FileSize: FileSize
-                }, parseInt(FinishSliceCount / SliceCount * 100) / 100);
-            }
-
-            return;
-
+            onFileProgress(true);
+            asyncCallback(err || null, data);
         });
 
     }, function (err, datas) {
         if (err) {
             return cb(err);
         }
-
-        var data = {
+        cb(null, {
             datas: datas,
             UploadId: UploadId,
             SliceList: SliceList
-        };
-
-        cb(null, data);
+        });
     });
 }
 
@@ -575,6 +573,7 @@ function uploadSliceItem(params, callback) {
     var PartNumber = params.PartNumber * 1;
     var SliceSize = params.SliceSize;
     var SliceList = params.SliceList;
+    var sliceRetryTimes = 3;
     var self = this;
 
     var start = SliceSize * (PartNumber - 1);
@@ -597,28 +596,31 @@ function uploadSliceItem(params, callback) {
     });
 
     var ContentSha1 = SliceList[PartNumber * 1 - 1].ETag;
-
-    self.multipartUpload({
-        Bucket: Bucket,
-        Region: Region,
-        Key: Key,
-        ContentLength: ContentLength,
-        ContentSha1: ContentSha1,
-        PartNumber: PartNumber,
-        UploadId: UploadId,
-        Body: Body
-    }, function (err, data) {
-        if (err) {
-            return callback(err);
-        }
-
-        return callback(null, data);
+    Async.retry(sliceRetryTimes, function (tryCallback) {
+        self.multipartUpload({
+            Bucket: Bucket,
+            Region: Region,
+            Key: Key,
+            ContentLength: ContentLength,
+            ContentSha1: ContentSha1,
+            PartNumber: PartNumber,
+            UploadId: UploadId,
+            Body: Body,
+            onProgress: params.onProgress
+        }, function (err, data) {
+            if (err) {
+                return tryCallback(err);
+            } else {
+                return tryCallback(null, data);
+            }
+        });
+    }, function(err, data) {
+        return callback(err, data);
     });
 }
 
 // 完成分块上传
 function uploadSliceComplete(params, callback) {
-    console.log('---------------- upload complete -----------------');
     var Bucket = params.Bucket;
     var Region = params.Region;
     var Key = params.Key;
@@ -660,7 +662,6 @@ function uploadSliceComplete(params, callback) {
  Level (抛弃分块上传任务的级别，task : 抛弃指定的上传任务，file ： 抛弃指定的文件对应的上传任务，其他值 ：抛弃指定Bucket 的全部上传任务)
  */
 function abortUploadTask(params, callback) {
-    console.log('-----------------  abort upload task ------------------------');
     var Bucket = params.Bucket;
     var Region = params.Region;
     var Key = params.Key;
@@ -740,7 +741,6 @@ function abortUploadTask(params, callback) {
 
 // 批量抛弃分块上传任务
 function abortUploadTaskArray(params, callback) {
-    console.log('-----------------  abort upload task array ------------------------');
 
     var Bucket = params.Bucket;
     var Region = params.Region;
@@ -749,10 +749,7 @@ function abortUploadTaskArray(params, callback) {
     var AsyncLimit = params.AsyncLimit;
     var self = this;
 
-    console.log(AbortArray);
-
     Async.mapLimit(AbortArray, AsyncLimit, function (AbortItem, callback) {
-        console.log('--- abort item ---' + AbortItem.Key);
         if (Key && Key != AbortItem.Key) {
             return callback(null, {
                 KeyNotMatch: true

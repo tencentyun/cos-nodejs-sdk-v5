@@ -267,7 +267,6 @@ function putBucketACL(params, callback) {
     headers['x-cos-grant-write'] = params['GrantWrite'];
     headers['x-cos-grant-full-control'] = params['GrantFullControl'];
 
-
     return submitRequest.call(this, {
         method: 'PUT',
         Bucket: params.Bucket,
@@ -868,42 +867,12 @@ function getObject(params, callback) {
     reqParams['response-content-encoding'] = params['ResponseContentEncoding'];
 
     var output = params.Output;
-
     var writeStream = output;
-
     if (output && (typeof output == 'string')) {
         writeStream = fs.createWriteStream(output);
     }
 
     // 如果用户自己传入了 output
-    if (output) {
-        return submitRequest.call(this, {
-            method: 'GET',
-            Bucket: params.Bucket,
-            Region: params.Region,
-            Key: params.Key,
-            headers: headers,
-            qs: reqParams,
-            needHeaders: true,
-            rawBody: true,
-        }, function (err, data) {
-            if (err) {
-                var statusCode = err.statusCode;
-                if (headers['If-Modified-Since'] && statusCode && statusCode == 304) {
-                    return callback(null, {
-                        NotModified: true
-                    });
-                }
-                return callback(err);
-            }
-
-            data = data || {};
-
-            return callback(null, data.headers || {});
-        }).pipe(writeStream);
-    }
-
-    // 如果用户不传入 output
     return submitRequest.call(this, {
         method: 'GET',
         Bucket: params.Bucket,
@@ -913,6 +882,7 @@ function getObject(params, callback) {
         qs: reqParams,
         needHeaders: true,
         rawBody: true,
+        outputStream: writeStream || null,
     }, function (err, data) {
         if (err) {
             var statusCode = err.statusCode;
@@ -949,6 +919,7 @@ function getObject(params, callback) {
  *     @param  {string}   params.GrantRead         赋予被授权者读的权限，格式 x-cos-grant-read: uin=" ",uin=" "，非必须
  *     @param  {string}   params.GrantWrite         赋予被授权者写的权限，格式 x-cos-grant-write: uin=" ",uin=" "，非必须
  *     @param  {string}   params.GrantFullControl         赋予被授权者读写权限，格式 x-cos-grant-full-control: uin=" ",uin=" "，非必须
+ *     @param  {function}   params.onProgress         上传进度回调函数
  * @param  {function}   callback        回调函数，必须
  * @return  {object}    err            请求失败的错误，如果请求成功，则为空。
  * @return  {object}    data        为对应的 object 数据
@@ -960,7 +931,7 @@ function putObject(params, callback) {
     headers['Cache-Control'] = params['CacheControl'];
     headers['Content-Disposition'] = params['ContentDisposition'];
     headers['Content-Encoding'] = params['ContentEncoding'];
-    //headers['Cotent-MD5'] = params['CotentMD5'];
+    headers['Cotent-MD5'] = params['CotentMD5'];
     headers['Content-Length'] = params['ContentLength'];
     headers['Content-Type'] = params['ContentType'];
     headers['Expect'] = params['Expect'];
@@ -982,7 +953,7 @@ function putObject(params, callback) {
 
     var readStream = body;
 
-    if (body && (typeof body == 'string')) {
+    if (body && (typeof body === 'string')) {
         readStream = fs.createReadStream(body);
     }
 
@@ -992,8 +963,9 @@ function putObject(params, callback) {
         Region: params.Region,
         Key: params.Key,
         headers: headers,
-        body: readStream,
         needHeaders: true,
+        inputStream: readStream || null,
+        onProgress: params.onProgress
     }, function (err, data) {
         if (err) {
             return callback(err);
@@ -1329,7 +1301,7 @@ function deleteMultipleObject(params, callback) {
  * @return  {object}    data 返回的数据
  *     @return  {object}    data.InitiateMultipartUploadResult  初始化上传信息，包括 Bucket(Bucket名称), Key(文件名称) 和 UploadId (上传任务ID)
  */
-function MultipartInit(params, callback) {
+function multipartInit(params, callback) {
     var headers = {};
 
     headers['Cache-Control'] = params['CacheControl'];
@@ -1389,7 +1361,7 @@ function MultipartInit(params, callback) {
  * @return  {object}    data 返回的数据
  *     @return  {object}    data.ETag  返回的文件分块 sha1 值
  */
-function MultipartUpload(params, callback) {
+function multipartUpload(params, callback) {
     var headers = {};
 
     headers['Content-Length'] = params['ContentLength'];
@@ -1401,9 +1373,7 @@ function MultipartUpload(params, callback) {
 
     var action = '?partNumber=' + PartNumber + '&uploadId=' + UploadId;
 
-    var body = params.Body;
-
-    var req = submitRequest.call(this, {
+    return submitRequest.call(this, {
         method: 'PUT',
         Bucket: params.Bucket,
         Region: params.Region,
@@ -1411,6 +1381,8 @@ function MultipartUpload(params, callback) {
         action: action,
         headers: headers,
         needHeaders: true,
+        inputStream: params.Body || null,
+        onProgress: params.onProgress
     }, function (err, data) {
         if (err) {
             return callback(err);
@@ -1425,8 +1397,6 @@ function MultipartUpload(params, callback) {
         });
 
     });
-
-    return body.pipe(req);
 }
 
 /**
@@ -1443,7 +1413,7 @@ function MultipartUpload(params, callback) {
  * @return  {object}    data 返回的数据
  *     @return  {object}    data.CompleteMultipartUpload   完成分块上传后的文件信息，包括Location, Bucket, Key 和 ETag
  */
-function MultipartComplete(params, callback) {
+function multipartComplete(params, callback) {
     var headers = {};
 
     headers['Content-Type'] = 'application/xml';
@@ -1470,6 +1440,7 @@ function MultipartComplete(params, callback) {
     var xml = util.json2xml(PartData);
 
     headers['Content-length'] = Buffer.byteLength(xml, 'utf8');
+    headers['Content-MD5'] = util.binaryBase64(util.md5(xml));
 
     return submitRequest.call(this, {
         method: 'POST',
@@ -1484,9 +1455,7 @@ function MultipartComplete(params, callback) {
         if (err) {
             return callback(err);
         }
-
         data = data || {};
-
         return callback(null, data.CompleteMultipartUploadResult || {});
     });
 }
@@ -1507,7 +1476,7 @@ function MultipartComplete(params, callback) {
  * @return  {object}    data 返回的数据
  *     @return  {object}    data.ListMultipartUploadsResult   分块上传任务信息
  */
-function MultipartList(params, callback) {
+function multipartList(params, callback) {
     var reqParams = {};
 
     reqParams['delimiter'] = params['Delimiter'];
@@ -1571,7 +1540,7 @@ function MultipartList(params, callback) {
  * @return  {object}    data 返回的数据
  *     @return  {object}    data.ListMultipartUploadsResult   分块信息
  */
-function MultipartListPart(params, callback) {
+function multipartListPart(params, callback) {
     var reqParams = {};
 
     reqParams['uploadId'] = params['UploadId'];
@@ -1616,7 +1585,7 @@ function MultipartListPart(params, callback) {
  *     @return  {object}    err     请求失败的错误，如果请求成功，则为空。
  *     @return  {object}    data 返回的数据
  */
-function MultipartAbort(params, callback) {
+function multipartAbort(params, callback) {
     var reqParams = {};
 
     reqParams['uploadId'] = params['UploadId'];
@@ -1715,122 +1684,136 @@ function checkParamsRequire(callerName, params) {
 
 // 发起请求
 function submitRequest(params, callback) {
-    var bucket = params.Bucket;
-    var region = params.Region;
-    var object = params.Key;
-    var action = params.action;
-    var method = params.method || 'GET';
-    var headers = params.headers || {};
-    var url = params.url;
-    var body = params.body;
-    var json = params.json;
+    var self = this;
 
-    // 通过调用的函数名确定需要的参数
-    var callerName = arguments.callee.caller.name;
-    if (!checkParamsRequire(callerName, params) && callerName !== 'getService') {
-        return callback({
-            error: 'lack of required params'
+    return new Promise(function (resolve, reject) {
+
+        var bucket = params.Bucket;
+        var region = params.Region;
+        var object = params.Key;
+        var action = params.action;
+        var method = params.method || 'GET';
+        var headers = params.headers || {};
+        var url = params.url;
+        var body = params.body;
+        var json = params.json;
+
+        var needHeaders = params.needHeaders;
+        var rawBody = params.rawBody;
+
+        var qs = params.qs;
+
+        var opt = {
+            url: url || getUrl({
+                bucket: bucket,
+                region: region,
+                object: object,
+                action: action,
+                appId: self.AppId,
+            }),
+            method: method,
+            headers: headers,
+            qs: qs,
+            body: body,
+            json: json,
+        };
+
+        if (object) {
+            object = '/' + object;
+        }
+
+        // 获取签名
+        opt.headers.Authorization = util.getAuth({
+            method: opt.method,
+            pathname: object || '/',
+            secretId: params.SecretId || self.SecretId,
+            secretKey: params.SecretKey || self.SecretKey,
         });
-    }
 
-    var needHeaders = params.needHeaders;
-    var rawBody = params.rawBody;
+        // 预先处理 undefined 的属性
+        if (opt.headers) {
+            opt.headers = util.clearKey(opt.headers);
+        }
 
-    var qs = params.qs;
+        if (opt.qs) {
+            opt.qs = util.clearKey(opt.qs);
+        }
+        opt = util.clearKey(opt);
 
-    var appId = this.AppId || '';
-    var secretId = this.SecretId || '';
-    var secretKey = this.SecretKey || '';
+        var req = REQUEST(opt, function (err, response, body) {
 
-    var opt = {
-        url: url || getUrl({
-            bucket: bucket,
-            region: region,
-            object: object,
-            action: action,
-            appId: appId,
-            secretId: secretId,
-            secretKey: secretKey
-        }),
-        method: method,
-        headers: headers,
-        qs: qs,
-        body: body,
-        json: json,
-        // 这里的 proxy 用于处理内网网关限制，代理转发华南园区的请求，华北园区无需代理
-        //'proxy':'http://dev-proxy.oa.com:8080'
-    };
+            // 请求错误，发生网络错误
+            if (err) {
+                return callback({
+                    error: err
+                });
+            }
 
+            var statusCode = response.statusCode;
+            var jsonRes;
 
-    if (object) {
-        object = '/' + object;
-    }
+            try {
+                jsonRes = util.xml2json(body) || {};
+            } catch (e) {
+                jsonRes = body || {};
+            }
 
-    // 获取签名
-    opt.headers.Authorization = util.getAuth({
-        method: opt.method,
-        pathname: object || '/',
-        secretId: secretId,
-        secretKey: secretKey
+            // 请求返回码不为 200
+            if (statusCode !== 200) {
+                return callback({
+                    statusCode: statusCode,
+                    error: jsonRes.Error || jsonRes
+                });
+            }
+
+            // 不对 body 进行转换，body 直接挂载返回
+            if (rawBody) {
+                jsonRes = {};
+                jsonRes.body = body;
+            }
+
+            // 如果需要头部信息，则 headers 挂载返回
+            if (needHeaders) {
+                jsonRes.headers = response.headers || {};
+            }
+
+            if (jsonRes.Error) {
+                return callback({
+                    statusCode: statusCode,
+                    error: jsonRes.Error
+                });
+            }
+
+            callback(null, jsonRes);
+            resolve(jsonRes);
+        });
+
+        // progress
+        if (params.onProgress && typeof params.onProgress === 'function') {
+            var contentLength = opt.headers['Content-Length'];
+            req.on('drain', function () {
+                var loaded = 0;
+                try { loaded = req.req.connection.bytesWritten; } catch (e) {}
+                var total = contentLength;
+                var percent = total ? (parseInt(loaded / total * 100) / 100) : 0;
+                params.onProgress({
+                    loaded: loaded,
+                    percent: percent,
+                });
+            });
+        }
+
+        // pipe 输入
+        if (params.inputStream) {
+            params.inputStream.pipe(req);
+        }
+        // pipe 输出
+        if (params.outputStream) {
+            req.pipe(params.outputStream);
+        }
+
     });
 
-    // 预先处理 undefine 的属性
-    if (opt.headers) {
-        opt.headers = util.clearKey(opt.headers);
-    }
-
-    if (opt.qs) {
-        opt.qs = util.clearKey(opt.qs);
-    }
-
-    var p = REQUEST(opt, function (err, response, body) {
-
-        // 请求错误，发生网络错误
-        if (err) {
-            return callback({
-                error: err
-            });
-        }
-
-        var statusCode = response.statusCode;
-        var jsonRes;
-
-        try {
-            jsonRes = util.xml2json(body) || {};
-        } catch (e) {
-            jsonRes = body || {};
-        }
-
-        // 请求返回码不为 200
-        if (statusCode !== 200) {
-            return callback({
-                statusCode: statusCode,
-                error: jsonRes.Error || jsonRes
-            });
-        }
-
-        // 不对 body 进行转换，body 直接挂载返回
-        if (rawBody) {
-            jsonRes = {};
-            jsonRes.body = body;
-        }
-
-        // 如果需要头部信息，则 headers 挂载返回
-        if (needHeaders) {
-            jsonRes.headers = response.headers || {};
-        }
-
-        if (jsonRes.Error) {
-            return callback({
-                statusCode: statusCode,
-                error: jsonRes.Error
-            });
-        }
-
-        return callback(null, jsonRes);
-    });
-
-    return p;
 }
 
 
@@ -1866,12 +1849,12 @@ exports.optionsObject = optionsObject;
 exports.putObjectCopy = putObjectCopy;
 
 // 分块上传相关方法
-exports.multipartInit = MultipartInit;
-exports.multipartUpload = MultipartUpload;
-exports.multipartComplete = MultipartComplete;
-exports.multipartList = MultipartList;
-exports.multipartListPart = MultipartListPart;
-exports.multipartAbort = MultipartAbort;
+exports.multipartInit = multipartInit;
+exports.multipartUpload = multipartUpload;
+exports.multipartComplete = multipartComplete;
+exports.multipartList = multipartList;
+exports.multipartListPart = multipartListPart;
+exports.multipartAbort = multipartAbort;
 exports.deleteMultipleObject = deleteMultipleObject;
 
 // 工具方法

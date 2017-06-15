@@ -10,6 +10,8 @@ https://www.qcloud.com/document/product/436/8629
 
 ## npm 安装
 
+ [npm 地址](https://www.npmjs.com/package/cos-nodejs-sdk-v5)
+ 
 ```
 npm i cos-nodejs-sdk-v5 --save
 ```

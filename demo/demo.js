@@ -209,8 +209,8 @@ function putObject() {
             Key: filename, /* 必须 */
             Body: fs.createReadStream(filepath), /* 必须 */
             ContentLength: fs.statSync(filepath).size, /* 必须 */
-            onProgress: function (processData, percent) {
-                console.log(processData, percent);
+            onProgress: function (processData) {
+                console.log(JSON.stringify(progressData));
             },
         }, function (err, data) {
             if (err) {

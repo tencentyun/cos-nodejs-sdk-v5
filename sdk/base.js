@@ -17,7 +17,7 @@ function getService(params, callback) {
         callback = params;
         params = {};
     }
-    return submitRequest.call(this, {
+    submitRequest.call(this, {
         url: 'http://service.cos.myqcloud.com',
         method: 'GET',
     }, function (err, data) {
@@ -54,7 +54,7 @@ function getService(params, callback) {
  *     @return  {Boolean}    data.BucketAuth    是否有 Bucket 的访问权限
  */
 function headBucket(params, callback) {
-    return submitRequest.call(this, {
+    submitRequest.call(this, {
         Bucket: params.Bucket,
         Region: params.Region,
         method: 'HEAD',
@@ -106,7 +106,7 @@ function getBucket(params, callback) {
     reqParams['max-keys'] = params['MaxKeys'];
     reqParams['encoding-type'] = params['EncodingType'];
 
-    return submitRequest.call(this, {
+    submitRequest.call(this, {
         method: 'GET',
         Bucket: params.Bucket,
         Region: params.Region,
@@ -157,7 +157,7 @@ function putBucket(params, callback) {
     headers['x-cos-grant-write'] = params['GrantWrite'];
     headers['x-cos-grant-full-control'] = params['GrantFullControl'];
     var appId = this.AppId || '';
-    return submitRequest.call(this, {
+    submitRequest.call(this, {
         method: 'PUT',
         Bucket: params.Bucket,
         Region: params.Region,
@@ -190,7 +190,7 @@ function putBucket(params, callback) {
  *     @return  {string}    data.Location  操作地址
  */
 function deleteBucket(params, callback) {
-    return submitRequest.call(this, {
+    submitRequest.call(this, {
         method: 'DELETE',
         Bucket: params.Bucket,
         Region: params.Region,
@@ -222,7 +222,7 @@ function deleteBucket(params, callback) {
  */
 function getBucketACL(params, callback) {
 
-    return submitRequest.call(this, {
+    submitRequest.call(this, {
         method: 'GET',
         Bucket: params.Bucket,
         Region: params.Region,
@@ -267,7 +267,7 @@ function putBucketACL(params, callback) {
     headers['x-cos-grant-write'] = params['GrantWrite'];
     headers['x-cos-grant-full-control'] = params['GrantFullControl'];
 
-    return submitRequest.call(this, {
+    submitRequest.call(this, {
         method: 'PUT',
         Bucket: params.Bucket,
         Region: params.Region,
@@ -295,7 +295,7 @@ function putBucketACL(params, callback) {
  *     @return  {object}    data.CORSConfiguration     Bucket的跨域设置
  */
 function getBucketCORS(params, callback) {
-    return submitRequest.call(this, {
+    submitRequest.call(this, {
         method: 'GET',
         Bucket: params.Bucket,
         Region: params.Region,
@@ -402,7 +402,7 @@ function putBucketCORS(params, callback) {
 
     headers['Content-MD5'] = util.binaryBase64(util.md5(xml));
 
-    return submitRequest.call(this, {
+    submitRequest.call(this, {
         method: 'PUT',
         Bucket: params.Bucket,
         Region: params.Region,
@@ -431,7 +431,7 @@ function putBucketPolicy(params, callback) {
     headers['Content-Type'] = 'application/json';
     headers['Content-MD5'] = util.binaryBase64(util.md5(jsonPolicy));
 
-    return submitRequest.call(this, {
+    submitRequest.call(this, {
         method: 'PUT',
         Bucket: params.Bucket,
         Region: params.Region,
@@ -480,7 +480,7 @@ function putBucketPolicy(params, callback) {
  * @return  {object}    data   返回的数据
  */
 function deleteBucketCORS(params, callback) {
-    return submitRequest.call(this, {
+    submitRequest.call(this, {
         method: 'DELETE',
         Bucket: params.Bucket,
         Region: params.Region,
@@ -512,7 +512,7 @@ function deleteBucketCORS(params, callback) {
  * @return  {object}    data   返回数据，包含地域信息 LocationConstraint
  */
 function getBucketLocation(params, callback) {
-    return submitRequest.call(this, {
+    submitRequest.call(this, {
         method: 'GET',
         Bucket: params.Bucket,
         Region: params.Region,
@@ -536,7 +536,7 @@ function getBucketLocation(params, callback) {
  * @return  {object}    data   返回数据
  */
 function getBucketPolicy(params, callback) {
-    return submitRequest.call(this, {
+    submitRequest.call(this, {
         method: 'GET',
         Bucket: params.Bucket,
         Region: params.Region,
@@ -588,7 +588,7 @@ function getBucketPolicy(params, callback) {
  * @return  {object}    data   返回数据
  */
 function getBucketTagging(params, callback) {
-    return submitRequest.call(this, {
+    submitRequest.call(this, {
         method: 'GET',
         Bucket: params.Bucket,
         Region: params.Region,
@@ -645,7 +645,7 @@ function putBucketTagging(params, callback) {
 
     var xml = util.json2xml(TagSetting);
 
-    return submitRequest.call(this, {
+    submitRequest.call(this, {
         method: 'PUT',
         Bucket: params.Bucket,
         Region: params.Region,
@@ -680,7 +680,7 @@ function putBucketTagging(params, callback) {
  * @return  {object}    data   返回的数据
  */
 function deleteBucketTagging(params, callback) {
-    return submitRequest.call(this, {
+    submitRequest.call(this, {
         method: 'DELETE',
         Bucket: params.Bucket,
         Region: params.Region,
@@ -705,7 +705,7 @@ function deleteBucketTagging(params, callback) {
 // ----------------------------------------------------- Lifecycle 暂时尚未测通 -------------------------------------------------------
 
 function getBucketLifecycle(params, callback) {
-    return submitRequest.call(this, {
+    submitRequest.call(this, {
         method: 'GET',
         Bucket: params.Bucket,
         Region: params.Region,
@@ -736,7 +736,7 @@ function putBucketLifecycle(params, callback) {
     var xml = util.json2xml(Lifecycle);
 
 
-    return submitRequest.call(this, {
+    submitRequest.call(this, {
         method: 'PUT',
         Bucket: params.Bucket,
         Region: params.Region,
@@ -761,7 +761,7 @@ function putBucketLifecycle(params, callback) {
 }
 
 function deleteBucketLifecycle(params, callback) {
-    return submitRequest.call(this, {
+    submitRequest.call(this, {
         method: 'DELETE',
         Bucket: params.Bucket,
         Region: params.Region,
@@ -804,7 +804,7 @@ function headObject(params, callback) {
     var headers = {};
     headers['If-Modified-Since'] = params['IfModifiedSince'];
 
-    return submitRequest.call(this, {
+    submitRequest.call(this, {
         method: 'HEAD',
         Bucket: params.Bucket,
         Region: params.Region,
@@ -873,7 +873,7 @@ function getObject(params, callback) {
     }
 
     // 如果用户自己传入了 output
-    return submitRequest.call(this, {
+    submitRequest.call(this, {
         method: 'GET',
         Bucket: params.Bucket,
         Region: params.Region,
@@ -957,7 +957,7 @@ function putObject(params, callback) {
         readStream = fs.createReadStream(body);
     }
 
-    return submitRequest.call(this, {
+    submitRequest.call(this, {
         method: 'PUT',
         Bucket: params.Bucket,
         Region: params.Region,
@@ -996,7 +996,7 @@ function putObject(params, callback) {
  *     @param  {Boolean}    data.BucketNotFound      请求的 object 所在的 bucket 是否不存在，如果为 true，则说明该 bucket 不存在
  */
 function deleteObject(params, callback) {
-    return submitRequest.call(this, {
+    submitRequest.call(this, {
         method: 'DELETE',
         Bucket: params.Bucket,
         Region: params.Region,
@@ -1037,7 +1037,7 @@ function deleteObject(params, callback) {
  */
 function getObjectACL(params, callback) {
 
-    return submitRequest.call(this, {
+    submitRequest.call(this, {
         method: 'GET',
         Bucket: params.Bucket,
         Region: params.Region,
@@ -1080,7 +1080,7 @@ function putObjectACL(params, callback) {
     headers['x-cos-grant-write'] = params['GrantWrite'];
     headers['x-cos-grant-full-control'] = params['GrantFullControl'];
 
-    return submitRequest.call(this, {
+    submitRequest.call(this, {
         method: 'PUT',
         Bucket: params.Bucket,
         Region: params.Region,
@@ -1116,7 +1116,7 @@ function optionsObject(params, callback) {
     headers['Access-Control-Request-Method'] = params['AccessControlRequestMethod'];
     headers['Access-Control-Request-Headers'] = params['AccessControlRequestHeaders'];
 
-    return submitRequest.call(this, {
+    submitRequest.call(this, {
         method: 'OPTIONS',
         Bucket: params.Bucket,
         Region: params.Region,
@@ -1204,7 +1204,7 @@ function putObjectCopy(params, callback) {
         }
     }
 
-    return submitRequest.call(this, {
+    submitRequest.call(this, {
         method: 'PUT',
         Bucket: params.Bucket,
         Region: params.Region,
@@ -1243,7 +1243,7 @@ function deleteMultipleObject(params, callback) {
     headers['Content-MD5'] = util.binaryBase64(util.md5(xml));
     headers['Content-Length'] = Buffer.byteLength(xml, 'utf8');
 
-    return submitRequest.call(this, {
+    submitRequest.call(this, {
         method: 'POST',
         Bucket: params.Bucket,
         Region: params.Region,
@@ -1322,7 +1322,7 @@ function multipartInit(params, callback) {
         }
     }
 
-    return submitRequest.call(this, {
+    submitRequest.call(this, {
         method: 'POST',
         Bucket: params.Bucket,
         Region: params.Region,
@@ -1373,7 +1373,7 @@ function multipartUpload(params, callback) {
 
     var action = '?partNumber=' + PartNumber + '&uploadId=' + UploadId;
 
-    return submitRequest.call(this, {
+    submitRequest.call(this, {
         method: 'PUT',
         Bucket: params.Bucket,
         Region: params.Region,
@@ -1442,7 +1442,7 @@ function multipartComplete(params, callback) {
     headers['Content-length'] = Buffer.byteLength(xml, 'utf8');
     headers['Content-MD5'] = util.binaryBase64(util.md5(xml));
 
-    return submitRequest.call(this, {
+    submitRequest.call(this, {
         method: 'POST',
         Bucket: params.Bucket,
         Region: params.Region,
@@ -1491,7 +1491,7 @@ function multipartList(params, callback) {
     reqParams = util.clearKey(reqParams);
 
 
-    return submitRequest.call(this, {
+    submitRequest.call(this, {
         method: 'GET',
         Bucket: params.Bucket,
         Region: params.Region,
@@ -1549,7 +1549,7 @@ function multipartListPart(params, callback) {
     reqParams['part-number-marker'] = params['PartNumberMarker'];
 
 
-    return submitRequest.call(this, {
+    submitRequest.call(this, {
         method: 'GET',
         Bucket: params.Bucket,
         Region: params.Region,
@@ -1590,7 +1590,7 @@ function multipartAbort(params, callback) {
 
     reqParams['uploadId'] = params['UploadId'];
 
-    return submitRequest.call(this, {
+    submitRequest.call(this, {
         method: 'DELETE',
         Bucket: params.Bucket,
         Region: params.Region,
@@ -1684,135 +1684,129 @@ function checkParamsRequire(callerName, params) {
 
 // 发起请求
 function submitRequest(params, callback) {
-    var self = this;
+    var bucket = params.Bucket;
+    var region = params.Region;
+    var object = params.Key;
+    var action = params.action;
+    var method = params.method || 'GET';
+    var headers = params.headers || {};
+    var url = params.url;
+    var body = params.body;
+    var json = params.json;
 
-    return new Promise(function (resolve, reject) {
+    var needHeaders = params.needHeaders;
+    var rawBody = params.rawBody;
 
-        var bucket = params.Bucket;
-        var region = params.Region;
-        var object = params.Key;
-        var action = params.action;
-        var method = params.method || 'GET';
-        var headers = params.headers || {};
-        var url = params.url;
-        var body = params.body;
-        var json = params.json;
+    var qs = params.qs;
 
-        var needHeaders = params.needHeaders;
-        var rawBody = params.rawBody;
+    var opt = {
+        url: url || getUrl({
+            bucket: bucket,
+            region: region,
+            object: object,
+            action: action,
+            appId: this.AppId,
+        }),
+        method: method,
+        headers: headers,
+        qs: qs,
+        body: body,
+        json: json,
+    };
 
-        var qs = params.qs;
+    if (object) {
+        object = '/' + object;
+    }
 
-        var opt = {
-            url: url || getUrl({
-                bucket: bucket,
-                region: region,
-                object: object,
-                action: action,
-                appId: self.AppId,
-            }),
-            method: method,
-            headers: headers,
-            qs: qs,
-            body: body,
-            json: json,
-        };
+    // 获取签名
+    opt.headers.Authorization = util.getAuth({
+        method: opt.method,
+        pathname: object || '/',
+        secretId: params.SecretId || this.SecretId,
+        secretKey: params.SecretKey || this.SecretKey,
+    });
 
-        if (object) {
-            object = '/' + object;
+    // 预先处理 undefined 的属性
+    if (opt.headers) {
+        opt.headers = util.clearKey(opt.headers);
+    }
+
+    if (opt.qs) {
+        opt.qs = util.clearKey(opt.qs);
+    }
+    opt = util.clearKey(opt);
+
+    var req = REQUEST(opt, function (err, response, body) {
+
+        // 请求错误，发生网络错误
+        if (err) {
+            callback({
+                error: err
+            });
+            return;
         }
 
-        // 获取签名
-        opt.headers.Authorization = util.getAuth({
-            method: opt.method,
-            pathname: object || '/',
-            secretId: params.SecretId || self.SecretId,
-            secretKey: params.SecretKey || self.SecretKey,
-        });
+        var statusCode = response.statusCode;
+        var jsonRes;
 
-        // 预先处理 undefined 的属性
-        if (opt.headers) {
-            opt.headers = util.clearKey(opt.headers);
+        try {
+            jsonRes = util.xml2json(body) || {};
+        } catch (e) {
+            jsonRes = body || {};
         }
 
-        if (opt.qs) {
-            opt.qs = util.clearKey(opt.qs);
+        // 请求返回码不为 200
+        if (statusCode !== 200) {
+            callback({
+                statusCode: statusCode,
+                error: jsonRes.Error || jsonRes
+            });
+            return;
         }
-        opt = util.clearKey(opt);
 
-        var req = REQUEST(opt, function (err, response, body) {
+        // 不对 body 进行转换，body 直接挂载返回
+        if (rawBody) {
+            jsonRes = {};
+            jsonRes.body = body;
+        }
 
-            // 请求错误，发生网络错误
-            if (err) {
-                return callback({
-                    error: err
-                });
-            }
+        // 如果需要头部信息，则 headers 挂载返回
+        if (needHeaders) {
+            jsonRes.headers = response.headers || {};
+        }
 
-            var statusCode = response.statusCode;
-            var jsonRes;
-
-            try {
-                jsonRes = util.xml2json(body) || {};
-            } catch (e) {
-                jsonRes = body || {};
-            }
-
-            // 请求返回码不为 200
-            if (statusCode !== 200) {
-                return callback({
-                    statusCode: statusCode,
-                    error: jsonRes.Error || jsonRes
-                });
-            }
-
-            // 不对 body 进行转换，body 直接挂载返回
-            if (rawBody) {
-                jsonRes = {};
-                jsonRes.body = body;
-            }
-
-            // 如果需要头部信息，则 headers 挂载返回
-            if (needHeaders) {
-                jsonRes.headers = response.headers || {};
-            }
-
-            if (jsonRes.Error) {
-                return callback({
-                    statusCode: statusCode,
-                    error: jsonRes.Error
-                });
-            }
-
-            callback(null, jsonRes);
-            resolve(jsonRes);
-        });
-
-        // progress
-        if (params.onProgress && typeof params.onProgress === 'function') {
-            var contentLength = opt.headers['Content-Length'];
-            req.on('drain', function () {
-                var loaded = 0;
-                try { loaded = req.req.connection.bytesWritten; } catch (e) {}
-                var total = contentLength;
-                var percent = total ? (parseInt(loaded / total * 100) / 100) : 0;
-                params.onProgress({
-                    loaded: loaded,
-                    percent: percent,
-                });
+        if (jsonRes.Error) {
+            return callback({
+                statusCode: statusCode,
+                error: jsonRes.Error
             });
         }
-
-        // pipe 输入
-        if (params.inputStream) {
-            params.inputStream.pipe(req);
-        }
-        // pipe 输出
-        if (params.outputStream) {
-            req.pipe(params.outputStream);
-        }
-
+        callback(null, jsonRes);
     });
+
+    // progress
+    if (params.onProgress && typeof params.onProgress === 'function') {
+        var contentLength = opt.headers['Content-Length'];
+        req.on('drain', function () {
+            var loaded = 0;
+            try { loaded = req.req.connection.bytesWritten; } catch (e) {}
+            var total = contentLength;
+            var percent = total ? (parseInt(loaded / total * 100) / 100) : 0;
+            params.onProgress({
+                loaded: loaded,
+                percent: percent,
+            });
+        });
+    }
+
+    // pipe 输入
+    if (params.inputStream) {
+        params.inputStream.pipe(req);
+    }
+    // pipe 输出
+    if (params.outputStream) {
+        req.pipe(params.outputStream);
+    }
 
 }
 

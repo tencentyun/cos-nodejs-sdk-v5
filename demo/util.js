@@ -5,7 +5,7 @@ var platform = os.platform();
 
 var createFile = function (filepath, size, callback) {
     var cb = function (err) {
-        console.log(path.basename(filepath) + ' create', err ? 'error.' : 'success.', err || '');
+        // console.log(path.basename(filepath) + ' create', err ? 'error.' : 'success.', err || '');
         callback && callback();
     };
     if (fs.existsSync(filepath)) {

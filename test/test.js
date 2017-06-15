@@ -63,7 +63,7 @@ describe('getService()', function() {
                 assert.equal(true, hasBucket);
                 done();
             });
-        });
+        }).catch(function () {});
     });
 });
 describe('getAuth()', function() {
@@ -80,7 +80,7 @@ describe('getAuth()', function() {
                 assert.equal(true, response.statusCode === 200);
                 done();
             });
-        });
+        }).catch(function () {});
     });
 });
 describe('putBucket()', function() {
@@ -111,7 +111,7 @@ describe('getBucket()', function() {
                 assert.equal(true, data.Name === config.Bucket && data.Contents.constructor === Array);
                 done();
             });
-        });
+        }).catch(function () {});
     });
 });
 describe('putObject()', function() {

@@ -126,7 +126,7 @@ var md5 = function (str, encoding) {
 var clearKey = function (obj) {
     var retObj = {};
     for (var key in obj) {
-        if (obj[key]) {
+        if (obj[key] !== undefined && obj[key] !== null) {
             retObj[key] = obj[key];
         }
     }

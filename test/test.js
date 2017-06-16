@@ -11,6 +11,14 @@ var cos = new COS({
     SecretKey: config.SecretKey,
 });
 
+var AppId = config.AppId;
+var Bucket = config.Bucket;
+if (config.Bucket.indexOf('-') > -1) {
+    var arr = config.Bucket.split('-');
+    Bucket = arr[0];
+    AppId = arr[1];
+}
+
 var assert = require("assert");
 
 function prepareBucket() {
@@ -56,7 +64,7 @@ describe('getService()', function() {
             cos.getService(function (err, data) {
                 var hasBucket = false;
                 data.Buckets && data.Buckets.forEach(function (item) {
-                    if (item.Name === config.Bucket + '-' + config.AppId && item.Location === config.Region) {
+                    if (item.Name === Bucket + '-' + AppId && item.Location === config.Region) {
                         hasBucket = true;
                     }
                 });
@@ -75,7 +83,7 @@ describe('getAuth()', function() {
                 Method: 'get',
                 Key: key
             });
-            var link = 'http://' + config.Bucket + '-' + config.AppId + '.' + config.Region + '.myqcloud.com/' + key + '?sign=' + encodeURIComponent(auth);
+            var link = 'http://' + Bucket + '-' + AppId + '.' + config.Region + '.myqcloud.com/' + key + '?sign=' + encodeURIComponent(auth);
             request(link, function (err, response, body) {
                 assert.equal(true, response.statusCode === 200);
                 done();
@@ -94,7 +102,7 @@ describe('putBucket()', function() {
                 Bucket: 'testnew',
                 Region: config.Region
             }, function (err, data) {
-                assert.equal('http://testnew-' + config.AppId + '.' + config.Region + '.myqcloud.com', data.Location);
+                assert.equal('http://testnew-' + AppId + '.' + config.Region + '.myqcloud.com', data.Location);
                 done();
             });
         });
@@ -108,7 +116,7 @@ describe('getBucket()', function() {
                 Bucket: config.Bucket,
                 Region: config.Region
             }, function (err, data) {
-                assert.equal(true, data.Name === config.Bucket && data.Contents.constructor === Array);
+                assert.equal(true, data.Name === Bucket && data.Contents.constructor === Array);
                 done();
             });
         }).catch(function () {});

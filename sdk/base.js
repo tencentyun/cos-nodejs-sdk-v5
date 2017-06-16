@@ -57,6 +57,7 @@ function headBucket(params, callback) {
     submitRequest.call(this, {
         Bucket: params.Bucket,
         Region: params.Region,
+        AppId: params.AppId,
         method: 'HEAD',
     }, function (err, body) {
         if (err) {
@@ -110,6 +111,7 @@ function getBucket(params, callback) {
         method: 'GET',
         Bucket: params.Bucket,
         Region: params.Region,
+        AppId: params.AppId,
         qs: reqParams,
     }, function (err, data) {
         if (err) {
@@ -161,6 +163,7 @@ function putBucket(params, callback) {
         method: 'PUT',
         Bucket: params.Bucket,
         Region: params.Region,
+        AppId: params.AppId,
         headers: headers,
     }, function (err, data) {
         if (err) {
@@ -194,6 +197,7 @@ function deleteBucket(params, callback) {
         method: 'DELETE',
         Bucket: params.Bucket,
         Region: params.Region,
+        AppId: params.AppId,
     }, function (err, data) {
         if (err) {
             if (err.statusCode && err.statusCode == 204) {
@@ -226,6 +230,7 @@ function getBucketACL(params, callback) {
         method: 'GET',
         Bucket: params.Bucket,
         Region: params.Region,
+        AppId: params.AppId,
         action: '/?acl',
     }, function (err, data) {
         if (err) {
@@ -271,6 +276,7 @@ function putBucketACL(params, callback) {
         method: 'PUT',
         Bucket: params.Bucket,
         Region: params.Region,
+        AppId: params.AppId,
         action: '/?acl',
         headers: headers,
     }, function (err, data) {
@@ -299,6 +305,7 @@ function getBucketCORS(params, callback) {
         method: 'GET',
         Bucket: params.Bucket,
         Region: params.Region,
+        AppId: params.AppId,
         action: '/?cors',
     }, function (err, data) {
         if (err) {
@@ -406,6 +413,7 @@ function putBucketCORS(params, callback) {
         method: 'PUT',
         Bucket: params.Bucket,
         Region: params.Region,
+        AppId: params.AppId,
         body: xml,
         action: '/?cors',
         headers: headers,
@@ -435,6 +443,7 @@ function putBucketPolicy(params, callback) {
         method: 'PUT',
         Bucket: params.Bucket,
         Region: params.Region,
+        AppId: params.AppId,
         action: '/?policy',
         body: Policy,
         headers: headers,
@@ -484,6 +493,7 @@ function deleteBucketCORS(params, callback) {
         method: 'DELETE',
         Bucket: params.Bucket,
         Region: params.Region,
+        AppId: params.AppId,
         action: '/?cors',
         needHeaders: true,
     }, function (err, data) {
@@ -516,6 +526,7 @@ function getBucketLocation(params, callback) {
         method: 'GET',
         Bucket: params.Bucket,
         Region: params.Region,
+        AppId: params.AppId,
         action: '/?location',
     }, function (err, data) {
         if (err) {
@@ -540,6 +551,7 @@ function getBucketPolicy(params, callback) {
         method: 'GET',
         Bucket: params.Bucket,
         Region: params.Region,
+        AppId: params.AppId,
         action: '/?policy',
         rawBody: true,
     }, function (err, data) {
@@ -592,6 +604,7 @@ function getBucketTagging(params, callback) {
         method: 'GET',
         Bucket: params.Bucket,
         Region: params.Region,
+        AppId: params.AppId,
         action: '/?tagging',
     }, function (err, data) {
         if (err) {
@@ -649,6 +662,7 @@ function putBucketTagging(params, callback) {
         method: 'PUT',
         Bucket: params.Bucket,
         Region: params.Region,
+        AppId: params.AppId,
         body: xml,
         action: '/?tagging',
         headers: headers,
@@ -684,6 +698,7 @@ function deleteBucketTagging(params, callback) {
         method: 'DELETE',
         Bucket: params.Bucket,
         Region: params.Region,
+        AppId: params.AppId,
         action: '/?tagging',
         needHeaders: true,
     }, function (err, data) {
@@ -709,6 +724,7 @@ function getBucketLifecycle(params, callback) {
         method: 'GET',
         Bucket: params.Bucket,
         Region: params.Region,
+        AppId: params.AppId,
         action: '/?lifecycle',
     }, function (err, data) {
         if (err) {
@@ -740,6 +756,7 @@ function putBucketLifecycle(params, callback) {
         method: 'PUT',
         Bucket: params.Bucket,
         Region: params.Region,
+        AppId: params.AppId,
         body: xml,
         action: '/?lifecycle',
         headers: headers,
@@ -765,6 +782,7 @@ function deleteBucketLifecycle(params, callback) {
         method: 'DELETE',
         Bucket: params.Bucket,
         Region: params.Region,
+        AppId: params.AppId,
         action: '/?lifecycle',
         needHeaders: true,
     }, function (err, data) {
@@ -808,6 +826,7 @@ function headObject(params, callback) {
         method: 'HEAD',
         Bucket: params.Bucket,
         Region: params.Region,
+        AppId: params.AppId,
         Key: params.Key,
         headers: headers,
         needHeaders: true,
@@ -877,6 +896,7 @@ function getObject(params, callback) {
         method: 'GET',
         Bucket: params.Bucket,
         Region: params.Region,
+        AppId: params.AppId,
         Key: params.Key,
         headers: headers,
         qs: reqParams,
@@ -961,6 +981,7 @@ function putObject(params, callback) {
         method: 'PUT',
         Bucket: params.Bucket,
         Region: params.Region,
+        AppId: params.AppId,
         Key: params.Key,
         headers: headers,
         needHeaders: true,
@@ -1000,6 +1021,7 @@ function deleteObject(params, callback) {
         method: 'DELETE',
         Bucket: params.Bucket,
         Region: params.Region,
+        AppId: params.AppId,
         Key: params.Key,
     }, function (err, data) {
         if (err) {
@@ -1041,6 +1063,7 @@ function getObjectACL(params, callback) {
         method: 'GET',
         Bucket: params.Bucket,
         Region: params.Region,
+        AppId: params.AppId,
         Key: params.Key,
         action: '?acl',
     }, function (err, data) {
@@ -1084,6 +1107,7 @@ function putObjectACL(params, callback) {
         method: 'PUT',
         Bucket: params.Bucket,
         Region: params.Region,
+        AppId: params.AppId,
         Key: params.Key,
         action: '?acl',
         headers: headers,
@@ -1120,6 +1144,7 @@ function optionsObject(params, callback) {
         method: 'OPTIONS',
         Bucket: params.Bucket,
         Region: params.Region,
+        AppId: params.AppId,
         Key: params.Key,
         headers: headers,
         needHeaders: true,
@@ -1208,6 +1233,7 @@ function putObjectCopy(params, callback) {
         method: 'PUT',
         Bucket: params.Bucket,
         Region: params.Region,
+        AppId: params.AppId,
         Key: params.Key,
         headers: headers,
         needHeaders: true,
@@ -1247,6 +1273,7 @@ function deleteMultipleObject(params, callback) {
         method: 'POST',
         Bucket: params.Bucket,
         Region: params.Region,
+        AppId: params.AppId,
         body: xml,
         action: '/?delete',
         headers: headers,
@@ -1326,6 +1353,7 @@ function multipartInit(params, callback) {
         method: 'POST',
         Bucket: params.Bucket,
         Region: params.Region,
+        AppId: params.AppId,
         Key: params.Key,
         action: '?uploads',
         headers: headers,
@@ -1377,6 +1405,7 @@ function multipartUpload(params, callback) {
         method: 'PUT',
         Bucket: params.Bucket,
         Region: params.Region,
+        AppId: params.AppId,
         Key: params.Key,
         action: action,
         headers: headers,
@@ -1446,6 +1475,7 @@ function multipartComplete(params, callback) {
         method: 'POST',
         Bucket: params.Bucket,
         Region: params.Region,
+        AppId: params.AppId,
         Key: params.Key,
         action: action,
         body: xml,
@@ -1495,6 +1525,7 @@ function multipartList(params, callback) {
         method: 'GET',
         Bucket: params.Bucket,
         Region: params.Region,
+        AppId: params.AppId,
         action: '/?uploads&' + querystring.stringify(reqParams),
     }, function (err, data) {
         if (err) {
@@ -1553,6 +1584,7 @@ function multipartListPart(params, callback) {
         method: 'GET',
         Bucket: params.Bucket,
         Region: params.Region,
+        AppId: params.AppId,
         Key: params.Key,
         qs: reqParams,
     }, function (err, data) {
@@ -1594,6 +1626,7 @@ function multipartAbort(params, callback) {
         method: 'DELETE',
         Bucket: params.Bucket,
         Region: params.Region,
+        AppId: params.AppId,
         Key: params.Key,
         qs: reqParams,
         needHeaders: true,
@@ -1705,7 +1738,7 @@ function submitRequest(params, callback) {
             region: region,
             object: object,
             action: action,
-            appId: this.AppId,
+            appId: params.AppId || this.AppId,
         }),
         method: method,
         headers: headers,
@@ -1811,45 +1844,56 @@ function submitRequest(params, callback) {
 }
 
 
-// Bucket 相关方法
-exports.getService = getService;
-exports.getBucket = getBucket;
-exports.headBucket = headBucket;
-exports.putBucket = putBucket;
-exports.deleteBucket = deleteBucket;
-exports.getBucketACL = getBucketACL;
-exports.putBucketACL = putBucketACL;
-exports.getBucketCORS = getBucketCORS;
-exports.putBucketCORS = putBucketCORS;
-exports.deleteBucketCORS = deleteBucketCORS;
-exports.getBucketLocation = getBucketLocation;
-exports.getBucketTagging = getBucketTagging;
-exports.putBucketTagging = putBucketTagging;
-exports.deleteBucketTagging = deleteBucketTagging;
-exports.getBucketPolicy = getBucketPolicy;
-exports.putBucketPolicy = putBucketPolicy;
-// exports.getBucketLifecycle = getBucketLifecycle;
-// exports.putBucketLifecycle = putBucketLifecycle;
-// exports.deleteBucketLifecycle = deleteBucketLifecycle;
+var API_MAP = {
+    // Bucket 相关方法
+    getService: getService,
+    getBucket: getBucket,
+    headBucket: headBucket,
+    putBucket: putBucket,
+    deleteBucket: deleteBucket,
+    getBucketACL: getBucketACL,
+    putBucketACL: putBucketACL,
+    getBucketCORS: getBucketCORS,
+    putBucketCORS: putBucketCORS,
+    deleteBucketCORS: deleteBucketCORS,
+    getBucketLocation: getBucketLocation,
+    getBucketTagging: getBucketTagging,
+    putBucketTagging: putBucketTagging,
+    deleteBucketTagging: deleteBucketTagging,
+    getBucketPolicy: getBucketPolicy,
+    putBucketPolicy: putBucketPolicy,
+    // getBucketLifecycle: getBucketLifecycle,
+    // putBucketLifecycle: putBucketLifecycle,
+    // deleteBucketLifecycle: deleteBucketLifecycle,
 
-// Object 相关方法
-exports.getObject = getObject;
-exports.headObject = headObject;
-exports.putObject = putObject;
-exports.deleteObject = deleteObject;
-exports.getObjectACL = getObjectACL;
-exports.putObjectACL = putObjectACL;
-exports.optionsObject = optionsObject;
-exports.putObjectCopy = putObjectCopy;
+    // Object 相关方法
+    getObject: getObject,
+    headObject: headObject,
+    putObject: putObject,
+    deleteObject: deleteObject,
+    getObjectACL: getObjectACL,
+    putObjectACL: putObjectACL,
+    optionsObject: optionsObject,
+    putObjectCopy: putObjectCopy,
 
-// 分块上传相关方法
-exports.multipartInit = multipartInit;
-exports.multipartUpload = multipartUpload;
-exports.multipartComplete = multipartComplete;
-exports.multipartList = multipartList;
-exports.multipartListPart = multipartListPart;
-exports.multipartAbort = multipartAbort;
-exports.deleteMultipleObject = deleteMultipleObject;
+    // 分块上传相关方法
+    multipartInit: multipartInit,
+    multipartUpload: multipartUpload,
+    multipartComplete: multipartComplete,
+    multipartList: multipartList,
+    multipartListPart: multipartListPart,
+    multipartAbort: multipartAbort,
+    deleteMultipleObject: deleteMultipleObject,
 
-// 工具方法
-exports.getAuth = getAuth;
+    // 工具方法
+    getAuth: getAuth,
+};
+
+(function () {
+    for (var apiName in API_MAP) {
+        if (API_MAP.hasOwnProperty(apiName)) {
+            var fn = API_MAP[apiName];
+            exports[apiName] = util.apiWrapper(apiName, fn);
+        }
+    }
+})();

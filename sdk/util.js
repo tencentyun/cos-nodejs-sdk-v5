@@ -171,7 +171,56 @@ var binaryBase64 = function (str) {
     return new Buffer(arr).toString('base64');
 };
 
+var checkParams = function (apiName, params) {
+    var bucket = params.Bucket;
+    var region = params.Region;
+    var object = params.Key;
+    if (apiName.indexOf('Bucket') > -1 || apiName === 'deleteMultipleObject' || apiName === 'multipartList') {
+        return bucket && region;
+    }
+    if (apiName.indexOf('Object') > -1 || apiName.indexOf('multipart') > -1 || apiName === 'sliceUploadFile' || apiName === 'abortUploadTask') {
+        return bucket && region && object;
+    }
+    return true;
+};
+
+
+var apiWrapper = function (apiName, apiFn) {
+    return function (params, callback) {
+        callback = callback || function () { };
+        if (apiName !== 'getService') {
+            // 判断参数是否完整
+            if (!checkParams(apiName, params)) {
+                callback({error: 'lack of required params'});
+                return;
+            }
+            // 优化 Key 参数
+            if (params.Key && params.Key.indexOf('/') === 0) {
+                callback({error: 'params Key can not start width "/"'});
+                console.log(12312);
+                return;
+            }
+            // 兼容带有 AppId 的 Bucket
+            var appId, bucket = params.Bucket;
+            if (bucket && bucket.indexOf('-') > -1) {
+                var arr = bucket.split('-');
+                appId = arr[1];
+                bucket = arr[0];
+                params.AppId = appId;
+                params.Bucket = bucket;
+            }
+        }
+        var res = apiFn.call(this, params, callback);
+        if (apiName === 'getAuth') {
+            return res;
+        } else {
+            return;
+        }
+    }
+};
+
 var util = {
+    apiWrapper: apiWrapper,
     getAuth: getAuth,
     xml2json: xml2json,
     json2xml: json2xml,

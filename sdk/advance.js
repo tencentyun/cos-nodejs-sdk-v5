@@ -809,5 +809,16 @@ function abortUploadTaskArray(params, callback) {
 }
 
 
-exports.sliceUploadFile = sliceUploadFile;
-exports.abortUploadTask = abortUploadTask;
+var API_MAP = {
+    sliceUploadFile: sliceUploadFile,
+    abortUploadTask: abortUploadTask,
+};
+
+(function () {
+    for (var apiName in API_MAP) {
+        if (API_MAP.hasOwnProperty(apiName)) {
+            var fn = API_MAP[apiName];
+            exports[apiName] = util.apiWrapper(apiName, fn);
+        }
+    }
+})();

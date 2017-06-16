@@ -17,12 +17,19 @@ function getService() {
 }
 
 function getAuth() {
+    var AppId = config.AppId;
+    var Bucket = config.Bucket;
+    if (config.Bucket.indexOf('-') > -1) {
+        var arr = config.Bucket.split('-');
+        Bucket = arr[0];
+        AppId = arr[1];
+    }
     var key = '1mb.zip';
     var auth = cos.getAuth({
         Method: 'get',
         Key: key
     });
-    console.log('http://' + config.Bucket + '-' + config.AppId + '.' + config.Region + '.myqcloud.com/' + key + '?sign=' + encodeURIComponent(auth));
+    console.log('http://' + Bucket + '-' + AppId + '.' + config.Region + '.myqcloud.com' + '/' + key + '?sign=' + encodeURIComponent(auth));
 }
 
 function putBucket() {
@@ -125,6 +132,13 @@ function getBucketCORS() {
 }
 
 function putBucketPolicy() {
+    var AppId = config.AppId;
+    var Bucket = config.Bucket;
+    if (config.Bucket.indexOf('-') > -1) {
+        var arr = config.Bucket.split('-');
+        Bucket = arr[0];
+        AppId = arr[1];
+    }
     cos.putBucketPolicy({
         Policy: {
             "version": "2.0",
@@ -145,7 +159,7 @@ function putBucketPolicy() {
                         "name/cos:AppendObject"
                     ],
                     // "resource": ["qcs::cos:cn-south:uid/1250000000:test-1250000000.cn-south.myqcloud.com//1250000000/test/*"] // 1250000000 是 appid
-                    "resource": ["qcs::cos:" + config.Region + ":uid/" + config.AppId + ":" + config.Bucket + "-" + config.AppId + "." + config.Region + ".myqcloud.com//" + config.AppId + "/" + config.Bucket + "/*"] // 1250000000 是 appid
+                    "resource": ["qcs::cos:" + config.Region + ":uid/" + AppId + ":" + Bucket + "-" + AppId + "." + config.Region + ".myqcloud.com//" + AppId + "/" + Bucket + "/*"] // 1250000000 是 appid
                 }
             ]
         },
@@ -224,11 +238,18 @@ function putObject() {
 }
 
 function putObjectCopy() {
+    var AppId = config.AppId;
+    var Bucket = config.Bucket;
+    if (config.Bucket.indexOf('-') > -1) {
+        var arr = config.Bucket.split('-');
+        Bucket = arr[0];
+        AppId = arr[1];
+    }
     cos.putObjectCopy({
         Bucket: config.Bucket,
         Region: config.Region,
         Key: '1mb.copy.zip',
-        CopySource: config.Bucket + '-' + config.AppId + '.' + config.Region + '.myqcloud.com/1mb.zip',
+        CopySource: Bucket + '-' + AppId + '.' + config.Region + '.myqcloud.com/1mb.zip',
     }, function (err, data) {
         if (err) {
             console.log(err);
@@ -356,7 +377,7 @@ function sliceUploadFile() {
     });
 }
 
-getService();
+// getService();
 // getAuth();
 // putBucket();
 // getBucket();
@@ -377,4 +398,4 @@ getService();
 // getObjectACL();
 // deleteObject();
 // deleteMultipleObject();
-// sliceUploadFile();
+sliceUploadFile();

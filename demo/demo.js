@@ -207,6 +207,7 @@ function putObject() {
             Bucket: config.Bucket, /* 必须 */
             Region: config.Region,
             Key: filename, /* 必须 */
+            // Body: filepath,
             Body: fs.createReadStream(filepath), /* 必须 */
             ContentLength: fs.statSync(filepath).size, /* 必须 */
             onProgress: function (progressData) {

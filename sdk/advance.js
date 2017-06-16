@@ -545,6 +545,7 @@ function uploadSliceList(params, cb) {
                 FinishSize -= preAddSize;
             } else {
                 FinishSize += currentSize - preAddSize;
+                SliceItem.ServerETag = data.ETag;
             }
             onFileProgress(true);
             asyncCallback(err || null, data);
@@ -634,7 +635,7 @@ function uploadSliceComplete(params, callback) {
         var item = SliceList[i];
         var PartItem = {
             PartNumber: item['PartNumber'],
-            ETag: item['ETag']
+            ETag: item['ServerETag']
         };
 
         Parts.push(PartItem);

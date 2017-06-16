@@ -1,3 +1,5 @@
 .idea
 node_modules
 /demo/*.zip
+/test/*.zip
+package-lock.json

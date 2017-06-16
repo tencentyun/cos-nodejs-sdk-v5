@@ -1756,7 +1756,7 @@ function submitRequest(params, callback) {
         }
 
         // 请求返回码不为 200
-        if (statusCode !== 200) {
+        if (statusCode !== 200 && statusCode !== 204 && statusCode !== 206) {
             callback({
                 statusCode: statusCode,
                 error: jsonRes.Error || jsonRes

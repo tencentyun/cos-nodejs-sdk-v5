@@ -377,7 +377,7 @@ function sliceUploadFile() {
     });
 }
 
-// getService();
+getService();
 // getAuth();
 // putBucket();
 // getBucket();
@@ -398,4 +398,4 @@ function sliceUploadFile() {
 // getObjectACL();
 // deleteObject();
 // deleteMultipleObject();
-sliceUploadFile();
+// sliceUploadFile();

@@ -1820,14 +1820,19 @@ function submitRequest(params, callback) {
     // progress
     if (params.onProgress && typeof params.onProgress === 'function') {
         var contentLength = opt.headers['Content-Length'];
+        var time0 = Date.now();
+        var size0 = 0;
         req.on('drain', function () {
+            var time1 = Date.now();
             var loaded = 0;
             try { loaded = req.req.connection.bytesWritten; } catch (e) {}
             var total = contentLength;
+            var speed = parseInt((loaded - size0) / (time1 - time0) * 100) / 100;
             var percent = total ? (parseInt(loaded / total * 100) / 100) : 0;
             params.onProgress({
                 loaded: loaded,
                 percent: percent,
+                speed: speed,
             });
         });
     }

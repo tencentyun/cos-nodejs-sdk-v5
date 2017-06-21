@@ -233,6 +233,7 @@ function putObject() {
             } else {
                 console.log(JSON.stringify(data, null, '  '));
             }
+            fs.unlinkSync(filepath);
         });
     });
 }
@@ -373,11 +374,12 @@ function sliceUploadFile() {
             } else {
                 console.log(JSON.stringify(data, null, '  '));
             }
+            fs.unlinkSync(filepath);
         });
     });
 }
 
-getService();
+// getService();
 // getAuth();
 // putBucket();
 // getBucket();

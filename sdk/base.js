@@ -1,4 +1,5 @@
 var querystring = require('querystring');
+var pkg = require('../package.json');
 var REQUEST = require('request');
 var util = require('./util');
 var fs = require('fs');
@@ -1752,6 +1753,7 @@ function submitRequest(params, callback) {
     }
 
     // 获取签名
+    opt.headers['User-Agent'] = 'cos-nodejs-sdk-v5-' + pkg.version;
     opt.headers.Authorization = util.getAuth({
         method: opt.method,
         pathname: object || '/',

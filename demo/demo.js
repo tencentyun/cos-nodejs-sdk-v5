@@ -379,7 +379,7 @@ function sliceUploadFile() {
     });
 }
 
-// getService();
+getService();
 // getAuth();
 // putBucket();
 // getBucket();

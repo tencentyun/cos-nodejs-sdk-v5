@@ -952,7 +952,7 @@ function putObject(params, callback) {
     headers['Cache-Control'] = params['CacheControl'];
     headers['Content-Disposition'] = params['ContentDisposition'];
     headers['Content-Encoding'] = params['ContentEncoding'];
-    headers['Cotent-MD5'] = params['CotentMD5'];
+    headers['Content-MD5'] = params['ContentMD5'];
     headers['Content-Length'] = params['ContentLength'];
     headers['Content-Type'] = params['ContentType'];
     headers['Expect'] = params['Expect'];

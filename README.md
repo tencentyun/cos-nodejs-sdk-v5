@@ -2,11 +2,7 @@
 
 腾讯云 COS Nodejs SDK（[XML API](https://www.qcloud.com/document/product/436/7751)）
 
-[releases](https://github.com/tencentyun/cos-nodejs-sdk-v5/releases)
-
-## 使用文档
-
-https://www.qcloud.com/document/product/436/8629
+[releases and changelog](https://github.com/tencentyun/cos-nodejs-sdk-v5/releases)
 
 ## npm 安装
 
@@ -35,3 +31,7 @@ cos.sliceUploadFile({
     console.log(err, data);
 });
 ```
+
+[更新例子]((./demo/demo.js))
+
+[详细文档](https://www.qcloud.com/document/product/436/8629)

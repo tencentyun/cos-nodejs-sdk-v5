@@ -214,14 +214,13 @@ function getBucketPolicy() {
 function putObject() {
     // 创建测试文件
     var filename = '1mb.zip';
-    util.createFile(path.resolve(__dirname, filename), 1024 * 1024, function (err) {
+    var filepath = path.resolve(__dirname, filename);
+    util.createFile(filepath, 1024 * 1024, function (err) {
         // 调用方法
-        var filepath = path.resolve(__dirname, filename);
         cos.putObject({
             Bucket: config.Bucket, /* 必须 */
             Region: config.Region,
             Key: filename, /* 必须 */
-            // Body: filepath,
             Body: fs.createReadStream(filepath), /* 必须 */
             ContentLength: fs.statSync(filepath).size, /* 必须 */
             onProgress: function (progressData) {

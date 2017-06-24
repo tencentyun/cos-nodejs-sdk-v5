@@ -886,10 +886,17 @@ function getObject(params, callback) {
     reqParams['response-content-disposition'] = params['ResponseContentDisposition'];
     reqParams['response-content-encoding'] = params['ResponseContentEncoding'];
 
-    var output = params.Output;
-    var writeStream = output;
-    if (output && (typeof output == 'string')) {
-        writeStream = fs.createWriteStream(output);
+    var Output = params.Output;
+    var FilePath = params.FilePath;
+    var writeStream;
+    if (Output) {
+        if (typeof Output.pipe === 'function') {
+            writeStream = Output;
+        } else if (typeof Output === 'string') {
+            writeStream = fs.createWriteStream(Output);
+        }
+    } else if (FilePath) {
+        writeStream = fs.createWriteStream(FilePath);
     }
 
     // 如果用户自己传入了 output
@@ -970,12 +977,20 @@ function putObject(params, callback) {
         }
     }
 
-    var body = params['Body'];
-
-    var readStream = body;
-
-    if (body && (typeof body === 'string')) {
-        readStream = fs.createReadStream(body);
+    var body;
+    var readStream;
+    if (params.Body) {
+        if (typeof params.Body.pipe === 'function') { // fs.createReadStream(filepath)
+            readStream = params.Body;
+        } else if (typeof params.Body === 'string') {
+            readStream = fs.createReadStream(params.Body); // 传入 './1mb.zip'
+            headers['Content-Length'] = fs.statSync(params.Body).size;
+        } else { // 传入 fs.readFileSync(filepath)
+            body = params.Body;
+        }
+    } else if (params.FilePath) {
+        readStream = fs.createReadStream(params.Body); // 传入 './1mb.zip'
+        headers['Content-Length'] = fs.statSync(params.Body).size;
     }
 
     submitRequest.call(this, {
@@ -986,7 +1001,8 @@ function putObject(params, callback) {
         Key: params.Key,
         headers: headers,
         needHeaders: true,
-        inputStream: readStream || null,
+        body: body,
+        inputStream: readStream,
         onProgress: params.onProgress
     }, function (err, data) {
         if (err) {

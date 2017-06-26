@@ -32,6 +32,6 @@ cos.sliceUploadFile({
 });
 ```
 
-[更新例子]((./demo/demo.js))
+[更新例子](demo/demo.js)
 
 [详细文档](https://www.qcloud.com/document/product/436/8629)

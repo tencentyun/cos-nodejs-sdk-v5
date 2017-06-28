@@ -486,6 +486,7 @@ function uploadSliceList(params, cb) {
     var needUploadSlices = SliceList.filter(function (SliceItem) {
         if (SliceItem['Uploaded']) {
             FinishSize += SliceItem['PartNumber'] >= SliceCount ? (FileSize % SliceSize || SliceSize) : SliceSize;
+            SliceItem.ServerETag = SliceItem.ETag;
         }
         return !SliceItem['Uploaded'];
     });

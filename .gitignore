@@ -1,5 +1,6 @@
-.idea
+.idea/
 node_modules
-/demo/*.zip
-/test/*.zip
-package-lock.json
+demo/*.zip
+test/*.zip
+.gitignore
+demo/config.js

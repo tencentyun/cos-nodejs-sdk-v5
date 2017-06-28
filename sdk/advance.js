@@ -8,6 +8,11 @@ var util = require('./util');
 
 // 分片大小
 var SLICE_SIZE = 1 * 1024 * 1024;
+var MultipartInitFields = [
+  "Bucket", "Region", "Key", "StorageClass",
+  "CacheControl", "ContentDisposition", "ContentEncoding", "ContentType", "Expires",
+  "ACL", "GrantRead", "GrantWrite", "GrantFullControl"
+]
 
 // 获取文件大小
 function getFileSize(params, callback) {
@@ -34,6 +39,10 @@ function sliceUploadFile (params, callback) {
     var SliceSize = params.SliceSize || SLICE_SIZE;
     var AsyncLimit = params.AsyncLimit || 1;
     var StorageClass = params.StorageClass || 'Standard';
+    var UploadIdParams = _.pickBy(params, function (value, attr) {
+      return _.includes(MultipartInitFields, attr) || attr.indexOf("x-cos-meta-") > -1
+    });
+    UploadIdParams.StorageClass = StorageClass;
     var self = this;
 
     var onProgress = params.onProgress;
@@ -148,12 +157,8 @@ function sliceUploadFile (params, callback) {
     });
 
     // 获取文件 UploadId
-    getUploadId.call(self, {
-        Bucket: Bucket,
-        Region: Region,
-        Key: Key,
-        StorageClass: StorageClass
-    }, function (err, data) {
+    
+    getUploadId.call(self, UploadIdParams, function (err, data) {
         if (err) {
             return proxy.emit('error', err);
         }
@@ -251,12 +256,7 @@ function getUploadId(params, callback) {
             });
         } else {
             // 不存在 UploadId, 直接初始化生成 UploadId
-            self.multipartInit({
-                Bucket: Bucket,
-                Region: Region,
-                Key: Key,
-                StorageClass: StorageClass
-            }, function (err, data) {
+            self.multipartInit(params, function (err, data) {
                 if (err) {
                     return callback(err);
                 }

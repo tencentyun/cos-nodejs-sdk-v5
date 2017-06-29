@@ -1,5 +1,4 @@
 .idea/
-.gitignore
 package-lock.json
 node_modules
 demo/config.js

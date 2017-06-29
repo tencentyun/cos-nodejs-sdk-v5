@@ -375,50 +375,6 @@ function wholeMultipartListPart(params, callback) {
     next();
 }
 
-// 计算文件所有分片的 ETag
-function getFileETagList(params, cb) {
-    var self = this;
-    var FilePath = params.FilePath;
-    var SliceSize = params.SliceSize;
-    var FileSize = params.FileSize;
-    var onHashProgress = params.onHashProgress;
-
-    var SliceCount = Math.ceil(FileSize / SliceSize);
-    var FinishSliceCount = 0;
-    var ETagList = [];
-
-    for (var i = 0; i < SliceCount; i++) {
-        ETagList.push({PartNumber: i + 1});
-    }
-
-    Async.mapLimit(ETagList, 1, function (SliceItem, callback) {
-        var PartNumber = SliceItem['PartNumber'];
-        var Index = PartNumber - 1;
-        var start = SliceSize * Index;
-        var end = Math.min(start + SliceSize, FileSize);
-        var ChunkSize = end - start;
-        var ChunkReadStream = fs.createReadStream(FilePath, {start: start, end: end - 1});
-        util.getFileMd5(ChunkReadStream, function (err, md5) {
-            if (err) return callback(err);
-            var ETag = '"' + md5 + '"';
-            ETagList[Index].ETag = ETag;
-            ++FinishSliceCount;
-            if (onHashProgress && (typeof onHashProgress === 'function')) {
-                onHashProgress({
-                    PartNumber: PartNumber,
-                    FileSize: FileSize,
-                    ETag: ETag,
-                    Size: ChunkSize
-                }, parseInt(FinishSliceCount / SliceCount * 100) / 100);
-            }
-            callback(null, ETag);
-        });
-    }, function (err) {
-        if (err) return cb(err);
-        cb(null, {ETagList: ETagList});
-    });
-}
-
 // 上传文件分块，包括
 /*
  UploadId (上传任务编号)
@@ -446,7 +402,6 @@ function uploadSliceList(params, cb) {
     var needUploadSlices = SliceList.filter(function (SliceItem) {
         if (SliceItem['Uploaded']) {
             FinishSize += SliceItem['PartNumber'] >= SliceCount ? (FileSize % SliceSize || SliceSize) : SliceSize;
-            SliceItem.ServerETag = SliceItem.ETag;
         }
         return !SliceItem['Uploaded'];
     });

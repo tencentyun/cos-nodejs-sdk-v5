@@ -92,7 +92,16 @@ function sliceUploadFile (params, callback) {
             FilePath: FilePath,
             FileSize: FileSize,
             SliceSize: SliceSize,
-            onHashProgress: onHashProgress
+            onHashProgress: onHashProgress,
+            // init params
+            CacheControl: params.CacheControl,
+            ContentDisposition: params.ContentDisposition,
+            ContentEncoding: params.ContentEncoding,
+            ContentType: params.ContentType,
+            ACL: params.ACL,
+            GrantRead: params.GrantRead,
+            GrantWrite: params.GrantWrite,
+            GrantFullControl: params.GrantFullControl,
         }, function (err, UploadData) {
             if (err) return proxy.emit('error', err);
             proxy.emit('get_upload_data_finish', UploadData);
@@ -235,7 +244,15 @@ function getUploadIdAndPartList(params, callback) {
             Bucket: Bucket,
             Region: Region,
             Key: Key,
-            StorageClass: StorageClass
+            StorageClass: StorageClass,
+            CacheControl: params.CacheControl,
+            ContentDisposition: params.ContentDisposition,
+            ContentEncoding: params.ContentEncoding,
+            ContentType: params.ContentType,
+            ACL: params.ACL,
+            GrantRead: params.GrantRead,
+            GrantWrite: params.GrantWrite,
+            GrantFullControl: params.GrantFullControl,
         }, function (err, data) {
             if (err) return proxy.emit('error', err);
             var UploadId = data.UploadId;

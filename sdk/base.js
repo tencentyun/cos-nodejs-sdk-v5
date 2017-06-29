@@ -1755,7 +1755,7 @@ function submitRequest(params, callback) {
     }
     opt = util.clearKey(opt);
 
-    var req = REQUEST(opt, function (err, response, body) {
+    var sender = REQUEST(opt, function (err, response, body) {
 
         // 请求错误，发生网络错误
         if (err) {
@@ -1808,15 +1808,15 @@ function submitRequest(params, callback) {
         var contentLength = opt.headers['Content-Length'];
         var time0 = Date.now();
         var size0 = 0;
-        req.on('drain', function () {
+        sender.on('drain', function () {
             var time1 = Date.now();
             var loaded = 0;
-            try { loaded = req.req.connection.bytesWritten; } catch (e) {}
+            try { loaded = sender.req.connection.bytesWritten - sender.req._header.length; } catch (e) {}
             var total = contentLength;
             var speed = parseInt((loaded - size0) / (time1 - time0) * 100) / 100;
             var percent = total ? (parseInt(loaded / total * 100) / 100) : 0;
-            // time0 = time1;
-            // size0 = loaded;
+            time0 = time1;
+            size0 = loaded;
             params.onProgress({
                 loaded: loaded,
                 total: total,
@@ -1829,20 +1829,18 @@ function submitRequest(params, callback) {
     // pipe 输入
     if (params.inputStream) {
         params.inputStream.on('error', function (err) {
-            req.abort();
+            sender.abort();
             callback(err);
         });
-
-        params.inputStream.pipe(req);
+        params.inputStream.pipe(sender);
     }
     // pipe 输出
     if (params.outputStream) {
         params.outputStream.on('error', function (err) {
-            req.abort();
+            sender.abort();
             callback(err)
         });
-
-        req.pipe(params.outputStream);
+        sender.pipe(params.outputStream);
     }
 
 }

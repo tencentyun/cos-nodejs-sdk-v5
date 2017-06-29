@@ -1828,10 +1828,20 @@ function submitRequest(params, callback) {
 
     // pipe 输入
     if (params.inputStream) {
+        params.inputStream.on('error', function (err) {
+            req.abort();
+            callback(err);
+        });
+
         params.inputStream.pipe(req);
     }
     // pipe 输出
     if (params.outputStream) {
+        params.outputStream.on('error', function (err) {
+            req.abort();
+            callback(err)
+        });
+
         req.pipe(params.outputStream);
     }
 

@@ -12,10 +12,14 @@ var createFile = function (filepath, size, callback) {
         cb('file existed.');
     } else {
         var cmd;
-        if (platform === 'win32') {
-            cmd = 'fsutil file createnew ' + filepath + ' ' + size;
-        } else if (platform === 'linux') {
-            cmd = 'dd if=/dev/zero of=' + filepath + ' bs=1 count=' + size;
+        switch (platform) {
+            case 'win32':
+                cmd = `fsutil file createnew ${filepath} ${size}`;
+                break;
+            case 'darwin':
+            case 'linux':
+                cmd = `dd if=/dev/zero of=${filepath} count=1 bs=${size}`;
+                break;
         }
         var exec = require('child_process').exec;
         exec(cmd, function (err, stdout, stderr) {

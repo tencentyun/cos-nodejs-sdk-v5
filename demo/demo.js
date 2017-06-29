@@ -215,17 +215,22 @@ function putObject() {
     // 创建测试文件
     var filename = '1mb.zip';
     var filepath = path.resolve(__dirname, filename);
-    util.createFile(filepath, 1024 * 1024, function (err) {
+    util.createFile(filepath, 1024 * 1024 * 1, function (err) {
         // 调用方法
         cos.putObject({
             Bucket: config.Bucket, /* 必须 */
             Region: config.Region,
             Key: filename, /* 必须 */
-            Body: fs.createReadStream(filepath), /* 必须 */
-            ContentLength: fs.statSync(filepath).size, /* 必须 */
             onProgress: function (progressData) {
                 console.log(JSON.stringify(progressData));
             },
+            // 格式1. 只传文件路径
+            FilePath: path.resolve(__dirname, filename),
+            // 格式2. 传入文件内容
+            // Body: fs.readFileSync(filepath),
+            // 格式3. 传入文件流，必须需要传文件大小
+            // Body: fs.createReadStream(filepath),
+            // ContentLength: fs.statSync(filepath).size
         }, function (err, data) {
             if (err) {
                 console.log(err);
@@ -260,11 +265,15 @@ function putObjectCopy() {
 }
 
 function getObject() {
+    var filepath = path.resolve(__dirname, '1mb.out.zip');
     cos.getObject({
         Bucket: config.Bucket,
         Region: config.Region,
         Key: '1mb.zip',
-        Output: fs.createWriteStream(path.resolve(__dirname, '1mb.out.zip'))
+        // 格式1. 传文件路径
+        FilePath: filepath,
+        // 格式2：传写文件流
+        // Output: fs.createWriteStream(filepath)
     }, function (err, data) {
         if (err) {
             return console.log(err);
@@ -348,9 +357,31 @@ function deleteMultipleObject() {
     });
 }
 
+function abortUploadTask() {
+    cos.abortUploadTask({
+        Bucket: config.Bucket, /* 必须 */
+        Region: config.Region, /* 必须 */
+        // 格式1，删除单个上传任务
+        // Level: 'task',
+        // Key: '100mb.zip',
+        // UploadId: '14985543913e4e2642e31db217b9a1a3d9b3cd6cf62abfda23372c8d36ffa38585492681e3',
+        // 格式2，删除单个文件所有未完成上传任务
+        Level: 'file',
+        Key: '1mb.zip',
+        // 格式3，删除 Bucket 下所有未完成上传任务
+        // Level: 'bucket',
+    }, function (err, data) {
+        if (err) {
+            console.log(err);
+        } else {
+            console.log(JSON.stringify(data, null, '  '));
+        }
+    });
+}
+
 function sliceUploadFile() {
     // 创建测试文件
-    var filename = '100mb.zip';
+    var filename = '10mb.zip';
     var filepath = path.resolve(__dirname, filename);
     util.createFile(filepath, 1024 * 1024 * 10, function (err) {
         // 调用方法
@@ -378,7 +409,7 @@ function sliceUploadFile() {
     });
 }
 
-getService();
+// getService();
 // getAuth();
 // putBucket();
 // getBucket();
@@ -399,4 +430,5 @@ getService();
 // getObjectACL();
 // deleteObject();
 // deleteMultipleObject();
-// sliceUploadFile();
+// abortUploadTask();
+sliceUploadFile();

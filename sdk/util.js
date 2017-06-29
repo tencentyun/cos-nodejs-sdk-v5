@@ -11,12 +11,15 @@ var getAuth = function (opt) {
 
     opt = opt || {};
 
-    var secretId = opt.secretId;
-    var secretKey = opt.secretKey;
+    var SecretId = opt.SecretId;
+    var SecretKey = opt.SecretKey;
     var method = (opt.method || 'get').toLowerCase();
     var pathname = opt.pathname || '/';
     var queryParams = opt.params || '';
     var headers = opt.headers || '';
+
+    if (!SecretId) return console.error('lack of param SecretId');
+    if (!SecretKey) return console.error('lack of param SecretKey');
 
     var getObjectKeys = function (obj) {
         var list = [];
@@ -54,7 +57,7 @@ var getAuth = function (opt) {
 
     // 要用到的 Authorization 参数列表
     var qSignAlgorithm = 'sha1';
-    var qAk = secretId;
+    var qAk = SecretId;
     var qSignTime = now + ';' + expired;
     var qKeyTime = now + ';' + expired;
     var qHeaderList = getObjectKeys(headers).join(';').toLowerCase();
@@ -62,11 +65,7 @@ var getAuth = function (opt) {
 
     // 签名算法说明文档：https://www.qcloud.com/document/product/436/7778
     // 步骤一：计算 SignKey
-    var signKey = crypto.createHmac('sha1', secretKey).update(qKeyTime).digest('hex');//CryptoJS.HmacSHA1(qKeyTime, secretKey).toString();
-
-    // 新增修改，formatString 添加 encodeURIComponent
-
-    //pathname = encodeURIComponent(pathname);
+    var signKey = crypto.createHmac('sha1', SecretKey).update(qKeyTime).digest('hex');
 
     // 步骤二：构成 FormatString
     var formatString = [method, pathname, obj2str(queryParams), obj2str(headers), ''].join('\n');
@@ -115,10 +114,7 @@ var json2xml = function (json) {
 
 // 计算 MD5
 var md5 = function (str, encoding) {
-    var md5 = crypto.createHash('md5');
-    md5.update(str);
-    encoding = encoding || 'hex';
-    return md5.digest(encoding);
+    return crypto.createHash('md5').update(str).digest(encoding || 'hex');
 };
 
 
@@ -136,18 +132,29 @@ var clearKey = function (obj) {
 // 获取文件 sha1 值
 var getFileSHA = function (readStream, callback) {
     var SHA = crypto.createHash('sha1');
-
     readStream.on('data', function (chunk) {
         SHA.update(chunk);
     });
-
     readStream.on('error', function (err) {
         callback(err);
     });
-
     readStream.on('end', function () {
         var hash = SHA.digest('hex');
+        callback(null, hash);
+    });
+};
 
+// 获取文件 md5 值
+var getFileMd5 = function (readStream, callback) {
+    var md5 = crypto.createHash('md5');
+    readStream.on('data', function (chunk) {
+        md5.update(chunk);
+    });
+    readStream.on('error', function (err) {
+        callback(err);
+    });
+    readStream.on('end', function () {
+        var hash = md5.digest('hex');
         callback(null, hash);
     });
 };
@@ -188,7 +195,7 @@ var checkParams = function (apiName, params) {
 var apiWrapper = function (apiName, apiFn) {
     return function (params, callback) {
         callback = callback || function () { };
-        if (apiName !== 'getService') {
+        if (apiName !== 'getService' && apiName !== 'abortUploadTask') {
             // 判断参数是否完整
             if (!checkParams(apiName, params)) {
                 callback({error: 'lack of required params'});
@@ -197,7 +204,6 @@ var apiWrapper = function (apiName, apiFn) {
             // 优化 Key 参数
             if (params.Key && params.Key.indexOf('/') === 0) {
                 callback({error: 'params Key can not start width "/"'});
-                console.log(12312);
                 return;
             }
             // 兼容带有 AppId 的 Bucket
@@ -227,6 +233,7 @@ var util = {
     md5: md5,
     clearKey: clearKey,
     getFileSHA: getFileSHA,
+    getFileMd5: getFileMd5,
     extend: extend,
     binaryBase64: binaryBase64
 };

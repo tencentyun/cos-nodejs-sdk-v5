@@ -116,7 +116,7 @@ describe('getBucket()', function() {
                 Bucket: config.Bucket,
                 Region: config.Region
             }, function (err, data) {
-                assert.equal(true, data.Name === Bucket && data.Contents.constructor === Array);
+                assert.equal(true, (data.Name === Bucket || data.Name === Bucket + '-' + config.AppId) && data.Contents.constructor === Array);
                 done();
             });
         }).catch(function () {});

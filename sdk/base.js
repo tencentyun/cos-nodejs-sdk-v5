@@ -889,14 +889,11 @@ function getObject(params, callback) {
     var Output = params.Output;
     var FilePath = params.FilePath;
     var writeStream;
-    if (Output) {
-        if (typeof Output.pipe === 'function') {
-            writeStream = Output;
-        } else if (typeof Output === 'string') {
-            writeStream = fs.createWriteStream(Output);
-        }
-    } else if (FilePath) {
+
+    if (FilePath) {
         writeStream = fs.createWriteStream(FilePath);
+    } else if (Output && typeof Output.pipe === 'function') {
+        writeStream = Output;
     }
 
     // 如果用户自己传入了 output
@@ -934,7 +931,8 @@ function getObject(params, callback) {
  *     @param  {string}   params.Bucket     Bucket名称，必须
  *     @param  {string}   params.Region     地域名称，必须
  *     @param  {string}   params.Key     文件名称，必须
- *     @param  {string || readStream}   params.Body     要上传的文件地址或者读流，必须
+ *     @param  {string}   params.FilePath         上传文件的路径
+ *     @param  {string || buffer || readStream}   params.Body         上传文件的内容或者流
  *     @param  {string}   params.CacheControl         RFC 2616 中定义的缓存策略，将作为 Object 元数据保存，非必须
  *     @param  {string}   params.ContentDisposition   RFC 2616 中定义的文件名称，将作为 Object 元数据保存，非必须
  *     @param  {string}   params.ContentEncoding             RFC 2616 中定义的编码格式，将作为 Object 元数据保存，非必须
@@ -977,20 +975,22 @@ function putObject(params, callback) {
         }
     }
 
-    var body;
+    var FilePath = params.FilePath;
+    var Body = params.Body;
     var readStream;
-    if (params.Body) {
-        if (typeof params.Body.pipe === 'function') { // fs.createReadStream(filepath)
-            readStream = params.Body;
-        } else if (typeof params.Body === 'string') {
-            readStream = fs.createReadStream(params.Body); // 传入 './1mb.zip'
-            headers['Content-Length'] = fs.statSync(params.Body).size;
-        } else { // 传入 fs.readFileSync(filepath)
-            body = params.Body;
+
+    if (FilePath) {
+        readStream = fs.createReadStream(FilePath); // 传入 './1mb.zip'
+        headers['Content-Length'] = fs.statSync(FilePath).size;
+    } else if (Body && typeof Body.pipe === 'function') { // fs.createReadStream(filepath)
+        readStream = Body;
+        Body = null;
+        if (headers['Content-Length'] === undefined) {
+            callback('lack of param ContentLength');
+            return;
         }
-    } else if (params.FilePath) {
-        readStream = fs.createReadStream(params.Body); // 传入 './1mb.zip'
-        headers['Content-Length'] = fs.statSync(params.Body).size;
+    } else if (Body) { // 传入 fs.readFileSync(filepath) 或者 文件内容
+        headers['Content-Length'] = Body.length;
     }
 
     submitRequest.call(this, {
@@ -1001,7 +1001,7 @@ function putObject(params, callback) {
         Key: params.Key,
         headers: headers,
         needHeaders: true,
-        body: body,
+        body: Body,
         inputStream: readStream,
         onProgress: params.onProgress
     }, function (err, data) {
@@ -1516,8 +1516,8 @@ function multipartComplete(params, callback) {
  *     @param  {string}   params.EncodingType     规定返回值的编码方式，非必须
  *     @param  {string}   params.Prefix     前缀匹配，用来规定返回的文件前缀地址，非必须
  *     @param  {string}   params.MaxUploads     单次返回最大的条目数量，默认1000，非必须
- *     @param  {string}   params.KeyMarker     与upload-id-marker一起使用 </Br>当upload-id-marker未被指定时，ObjectName字母顺序大于key-marker的条目将被列出 </Br>当upload-id-marker被指定时，ObjectName字母顺序大于key-marker的条目被列出，ObjectName字母顺序等于key-marker同时UploadID大于upload-id-marker的条目将被列出，非必须
- *     @param  {string}   params.UploadIdMarker     与key-marker一起使用 </Br>当key-marker未被指定时，upload-id-marker将被忽略 </Br>当key-marker被指定时，ObjectName字母顺序大于key-marker的条目被列出，ObjectName字母顺序等于key-marker同时UploadID大于upload-id-marker的条目将被列出，非必须
+ *     @param  {string}   params.KeyMarker     与upload-id-marker一起使用 </Br>当upload-id-marker未被指定时，ObjectName字母顺序大于key-marker的条目将被列出 </Br>当upload-id-marker被指定时，ObjectName字母顺序大于key-marker的条目被列出，ObjectName字母顺序等于key-marker同时UploadId大于upload-id-marker的条目将被列出，非必须
+ *     @param  {string}   params.UploadIdMarker     与key-marker一起使用 </Br>当key-marker未被指定时，upload-id-marker将被忽略 </Br>当key-marker被指定时，ObjectName字母顺序大于key-marker的条目被列出，ObjectName字母顺序等于key-marker同时UploadId大于upload-id-marker的条目将被列出，非必须
  * @param  {function}   callback      回调函数，必须
  * @return  {object}    err     请求失败的错误，如果请求成功，则为空。
  * @return  {object}    data 返回的数据
@@ -1669,8 +1669,8 @@ function getAuth(params) {
     return util.getAuth({
         method: params.Method || 'get',
         pathname: '/' + (params.Key + ''),
-        secretId: params.SecretId || this.SecretId || '',
-        secretKey: params.SecretKey || this.SecretKey || ''
+        SecretId: params.SecretId || this.SecretId || '',
+        SecretKey: params.SecretKey || this.SecretKey || ''
     });
 }
 
@@ -1698,38 +1698,6 @@ function getUrl(params) {
     }
 
     return url;
-}
-
-// 检测参数是否填写完全
-function checkParamsRequire(callerName, params) {
-    var bucket = params.Bucket;
-    var region = params.Region;
-    var object = params.Key;
-
-    if (callerName.indexOf('Bucket') > -1 || callerName == 'deleteMultipleObject' || callerName == 'MultipartList') {
-        if (!bucket || !region) {
-            return false;
-        }
-
-        return true;
-    }
-
-    if (callerName.indexOf('Object') > -1) {
-        if (!bucket || !region || !object) {
-            return false;
-        }
-
-        return true;
-    }
-
-    if (callerName.indexOf('Multipart') > -1) {
-        if (!bucket || !region || !object) {
-            return false;
-        }
-
-        return true;
-    }
-
 }
 
 // 发起请求
@@ -1773,8 +1741,8 @@ function submitRequest(params, callback) {
     opt.headers.Authorization = util.getAuth({
         method: opt.method,
         pathname: object || '/',
-        secretId: params.SecretId || this.SecretId,
-        secretKey: params.SecretKey || this.SecretKey,
+        SecretId: params.SecretId || this.SecretId,
+        SecretKey: params.SecretKey || this.SecretKey,
     });
 
     // 预先处理 undefined 的属性
@@ -1847,10 +1815,13 @@ function submitRequest(params, callback) {
             var total = contentLength;
             var speed = parseInt((loaded - size0) / (time1 - time0) * 100) / 100;
             var percent = total ? (parseInt(loaded / total * 100) / 100) : 0;
+            // time0 = time1;
+            // size0 = loaded;
             params.onProgress({
                 loaded: loaded,
-                percent: percent,
+                total: total,
                 speed: speed,
+                percent: percent,
             });
         });
     }

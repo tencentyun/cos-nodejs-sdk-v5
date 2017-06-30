@@ -9,9 +9,9 @@ var fs = require('fs');
 
 /**
  * 获取用户的 bucket 列表
- * @param  {Object}   callback   回调函数，必须，下面为参数列表
+ * @param  {function}  callback     回调函数，必须，下面为参数列表
  * 无特殊参数
- * @param  {function}   callback      回调函数，必须
+ * @param  {function}  callback     回调函数，必须
  */
 function getService(params, callback) {
     if (typeof params === 'function') {
@@ -22,37 +22,30 @@ function getService(params, callback) {
         url: 'http://service.cos.myqcloud.com',
         method: 'GET',
     }, function (err, data) {
+        var result = {};
         if (err) {
-            return callback(err);
+            return callback(err, result);
         }
-
-        data = data || {};
-
-        if (data && data.ListAllMyBucketsResult
-            && data.ListAllMyBucketsResult.Buckets
-            && data.ListAllMyBucketsResult.Buckets.Bucket) {
-            var buckets = data.ListAllMyBucketsResult.Buckets.Bucket || [];
-
-            if (!(buckets instanceof Array)) {
-                buckets = [buckets];
-            }
-            data.ListAllMyBucketsResult.Buckets = buckets;
+        var buckets = (data && data.ListAllMyBucketsResult && data.ListAllMyBucketsResult.Buckets
+        && data.ListAllMyBucketsResult.Buckets.Bucket) || [];
+        if (buckets.constructor !== Array) {
+            buckets = [buckets];
         }
-
-        return callback(null, data.ListAllMyBucketsResult);
+        result.Buckets = buckets;
+        callback(null, result, data);
     });
 }
 
 /**
  * 查看是否存在该Bucket，是否有权限访问
- * @param  {object}   params     参数对象，必须
- *     @param  {string}   params.Bucket     Bucket名称，必须
- *     @param  {string}   params.Region     地域名称，必须
- * @param  {function}   callback      回调函数，必须
- * @return  {object}    err        请求失败的错误，如果请求成功，则为空。
- * @return  {object}    data    返回的数据
- *     @return  {Boolean}    data.BucketExist    Bucket是否存在
- *     @return  {Boolean}    data.BucketAuth    是否有 Bucket 的访问权限
+ * @param  {object}  params                     参数对象，必须
+ *     @param  {string}  params.Bucket          Bucket名称，必须
+ *     @param  {string}  params.Region          地域名称，必须
+ * @param  {function}  callback                 回调函数，必须
+ * @return  {object}  err                       请求失败的错误，如果请求成功，则为空。
+ * @return  {object}  data                      返回的数据
+ *     @return  {Boolean}  data.BucketExist     Bucket是否存在
+ *     @return  {Boolean}  data.BucketAuth      是否有 Bucket 的访问权限
  */
 function headBucket(params, callback) {
     submitRequest.call(this, {
@@ -60,45 +53,35 @@ function headBucket(params, callback) {
         Region: params.Region,
         AppId: params.AppId,
         method: 'HEAD',
-    }, function (err, body) {
+    }, function (err, data) {
         if (err) {
             var statusCode = err.statusCode;
             if (statusCode && statusCode == 404) {
-                return callback(null, {
-                    BucketExist: false,
-                    BucketAuth: false
-                });
+                return callback(null, {BucketExist: false, BucketAuth: false}, data);
             } else if (statusCode && statusCode == 403) {
-                return callback(null, {
-                    BucketExist: true,
-                    BucketAuth: false
-                });
+                return callback(null, {BucketExist: true, BucketAuth: false}, data);
             } else {
-                return callback(err);
+                return callback(err, {}, data);
             }
         }
-
-        return callback(null, {
-            BucketExist: true,
-            BucketAuth: true
-        });
+        callback(null, {BucketExist: true, BucketAuth: true}, data);
     });
 }
 
 /**
  * 获取 Bucket 下的 object 列表
- * @param  {object}   params     参数对象，必须
- *     @param  {string}   params.Bucket     Bucket名称，必须
- *     @param  {string}   params.Region     地域名称，必须
- *     @param  {string}   params.Prefix     前缀匹配，用来规定返回的文件前缀地址，非必须
- *     @param  {string}   params.Delimiter       定界符为一个符号，如果有Prefix，则将Prefix到delimiter之间的相同路径归为一类，非必须
- *     @param  {string}   params.Marker       默认以UTF-8二进制顺序列出条目，所有列出条目从marker开始，非必须
- *     @param  {string}   params.MaxKeys       单次返回最大的条目数量，默认1000，非必须
- *     @param  {string}   params.EncodingType       规定返回值的编码方式，非必须
- * @param  {function}   callback      回调函数，必须
- * @return  {object}    err     请求失败的错误，如果请求成功，则为空。
- * @return  {object}    data 返回的数据
- *     @return  {object}    data.ListBucketResult    返回的 object 列表信息
+ * @param  {object}  params                         参数对象，必须
+ *     @param  {string}  params.Bucket              Bucket名称，必须
+ *     @param  {string}  params.Region              地域名称，必须
+ *     @param  {string}  params.Prefix              前缀匹配，用来规定返回的文件前缀地址，非必须
+ *     @param  {string}  params.Delimiter           定界符为一个符号，如果有Prefix，则将Prefix到delimiter之间的相同路径归为一类，非必须
+ *     @param  {string}  params.Marker              默认以UTF-8二进制顺序列出条目，所有列出条目从marker开始，非必须
+ *     @param  {string}  params.MaxKeys             单次返回最大的条目数量，默认1000，非必须
+ *     @param  {string}  params.EncodingType        规定返回值的编码方式，非必须
+ * @param  {function}  callback                     回调函数，必须
+ * @return  {object}  err                           请求失败的错误，如果请求成功，则为空。
+ * @return  {object}  data                          返回的数据
+ *     @return  {object}  data.ListBucketResult     返回的 object 列表信息
  */
 function getBucket(params, callback) {
     var reqParams = {};
@@ -135,23 +118,23 @@ function getBucket(params, callback) {
         data.ListBucketResult.Contents = contents;
         data.ListBucketResult.CommonPrefixes = CommonPrefixes;
 
-        return callback(null, data.ListBucketResult || {});
+        callback(null, data.ListBucketResult || {});
     });
 }
 
 /**
  * 创建 Bucket，并初始化访问权限
- * @param  {object}   params     参数对象，必须
- *     @param  {string}   params.Bucket     Bucket名称，必须
- *     @param  {string}   params.Region     地域名称，必须
- *     @param  {string}   params.ACL        用户自定义文件权限，可以设置：private，public-read；默认值：private，非必须
- *     @param  {string}   params.GrantRead     赋予被授权者读的权限，格式x-cos-grant-read: uin=" ",uin=" "，非必须
- *     @param  {string}   params.GrantWrite     赋予被授权者写的权限，格式x-cos-grant-write: uin=" ",uin=" "，非必须
- *     @param  {string}   params.GrantFullControl     赋予被授权者读写权限，格式x-cos-grant-full-control: uin=" ",uin=" "，非必须
- * @param  {function}   callback      回调函数，必须
- * @return  {object}    err     请求失败的错误，如果请求成功，则为空。
- * @return  {object}    data  返回的数据
- *     @return  {string}    data.Location  操作地址
+ * @param  {object}  params                         参数对象，必须
+ *     @param  {string}  params.Bucket              Bucket名称，必须
+ *     @param  {string}  params.Region              地域名称，必须
+ *     @param  {string}  params.ACL                 用户自定义文件权限，可以设置：private，public-read；默认值：private，非必须
+ *     @param  {string}  params.GrantRead           赋予被授权者读的权限，格式x-cos-grant-read: uin=" ",uin=" "，非必须
+ *     @param  {string}  params.GrantWrite          赋予被授权者写的权限，格式x-cos-grant-write: uin=" ",uin=" "，非必须
+ *     @param  {string}  params.GrantFullControl    赋予被授权者读写权限，格式x-cos-grant-full-control: uin=" ",uin=" "，非必须
+ * @param  {function}  callback                     回调函数，必须
+ * @return  {object}  err                           请求失败的错误，如果请求成功，则为空。
+ * @return  {object}  data                          返回的数据
+ *     @return  {string}  data.Location             操作地址
  */
 function putBucket(params, callback) {
     var headers = {};
@@ -170,28 +153,26 @@ function putBucket(params, callback) {
         if (err) {
             return callback(err);
         }
-
-        data = data || {};
-
-        return callback(null, {
+        callback(null, {
             Location: getUrl({
                 bucket: params.Bucket,
                 region: params.Region,
                 appId: appId
-            })
+            }),
+            statusCode: data.statusCode
         });
     });
 }
 
 /**
  * 删除 Bucket
- * @param  {object}   params     参数对象，必须
- *     @param  {string}   params.Bucket     Bucket名称，必须
- *     @param  {string}   params.Region     地域名称，必须
- * @param  {function}   callback      回调函数，必须
- * @return  {object}    err     请求失败的错误，如果请求成功，则为空。
- * @return  {object}    data  返回的数据
- *     @return  {string}    data.Location  操作地址
+ * @param  {object}  params                 参数对象，必须
+ *     @param  {string}  params.Bucket      Bucket名称，必须
+ *     @param  {string}  params.Region      地域名称，必须
+ * @param  {function}  callback             回调函数，必须
+ * @return  {object}  err                   请求失败的错误，如果请求成功，则为空。
+ * @return  {object}  data                  返回的数据
+ *     @return  {string}  data.Location     操作地址
  */
 function deleteBucket(params, callback) {
     submitRequest.call(this, {
@@ -200,16 +181,10 @@ function deleteBucket(params, callback) {
         Region: params.Region,
         AppId: params.AppId,
     }, function (err, data) {
-        if (err) {
-            if (err.statusCode && err.statusCode == 204) {
-                return callback(null, {
-                    DeleteBucketSuccess: true
-                });
-            }
+        if (err && err.statusCode !== 204) {
             return callback(err);
         }
-
-        return callback(null, {
+        callback(null, {
             DeleteBucketSuccess: true
         });
     });
@@ -217,13 +192,13 @@ function deleteBucket(params, callback) {
 
 /**
  * 获取 Bucket 的 权限列表
- * @param  {object}   params     参数对象，必须
- *     @param  {string}   params.Bucket     Bucket名称，必须
- *     @param  {string}   params.Region     地域名称，必须
- * @param  {function}   callback      回调函数，必须
- * @return  {object}    err     请求失败的错误，如果请求成功，则为空。
- * @return  {object}    data  返回的数据
- *     @return  {object}    data.AccessControlPolicy  访问权限信息
+ * @param  {object}  params                         参数对象，必须
+ *     @param  {string}  params.Bucket              Bucket名称，必须
+ *     @param  {string}  params.Region              地域名称，必须
+ * @param  {function}  callback                     回调函数，必须
+ * @return  {object}  err                           请求失败的错误，如果请求成功，则为空。
+ * @return  {object}  data                          返回的数据
+ *     @return  {object}  data.AccessControlPolicy  访问权限信息
  */
 function getBucketACL(params, callback) {
 
@@ -248,22 +223,22 @@ function getBucketACL(params, callback) {
 
         data.AccessControlPolicy.AccessControlList.Grant = Grant;
 
-        return callback(null, data.AccessControlPolicy || {});
+        callback(null, data.AccessControlPolicy || {});
     });
 }
 
 /**
  * 设置 Bucket 的 权限列表
- * @param  {object}   params     参数对象，必须
- *     @param  {string}   params.Bucket     Bucket名称，必须
- *     @param  {string}   params.Region     地域名称，必须
- *     @param  {string}   params.ACL        用户自定义文件权限，可以设置：private，public-read；默认值：private，非必须
- *     @param  {string}   params.GrantRead     赋予被授权者读的权限，格式x-cos-grant-read: uin=" ",uin=" "，非必须
- *     @param  {string}   params.GrantWrite     赋予被授权者写的权限，格式x-cos-grant-write: uin=" ",uin=" "，非必须
- *     @param  {string}   params.GrantFullControl     赋予被授权者读写权限，格式x-cos-grant-full-control: uin=" ",uin=" "，非必须
- * @param  {function}   callback      回调函数，必须
- * @return  {object}    err        请求失败的错误，如果请求成功，则为空。
- * @return  {object}    data    返回的数据
+ * @param  {object}  params                         参数对象，必须
+ *     @param  {string}  params.Bucket              Bucket名称，必须
+ *     @param  {string}  params.Region              地域名称，必须
+ *     @param  {string}  params.ACL                 用户自定义文件权限，可以设置：private，public-read；默认值：private，非必须
+ *     @param  {string}  params.GrantRead           赋予被授权者读的权限，格式x-cos-grant-read: uin=" ",uin=" "，非必须
+ *     @param  {string}  params.GrantWrite          赋予被授权者写的权限，格式x-cos-grant-write: uin=" ",uin=" "，非必须
+ *     @param  {string}  params.GrantFullControl    赋予被授权者读写权限，格式x-cos-grant-full-control: uin=" ",uin=" "，非必须
+ * @param  {function}  callback                     回调函数，必须
+ * @return  {object}  err                           请求失败的错误，如果请求成功，则为空。
+ * @return  {object}  data                          返回的数据
  */
 function putBucketACL(params, callback) {
     var headers = {};
@@ -285,7 +260,7 @@ function putBucketACL(params, callback) {
             return callback(err);
         }
 
-        return callback(null, {
+        callback(null, {
             BucketGrantSuccess: true
         });
     });
@@ -293,13 +268,13 @@ function putBucketACL(params, callback) {
 
 /**
  * 获取 Bucket 的 跨域设置
- * @param  {object}   params     参数对象，必须
- *     @param  {string}   params.Bucket     Bucket名称，必须
- *     @param  {string}   params.Region     地域名称，必须
- * @param  {function}   callback      回调函数，必须
- * @return  {object}    err        请求失败的错误，如果请求成功，则为空。
- * @return  {object}    data    返回的数据
- *     @return  {object}    data.CORSConfiguration     Bucket的跨域设置
+ * @param  {object}  params                         参数对象，必须
+ *     @param  {string}  params.Bucket              Bucket名称，必须
+ *     @param  {string}  params.Region              地域名称，必须
+ * @param  {function}  callback                     回调函数，必须
+ * @return  {object}  err                           请求失败的错误，如果请求成功，则为空。
+ * @return  {object}  data                          返回的数据
+ *     @return  {object}  data.CORSConfiguration    Bucket的跨域设置
  */
 function getBucketCORS(params, callback) {
     submitRequest.call(this, {
@@ -355,20 +330,20 @@ function getBucketCORS(params, callback) {
 
         data.CORSConfiguration.CORSRule = CORSRule;
 
-        return callback(null, data.CORSConfiguration || {});
+        callback(null, data.CORSConfiguration || {});
     });
 }
 
 /**
  * 设置 Bucket 的 跨域设置
- * @param  {object}   params     参数对象，必须
- *     @param  {string}   params.Bucket     Bucket名称，必须
- *     @param  {string}   params.Region     地域名称，必须
- *     @param  {object}   params.CORSConfiguration        相关的跨域设置，必须
- * @param  {array}      params.CORSConfiguration.CORSRules    对应的跨域规则
- * @param  {function}   callback      回调函数，必须
- * @return  {object}    err       请求失败的错误，如果请求成功，则为空。
- * @return  {object}    data   返回的数据
+ * @param  {object}  params                             参数对象，必须
+ *     @param  {string}  params.Bucket                  Bucket名称，必须
+ *     @param  {string}  params.Region                  地域名称，必须
+ *     @param  {object}  params.CORSConfiguration       相关的跨域设置，必须
+ * @param  {array}  params.CORSConfiguration.CORSRules  对应的跨域规则
+ * @param  {function}  callback                         回调函数，必须
+ * @return  {object}  err                               请求失败的错误，如果请求成功，则为空。
+ * @return  {object}  data                              返回的数据
  */
 function putBucketCORS(params, callback) {
     var headers = {};
@@ -424,7 +399,7 @@ function putBucketCORS(params, callback) {
             return callback(err);
         }
 
-        return callback(null, {
+        callback(null, {
             PutBucketCorsSucesss: true
         });
     });
@@ -435,7 +410,6 @@ function putBucketPolicy(params, callback) {
     var headers = {};
     var Policy = params['Policy'];
     var jsonPolicy = JSON.stringify(Policy);
-    // var jsonPolicy = '{"version":"2.0","principal":{"qcs":["qcs::cam::uin/909619481:uin/909619481"]},"statement":[{"effect":"allow","action":["name/cos:GetBucket"],"resource":["qcs::cos:cn-east:uid/1251668577:prefix//1251668577/burning/*"]}]}';
 
     headers['Content-Type'] = 'application/json';
     headers['Content-MD5'] = util.binaryBase64(util.md5(jsonPolicy));
@@ -451,30 +425,10 @@ function putBucketPolicy(params, callback) {
         json: true,
         needHeaders: true,
     }, function (err, data) {
-        if (err) {
-
-            if (err.statusCode && err.statusCode == 403) {
-                return callback({
-                    ErrorStatus: 'Access Denied'
-                });
-            }
-
-            if (err.statusCode && err.statusCode == 405) {
-                return callback({
-                    ErrorStatus: 'Method Not Allowed'
-                });
-            }
-
-            if (err.statusCode && err.statusCode == 204) {
-                return callback(null, {
-                    BucketPolicySuccess: true
-                });
-            }
-
+        if (err && err.statusCode !== 204) {
             return callback(err);
         }
-
-        return callback(null, {
+        callback(null, {
             BucketPolicySuccess: true
         });
     });
@@ -482,12 +436,12 @@ function putBucketPolicy(params, callback) {
 
 /**
  * 删除 Bucket 的 跨域设置
- * @param  {object}   params     参数对象，必须
- *     @param  {string}   params.Bucket     Bucket名称，必须
- *     @param  {string}   params.Region     地域名称，必须
- * @param  {function}   callback      回调函数，必须
- * @return  {object}    err       请求失败的错误，如果请求成功，则为空。
- * @return  {object}    data   返回的数据
+ * @param  {object}  params                 参数对象，必须
+ *     @param  {string}  params.Bucket      Bucket名称，必须
+ *     @param  {string}  params.Region      地域名称，必须
+ * @param  {function}  callback             回调函数，必须
+ * @return  {object}  err                   请求失败的错误，如果请求成功，则为空。
+ * @return  {object}  data                  返回的数据
  */
 function deleteBucketCORS(params, callback) {
     submitRequest.call(this, {
@@ -498,16 +452,10 @@ function deleteBucketCORS(params, callback) {
         action: '/?cors',
         needHeaders: true,
     }, function (err, data) {
-        if (err) {
-            if (err.statusCode && err.statusCode == 204) {
-                return callback(null, {
-                    DeleteBucketCorsSuccess: true
-                });
-            }
+        if (err && err.statusCode !== 204) {
             return callback(err);
         }
-
-        return callback(null, {
+        callback(null, {
             DeleteBucketCorsSuccess: true
         });
     });
@@ -515,12 +463,12 @@ function deleteBucketCORS(params, callback) {
 
 /**
  * 获取 Bucket 的 地域信息
- * @param  {object}   params     参数对象，必须
- *     @param  {string}   params.Bucket     Bucket名称，必须
- *     @param  {string}   params.Region     地域名称，必须
- * @param  {function}   callback      回调函数，必须
- * @return  {object}    err       请求失败的错误，如果请求成功，则为空。
- * @return  {object}    data   返回数据，包含地域信息 LocationConstraint
+ * @param  {object}  params             参数对象，必须
+ *     @param  {string}  params.Bucket  Bucket名称，必须
+ *     @param  {string}  params.Region  地域名称，必须
+ * @param  {function}  callback         回调函数，必须
+ * @return  {object}  err               请求失败的错误，如果请求成功，则为空。
+ * @return  {object}  data              返回数据，包含地域信息 LocationConstraint
  */
 function getBucketLocation(params, callback) {
     submitRequest.call(this, {
@@ -533,19 +481,18 @@ function getBucketLocation(params, callback) {
         if (err) {
             return callback(err);
         }
-
-        return callback(null, data || {});
+        callback(null, data || {});
     });
 }
 
 /**
  * 获取 Bucket 的读取权限策略
- * @param  {object}   params     参数对象，必须
- *     @param  {string}   params.Bucket     Bucket名称，必须
- *     @param  {string}   params.Region     地域名称，必须
- * @param  {function}   callback      回调函数，必须
- * @return  {object}    err       请求失败的错误，如果请求成功，则为空。
- * @return  {object}    data   返回数据
+ * @param  {object}  params             参数对象，必须
+ *     @param  {string}  params.Bucket  Bucket名称，必须
+ *     @param  {string}  params.Region  地域名称，必须
+ * @param  {function}  callback         回调函数，必须
+ * @return  {object}  err               请求失败的错误，如果请求成功，则为空。
+ * @return  {object}  data              返回数据
  */
 function getBucketPolicy(params, callback) {
     submitRequest.call(this, {
@@ -562,43 +509,37 @@ function getBucketPolicy(params, callback) {
                     ErrorStatus: 'Access Denied'
                 });
             }
-
             if (err.statusCode && err.statusCode == 405) {
                 return callback({
                     ErrorStatus: 'Method Not Allowed'
                 });
             }
-
             if (err.statusCode && err.statusCode == 404) {
                 return callback({
                     ErrorStatus: 'Policy Not Found'
                 });
             }
-
             return callback(err);
         }
 
         data = data || {};
-
         try {
             data = JSON.parse(data.body);
         } catch (e) {
-
         }
-
-        return callback(null, data || {});
+        callback(null, data || {});
     });
 }
 
 
 /**
  * 获取 Bucket 的标签设置
- * @param  {object}   params     参数对象，必须
- *     @param  {string}   params.Bucket     Bucket名称，必须
- *     @param  {string}   params.Region     地域名称，必须
- * @param  {function}   callback      回调函数，必须
- * @return  {object}    err       请求失败的错误，如果请求成功，则为空。
- * @return  {object}    data   返回数据
+ * @param  {object}  params             参数对象，必须
+ *     @param  {string}  params.Bucket  Bucket名称，必须
+ *     @param  {string}  params.Region  地域名称，必须
+ * @param  {function}  callback         回调函数，必须
+ * @return  {object}  err               请求失败的错误，如果请求成功，则为空。
+ * @return  {object}  data              返回数据
  */
 function getBucketTagging(params, callback) {
     submitRequest.call(this, {
@@ -625,8 +566,7 @@ function getBucketTagging(params, callback) {
         }
 
         data.Tagging.TagSet.Tag = Tag;
-
-        return callback(null, {
+        callback(null, {
             Tags: Tag
         });
     });
@@ -634,21 +574,17 @@ function getBucketTagging(params, callback) {
 
 /**
  * 设置 Bucket 的标签
- * @param  {object}   params     参数对象，必须
- *     @param  {string}   params.Bucket     Bucket名称，必须
- *     @param  {string}   params.Region     地域名称，必须
- *     @param  {Array}   params.TagSet     标签设置，必须
- * @param  {function}   callback      回调函数，必须
- * @return  {object}    err       请求失败的错误，如果请求成功，则为空。
- * @return  {object}    data   返回数据
+ * @param  {object}  params             参数对象，必须
+ *     @param  {string}  params.Bucket  Bucket名称，必须
+ *     @param  {string}  params.Region  地域名称，必须
+ *     @param  {Array}   params.TagSet  标签设置，必须
+ * @param  {function}  callback         回调函数，必须
+ * @return  {object}  err               请求失败的错误，如果请求成功，则为空。
+ * @return  {object}  data              返回数据
  */
 function putBucketTagging(params, callback) {
     var headers = {};
-
-    headers['Content-Type'] = 'application/xml';
-
     var Tags = params.Tags;
-
     var TagSetting = {
         Tagging: {
             TagSet: {
@@ -656,8 +592,10 @@ function putBucketTagging(params, callback) {
             }
         }
     };
-
     var xml = util.json2xml(TagSetting);
+
+    headers['Content-Type'] = 'application/xml';
+    headers['Content-MD5'] = util.binaryBase64(util.md5(xml));
 
     submitRequest.call(this, {
         method: 'PUT',
@@ -669,16 +607,10 @@ function putBucketTagging(params, callback) {
         headers: headers,
         needHeaders: true,
     }, function (err, data) {
-        if (err) {
-            if (err.statusCode && err.statusCode == 204) {
-                return callback(null, {
-                    PutBucketTaggingSuccess: true
-                });
-            }
+        if (err && err.statusCode !== 204) {
             return callback(err);
         }
-
-        return callback(null, {
+        callback(null, {
             PutBucketTaggingSuccess: true
         });
     });
@@ -687,12 +619,12 @@ function putBucketTagging(params, callback) {
 
 /**
  * 删除 Bucket 的 标签设置
- * @param  {object}   params     参数对象，必须
- *     @param  {string}   params.Bucket     Bucket名称，必须
- *     @param  {string}   params.Region     地域名称，必须
- * @param  {function}   callback      回调函数，必须
- * @return  {object}    err       请求失败的错误，如果请求成功，则为空。
- * @return  {object}    data   返回的数据
+ * @param  {object}  params             参数对象，必须
+ *     @param  {string}  params.Bucket  Bucket名称，必须
+ *     @param  {string}  params.Region  地域名称，必须
+ * @param  {function}  callback         回调函数，必须
+ * @return  {object}  err               请求失败的错误，如果请求成功，则为空。
+ * @return  {object}  data              返回的数据
  */
 function deleteBucketTagging(params, callback) {
     submitRequest.call(this, {
@@ -703,22 +635,14 @@ function deleteBucketTagging(params, callback) {
         action: '/?tagging',
         needHeaders: true,
     }, function (err, data) {
-        if (err) {
-            if (err.statusCode && err.statusCode == 204) {
-                return callback(null, {
-                    DeleteBucketTaggingSuccess: true
-                });
-            }
+        if (err && err.statusCode !== 204) {
             return callback(err);
         }
-
-        return callback(null, {
+        callback(null, {
             DeleteBucketTaggingSuccess: true
         });
     });
 }
-
-// ----------------------------------------------------- Lifecycle 暂时尚未测通 -------------------------------------------------------
 
 function getBucketLifecycle(params, callback) {
     submitRequest.call(this, {
@@ -731,27 +655,23 @@ function getBucketLifecycle(params, callback) {
         if (err) {
             return callback(err);
         }
-
-
-        return callback(null, data || {});
+        callback(null, data);
     });
 }
 
 function putBucketLifecycle(params, callback) {
     var headers = {};
 
-    headers['Content-Type'] = 'application/xml';
-
     var Rules = params.Rules;
-
     var Lifecycle = {
         LifecycleConfiguration: {
             Rule: Rules
         }
     };
-
     var xml = util.json2xml(Lifecycle);
 
+    headers['Content-Type'] = 'application/xml';
+    headers['Content-MD5'] = util.binaryBase64(util.md5(xml));
 
     submitRequest.call(this, {
         method: 'PUT',
@@ -763,16 +683,10 @@ function putBucketLifecycle(params, callback) {
         headers: headers,
         needHeaders: true,
     }, function (err, data) {
-        if (err) {
-            if (err.statusCode && err.statusCode == 204) {
-                return callback(null, {
-                    PutBucketLifecycleSuccess: true
-                });
-            }
+        if (err && err.statusCode !== 204) {
             return callback(err);
         }
-
-        return callback(null, {
+        callback(null, {
             PutBucketLifecycleSuccess: true
         });
     });
@@ -787,37 +701,28 @@ function deleteBucketLifecycle(params, callback) {
         action: '/?lifecycle',
         needHeaders: true,
     }, function (err, data) {
-        if (err) {
-            if (err.statusCode && err.statusCode == 204) {
-                return callback(null, {
-                    DeleteBucketLifecycleSuccess: true
-                });
-            }
+        if (err && err.statusCode !== 204) {
             return callback(err);
         }
-
-        return callback(null, {
+        callback(null, {
             DeleteBucketLifecycleSuccess: true
         });
     });
 }
 
-// ------------------------------------------------------- Lifecycle 暂时尚未测通 -------------------------------------------------------------------
-
-
-// ---------------------------------------- Object 相关 api ------------------------------------
+// Object 相关
 
 /**
  * 取回对应Object的元数据，Head的权限与Get的权限一致
- * @param  {object}   params     参数对象，必须
- *     @param  {string}   params.Bucket     Bucket名称，必须
- *     @param  {string}   params.Region     地域名称，必须
- *     @param  {string}   params.Key     文件名称，必须
- *     @param  {string}   params.IfModifiedSince   当Object在指定时间后被修改，则返回对应Object元信息，否则返回304，非必须
- * @param  {function}   callback      回调函数，必须
- * @return  {object}    err       请求失败的错误，如果请求成功，则为空。
- * @return  {object}    data   为指定 object 的元数据，如果设置了 IfModifiedSince ，且文件未修改，则返回一个对象，NotModified 属性为 true
- *     @return  {Boolean}    data.NotModified   是否在 IfModifiedSince 时间点之后未修改该 object，则为 true
+ * @param  {object}  params                         参数对象，必须
+ *     @param  {string}  params.Bucket              Bucket名称，必须
+ *     @param  {string}  params.Region              地域名称，必须
+ *     @param  {string}  params.Key                 文件名称，必须
+ *     @param  {string}  params.IfModifiedSince     当Object在指定时间后被修改，则返回对应Object元信息，否则返回304，非必须
+ * @param  {function}  callback                     回调函数，必须
+ * @return  {object}  err                           请求失败的错误，如果请求成功，则为空。
+ * @return  {object}  data                          为指定 object 的元数据，如果设置了 IfModifiedSince ，且文件未修改，则返回一个对象，NotModified 属性为 true
+ *     @return  {Boolean}  data.NotModified         是否在 IfModifiedSince 时间点之后未修改该 object，则为 true
  */
 function headObject(params, callback) {
     var headers = {};
@@ -841,33 +746,32 @@ function headObject(params, callback) {
             }
             return callback(err);
         }
-
         data = data || {};
-
-        return callback(null, data.headers || {});
+        console.log(data);
+        callback(null, data.headers);
     });
 }
 
 /**
  * 下载 object
- * @param  {object}   params     参数对象，必须
- *     @param  {string}   params.Bucket     Bucket名称，必须
- *     @param  {string}   params.Region     地域名称，必须
- *     @param  {string}   params.Key     文件名称，必须
- *     @param  {string || writeStream}   params.Output     文件输出地址或者写流，非必须
- *     @param  {string}   params.IfModifiedSince     当Object在指定时间后被修改，则返回对应Object元信息，否则返回304，非必须
- *     @param  {string}   params.IfUnmodifiedSince   如果文件修改时间早于或等于指定时间，才返回文件内容。否则返回 412 (precondition failed)，非必须
- *     @param  {string}   params.IfMatch             当 ETag 与指定的内容一致，才返回文件。否则返回 412 (precondition failed)，非必须
- *     @param  {string}   params.IfNoneMatch         当 ETag 与指定的内容不一致，才返回文件。否则返回304 (not modified)，非必须
- *     @param  {string}   params.ResponseContentType         设置返回头部中的 Content-Type 参数，非必须
- *     @param  {string}   params.ResponseContentLanguage         设置返回头部中的 Content-Language 参数，非必须
- *     @param  {string}   params.ResponseExpires         设置返回头部中的 Content-Expires 参数，非必须
- *     @param  {string}   params.ResponseCacheControl         设置返回头部中的 Cache-Control 参数，非必须
- *     @param  {string}   params.ResponseContentDisposition         设置返回头部中的 Content-Disposition 参数，非必须
- *     @param  {string}   params.ResponseContentEncoding         设置返回头部中的 Content-Encoding 参数，非必须
- * @param  {function}   callback      回调函数，必须
- * @param  {object}     err     请求失败的错误，如果请求成功，则为空。
- * @param  {object}     data 为对应的 object 数据，包括 body 和 headers
+ * @param  {object}  params                                 参数对象，必须
+ *     @param  {string}  params.Bucket                      Bucket名称，必须
+ *     @param  {string}  params.Region                      地域名称，必须
+ *     @param  {string}  params.Key                         文件名称，必须
+ *     @param  {string || writeStream}  params.Output       文件输出地址或者写流，非必须
+ *     @param  {string}  params.IfModifiedSince             当Object在指定时间后被修改，则返回对应Object元信息，否则返回304，非必须
+ *     @param  {string}  params.IfUnmodifiedSince           如果文件修改时间早于或等于指定时间，才返回文件内容。否则返回 412 (precondition failed)，非必须
+ *     @param  {string}  params.IfMatch                     当 ETag 与指定的内容一致，才返回文件。否则返回 412 (precondition failed)，非必须
+ *     @param  {string}  params.IfNoneMatch                 当 ETag 与指定的内容不一致，才返回文件。否则返回304 (not modified)，非必须
+ *     @param  {string}  params.ResponseContentType         设置返回头部中的 Content-Type 参数，非必须
+ *     @param  {string}  params.ResponseContentLanguage     设置返回头部中的 Content-Language 参数，非必须
+ *     @param  {string}  params.ResponseExpires             设置返回头部中的 Content-Expires 参数，非必须
+ *     @param  {string}  params.ResponseCacheControl        设置返回头部中的 Cache-Control 参数，非必须
+ *     @param  {string}  params.ResponseContentDisposition  设置返回头部中的 Content-Disposition 参数，非必须
+ *     @param  {string}  params.ResponseContentEncoding     设置返回头部中的 Content-Encoding 参数，非必须
+ * @param  {function}  callback                             回调函数，必须
+ * @param  {object}  err                                    请求失败的错误，如果请求成功，则为空。
+ * @param  {object}  data                                   为对应的 object 数据，包括 body 和 headers
  */
 function getObject(params, callback) {
     var headers = {};
@@ -920,36 +824,35 @@ function getObject(params, callback) {
         }
 
         data = data || {};
-
-        return callback(null, data.headers || {});
+        callback(null, data.headers || {});
     });
 }
 
 /**
  * 上传 object
- * @param  {object}   params     参数对象，必须
- *     @param  {string}   params.Bucket     Bucket名称，必须
- *     @param  {string}   params.Region     地域名称，必须
- *     @param  {string}   params.Key     文件名称，必须
- *     @param  {string}   params.FilePath         上传文件的路径
- *     @param  {string || buffer || readStream}   params.Body         上传文件的内容或者流
- *     @param  {string}   params.CacheControl         RFC 2616 中定义的缓存策略，将作为 Object 元数据保存，非必须
- *     @param  {string}   params.ContentDisposition   RFC 2616 中定义的文件名称，将作为 Object 元数据保存，非必须
- *     @param  {string}   params.ContentEncoding             RFC 2616 中定义的编码格式，将作为 Object 元数据保存，非必须
- *     @param  {string}   params.ContentLength                 RFC 2616 中定义的 HTTP 请求内容长度（字节），必须
- *     @param  {string}   params.ContentType         RFC 2616 中定义的内容类型（MIME），将作为 Object 元数据保存，非必须
- *     @param  {string}   params.Expect         当使用 Expect: 100-continue 时，在收到服务端确认后，才会发送请求内容，非必须
- *     @param  {string}   params.Expires         RFC 2616 中定义的过期时间，将作为 Object 元数据保存，非必须
- *     @param  {string}   params.ContentSha1         RFC 3174 中定义的 160-bit 内容 SHA-1 算法校验，非必须
- *     @param  {string}   params.ACL         允许用户自定义文件权限，有效值：private | public-read，非必须
- *     @param  {string}   params.GrantRead         赋予被授权者读的权限，格式 x-cos-grant-read: uin=" ",uin=" "，非必须
- *     @param  {string}   params.GrantWrite         赋予被授权者写的权限，格式 x-cos-grant-write: uin=" ",uin=" "，非必须
- *     @param  {string}   params.GrantFullControl         赋予被授权者读写权限，格式 x-cos-grant-full-control: uin=" ",uin=" "，非必须
- *     @param  {function}   params.onProgress         上传进度回调函数
- * @param  {function}   callback        回调函数，必须
- * @return  {object}    err            请求失败的错误，如果请求成功，则为空。
- * @return  {object}    data        为对应的 object 数据
- *     @return  {string}    data.ETag    为对应上传文件的 ETag 值
+ * @param  {object} params                                      参数对象，必须
+ *     @param  {string}  params.Bucket                          Bucket名称，必须
+ *     @param  {string}  params.Region                          地域名称，必须
+ *     @param  {string}  params.Key                             文件名称，必须
+ *     @param  {string}  params.FilePath                        上传文件的路径
+ *     @param  {string || buffer || readStream}  params.Body    上传文件的内容或者流
+ *     @param  {string}  params.CacheControl                    RFC 2616 中定义的缓存策略，将作为 Object 元数据保存，非必须
+ *     @param  {string}  params.ContentDisposition              RFC 2616 中定义的文件名称，将作为 Object 元数据保存，非必须
+ *     @param  {string}  params.ContentEncoding                 RFC 2616 中定义的编码格式，将作为 Object 元数据保存，非必须
+ *     @param  {string}  params.ContentLength                   RFC 2616 中定义的 HTTP 请求内容长度（字节），必须
+ *     @param  {string}  params.ContentType                     RFC 2616 中定义的内容类型（MIME），将作为 Object 元数据保存，非必须
+ *     @param  {string}  params.Expect                          当使用 Expect: 100-continue 时，在收到服务端确认后，才会发送请求内容，非必须
+ *     @param  {string}  params.Expires                         RFC 2616 中定义的过期时间，将作为 Object 元数据保存，非必须
+ *     @param  {string}  params.ContentSha1                     RFC 3174 中定义的 160-bit 内容 SHA-1 算法校验，非必须
+ *     @param  {string}  params.ACL                             允许用户自定义文件权限，有效值：private | public-read，非必须
+ *     @param  {string}  params.GrantRead                       赋予被授权者读的权限，格式 x-cos-grant-read: uin=" ",uin=" "，非必须
+ *     @param  {string}  params.GrantWrite                      赋予被授权者写的权限，格式 x-cos-grant-write: uin=" ",uin=" "，非必须
+ *     @param  {string}  params.GrantFullControl                赋予被授权者读写权限，格式 x-cos-grant-full-control: uin=" ",uin=" "，非必须
+ *     @param  {function}  params.onProgress                    上传进度回调函数
+ * @param  {function}  callback                                 回调函数，必须
+ * @return  {object}  err                                       请求失败的错误，如果请求成功，则为空。
+ * @return  {object}  data                                      为对应的 object 数据
+ *     @return  {string}  data.ETag                             为对应上传文件的 ETag 值
  */
 function putObject(params, callback) {
     var headers = {};
@@ -1016,22 +919,21 @@ function putObject(params, callback) {
                 'ETag': data.headers['etag']
             });
         }
-
-        return callback(null, data);
+        callback(null, data);
     });
 }
 
 /**
  * 删除 object
- * @param  {object}     params     参数对象，必须
- *     @param  {string}     params.Bucket     Bucket名称，必须
- *     @param  {string}     params.Region     地域名称，必须
- *     @param  {string}     params.Key     object名称，必须
- * @param  {function}   callback      回调函数，必须
- * @param  {object}     err     请求失败的错误，如果请求成功，则为空。
- * @param  {object}     data  删除操作成功之后返回的数据，如果删除操作成功，则返回 success 为 true, 并且附带原先 object 的 url
- *     @param  {Boolean}    data.Success  删除操作是否成功，成功则为 true，否则为 false
- *     @param  {Boolean}    data.BucketNotFound      请求的 object 所在的 bucket 是否不存在，如果为 true，则说明该 bucket 不存在
+ * @param  {object}  params                     参数对象，必须
+ *     @param  {string}  params.Bucket          Bucket名称，必须
+ *     @param  {string}  params.Region          地域名称，必须
+ *     @param  {string}  params.Key             object名称，必须
+ * @param  {function}  callback                 回调函数，必须
+ * @param  {object}  err                        请求失败的错误，如果请求成功，则为空。
+ * @param  {object}  data                       删除操作成功之后返回的数据，如果删除操作成功，则返回 success 为 true, 并且附带原先 object 的 url
+ *     @param  {Boolean}  data.Success          删除操作是否成功，成功则为 true，否则为 false
+ *     @param  {Boolean}  data.BucketNotFound   请求的 object 所在的 bucket 是否不存在，如果为 true，则说明该 bucket 不存在
  */
 function deleteObject(params, callback) {
     submitRequest.call(this, {
@@ -1055,8 +957,7 @@ function deleteObject(params, callback) {
                 return callback(err);
             }
         }
-
-        return callback(null, {
+        callback(null, {
             DeleteObjectSuccess: true
         });
 
@@ -1065,14 +966,14 @@ function deleteObject(params, callback) {
 
 /**
  * 获取 object 的 权限列表
- * @param  {object}   params     参数对象，必须
- *     @param  {string}   params.Bucket     Bucket名称，必须
- *     @param  {string}   params.Region     地域名称，必须
- *     @param  {string}   params.Key     object名称，必须
- * @param  {function}   callback      回调函数，必须
- * @return  {object}    err     请求失败的错误，如果请求成功，则为空。
- * @return  {object}    data 返回的数据
- *     @return  {object}    data.AccessControlPolicy  权限列表
+ * @param  {object}  params                         参数对象，必须
+ *     @param  {string}  params.Bucket              Bucket名称，必须
+ *     @param  {string}  params.Region              地域名称，必须
+ *     @param  {string}  params.Key                 object名称，必须
+ * @param  {function}  callback                     回调函数，必须
+ * @return  {object}  err                           请求失败的错误，如果请求成功，则为空。
+ * @return  {object}  data                          返回的数据
+ *     @return  {object}  data.AccessControlPolicy  权限列表
  */
 function getObjectACL(params, callback) {
 
@@ -1097,20 +998,19 @@ function getObjectACL(params, callback) {
         }
 
         data.AccessControlPolicy.AccessControlList.Grant = Grant;
-
-        return callback(null, data.AccessControlPolicy || {});
+        callback(null, data.AccessControlPolicy || {});
     });
 }
 
 /**
  * 设置 object 的 权限列表
- * @param  {object}   params     参数对象，必须
- *     @param  {string}   params.Bucket     Bucket名称，必须
- *     @param  {string}   params.Region     地域名称，必须
- *     @param  {string}   params.Key     object名称，必须
- * @param  {function}   callback      回调函数，必须
- * @return  {object}    err     请求失败的错误，如果请求成功，则为空。
- * @return  {object}    data 返回的数据
+ * @param  {object}  params             参数对象，必须
+ *     @param  {string}  params.Bucket  Bucket名称，必须
+ *     @param  {string}  params.Region  地域名称，必须
+ *     @param  {string}  params.Key     object名称，必须
+ * @param  {function}  callback         回调函数，必须
+ * @return  {object}  err               请求失败的错误，如果请求成功，则为空。
+ * @return  {object}  data              返回的数据
  */
 function putObjectACL(params, callback) {
     var headers = {};
@@ -1133,8 +1033,7 @@ function putObjectACL(params, callback) {
         if (err) {
             return callback(err);
         }
-
-        return callback(null, {
+        callback(null, {
             PutObjectACLSuccess: true
         });
     });
@@ -1142,13 +1041,13 @@ function putObjectACL(params, callback) {
 
 /**
  * Options Object请求实现跨域访问的预请求。即发出一个 OPTIONS 请求给服务器以确认是否可以进行跨域操作。
- * @param  {object}   params     参数对象，必须
- *     @param  {string}   params.Bucket     Bucket名称，必须
- *     @param  {string}   params.Region     地域名称，必须
- *     @param  {string}   params.Key     object名称，必须
- * @param  {function}   callback      回调函数，必须
- * @return  {object}    err     请求失败的错误，如果请求成功，则为空。
- * @return  {object}    data 返回的数据
+ * @param  {object}  params             参数对象，必须
+ *     @param  {string}  params.Bucket  Bucket名称，必须
+ *     @param  {string}  params.Region  地域名称，必须
+ *     @param  {string}  params.Key     object名称，必须
+ * @param  {function}  callback         回调函数，必须
+ * @return  {object}  err               请求失败的错误，如果请求成功，则为空。
+ * @return  {object}  data              返回的数据
  */
 function optionsObject(params, callback) {
     var headers = {};
@@ -1186,36 +1085,35 @@ function optionsObject(params, callback) {
         retData['AccessControlAllowHeaders'] = resHeaders['access-control-allow-headers'];
         retData['AccessControlExposeHeaders'] = resHeaders['access-control-expose-headers'];
         retData['AccessControlMaxAge'] = resHeaders['access-control-max-age'];
-
-        return callback(null, retData);
+        callback(null, retData);
     });
 }
 
 /**
- * @params** (Object) ： 参数列表
- * Bucket —— (String) ： Bucket 名称
- * Region —— (String) ： 地域名称
- * Key —— (String) ： 文件名称
- * CopySource —— (String) ： 源文件URL绝对路径，可以通过versionid子资源指定历史版本
- * ACL —— (String)  ： 允许用户自定义文件权限。有效值：private，public-read默认值：private。
- * GrantRead —— (String)  ： 赋予被授权者读的权限，格式 x-cos-grant-read: uin=" ",uin=" "，当需要给子账户授权时，uin="RootAcountID/SubAccountID"，当需要给根账户授权时，uin="RootAcountID"。
- * GrantWrite —— (String)  ： 赋予被授权者写的权限，格式 x-cos-grant-write: uin=" ",uin=" "，当需要给子账户授权时，uin="RootAcountID/SubAccountID"，当需要给根账户授权时，uin="RootAcountID"。
- * GrantFullControl —— (String)  ： 赋予被授权者读写权限，格式 x-cos-grant-full-control: uin=" ",uin=" "，当需要给子账户授权时，uin="RootAcountID/SubAccountID"，当需要给根账户授权时，uin="RootAcountID"。
- * MetadataDirective —— (String) ： 是否拷贝元数据，枚举值：Copy, Replaced，默认值Copy。假如标记为Copy，忽略Header中的用户元数据信息直接复制；假如标记为Replaced，按Header信息修改元数据。当目标路径和原路径一致，即用户试图修改元数据时，必须为Replaced
- * CopySourceIfModifiedSince —— (String) ： 当Object在指定时间后被修改，则执行操作，否则返回412。可与x-cos-copy-source-If-None-Match一起使用，与其他条件联合使用返回冲突。
- * CopySourceIfUnmodifiedSince —— (String) ： 当Object在指定时间后未被修改，则执行操作，否则返回412。可与x-cos-copy-source-If-Match一起使用，与其他条件联合使用返回冲突。
- * CopySourceIfMatch —— (String) ： 当Object的Etag和给定一致时，则执行操作，否则返回412。可与x-cos-copy-source-If-Unmodified-Since一起使用，与其他条件联合使用返回冲突。
- * CopySourceIfNoneMatch —— (String) ： 当Object的Etag和给定不一致时，则执行操作，否则返回412。可与x-cos-copy-source-If-Modified-Since一起使用，与其他条件联合使用返回冲突。
- * StorageClass —— (String) ： 存储级别，枚举值：存储级别，枚举值：Standard, Standard_IA，Nearline；默认值：Standard
- * CacheControl —— (String) ： 指定所有缓存机制在整个请求/响应链中必须服从的指令。
- * ContentDisposition —— (String) ： MIME 协议的扩展，MIME 协议指示 MIME 用户代理如何显示附加的文件
- * ContentEncoding —— (String) ： HTTP 中用来对「采用何种编码格式传输正文」进行协定的一对头部字段
- * ContentLength —— (String) ： 设置响应消息的实体内容的大小，单位为字节
- * ContentType —— (String) ： RFC 2616 中定义的 HTTP 请求内容类型（MIME），例如text/plain
- * Expect —— (String) ： 请求的特定的服务器行为
- * Expires —— (String) ：    响应过期的日期和时间
- * ContentLanguage —— (String) ： 指定内容语言
- * x-cos-meta-* —— (String) ： 允许用户自定义的头部信息，将作为 Object 元数据返回。大小限制2K。
+ * @param  {object}                                     参数列表
+ *     @param  {string}  Bucket                         Bucket 名称
+ *     @param  {string}  Region                         地域名称
+ *     @param  {string}  Key                            文件名称
+ *     @param  {string}  CopySource                     源文件URL绝对路径，可以通过versionid子资源指定历史版本
+ *     @param  {string}  ACL                            允许用户自定义文件权限。有效值：private，public-read默认值：private。
+ *     @param  {string}  GrantRead                      赋予被授权者读的权限，格式 x-cos-grant-read: uin=" ",uin=" "，当需要给子账户授权时，uin="RootAcountID/SubAccountID"，当需要给根账户授权时，uin="RootAcountID"。
+ *     @param  {string}  GrantWrite                     赋予被授权者写的权限，格式 x-cos-grant-write: uin=" ",uin=" "，当需要给子账户授权时，uin="RootAcountID/SubAccountID"，当需要给根账户授权时，uin="RootAcountID"。
+ *     @param  {string}  GrantFullControl               赋予被授权者读写权限，格式 x-cos-grant-full-control: uin=" ",uin=" "，当需要给子账户授权时，uin="RootAcountID/SubAccountID"，当需要给根账户授权时，uin="RootAcountID"。
+ *     @param  {string}  MetadataDirective              是否拷贝元数据，枚举值：Copy, Replaced，默认值Copy。假如标记为Copy，忽略Header中的用户元数据信息直接复制；假如标记为Replaced，按Header信息修改元数据。当目标路径和原路径一致，即用户试图修改元数据时，必须为Replaced
+ *     @param  {string}  CopySourceIfModifiedSince      当Object在指定时间后被修改，则执行操作，否则返回412。可与x-cos-copy-source-If-None-Match一起使用，与其他条件联合使用返回冲突。
+ *     @param  {string}  CopySourceIfUnmodifiedSince    当Object在指定时间后未被修改，则执行操作，否则返回412。可与x-cos-copy-source-If-Match一起使用，与其他条件联合使用返回冲突。
+ *     @param  {string}  CopySourceIfMatch              当Object的Etag和给定一致时，则执行操作，否则返回412。可与x-cos-copy-source-If-Unmodified-Since一起使用，与其他条件联合使用返回冲突。
+ *     @param  {string}  CopySourceIfNoneMatch          当Object的Etag和给定不一致时，则执行操作，否则返回412。可与x-cos-copy-source-If-Modified-Since一起使用，与其他条件联合使用返回冲突。
+ *     @param  {string}  StorageClass                   存储级别，枚举值：存储级别，枚举值：Standard, Standard_IA，Nearline；默认值：Standard
+ *     @param  {string}  CacheControl                   指定所有缓存机制在整个请求/响应链中必须服从的指令。
+ *     @param  {string}  ContentDisposition             MIME 协议的扩展，MIME 协议指示 MIME 用户代理如何显示附加的文件
+ *     @param  {string}  ContentEncoding                HTTP 中用来对「采用何种编码格式传输正文」进行协定的一对头部字段
+ *     @param  {string}  ContentLength                  设置响应消息的实体内容的大小，单位为字节
+ *     @param  {string}  ContentType                    RFC 2616 中定义的 HTTP 请求内容类型（MIME），例如text/plain
+ *     @param  {string}  Expect                         请求的特定的服务器行为
+ *     @param  {string}  Expires                        响应过期的日期和时间
+ *     @param  {string}  ContentLanguage                指定内容语言
+ *     @param  {string}  x-cos-meta-*                   允许用户自定义的头部信息，将作为 Object 元数据返回。大小限制2K。
  */
 function putObjectCopy(params, callback) {
     var headers = {};
@@ -1258,10 +1156,8 @@ function putObjectCopy(params, callback) {
         if (err) {
             return callback(err);
         }
-
         data = data || {};
-
-        return callback(null, data.CopyObjectResult || {});
+        callback(null, data.CopyObjectResult || {});
     });
 }
 
@@ -1308,42 +1204,39 @@ function deleteMultipleObject(params, callback) {
         if (!(Deleted instanceof Array)) {
             Deleted = [Deleted];
         }
-
         if (!(Errors instanceof Array)) {
             Errors = [Errors];
         }
-
         data.DeleteResult.Error = Errors;
         data.DeleteResult.Deleted = Deleted;
-
-        return callback(null, data.DeleteResult || {});
+        callback(null, data.DeleteResult || {});
     });
 }
 
 
-// ----------------------------------------- 分块上传相关部分 ----------------------------------
+// 分块上传
 
 
 /**
  * 初始化分块上传
- * @param  {object}   params     参数对象，必须
- *     @param  {string}  params.Bucket     Bucket名称，必须
- *     @param  {string}  params.Region     地域名称，必须
- *     @param  {string}  params.Key     object名称，必须
- *     @param  {string}  params.CacheControl    RFC 2616 中定义的缓存策略，将作为 Object 元数据保存，非必须
- *     @param  {string}  params.ContentDisposition    RFC 2616 中定义的文件名称，将作为 Object 元数据保存    ，非必须
- *     @param  {string}  params.ContentEncoding        RFC 2616 中定义的编码格式，将作为 Object 元数据保存，非必须
- *     @param  {string}  params.ContentType    RFC 2616 中定义的内容类型（MIME），将作为 Object 元数据保存，非必须
- *     @param  {string}  params.Expires    RFC 2616 中定义的过期时间，将作为 Object 元数据保存，非必须
- *     @param  {string}  params.ACL        允许用户自定义文件权限，非必须
- *     @param  {string}  params.GrantRead    赋予被授权者读的权限 ，非必须
- *     @param  {string}  params.GrantWrite    赋予被授权者写的权限 ，非必须
- *     @param  {string}  params.GrantFullControl    赋予被授权者读写权限 ，非必须
- *     @param  {string}  params.StorageClass    设置Object的存储级别，枚举值：Standard，Standard_IA，Nearline，非必须
- * @param  {function}   callback      回调函数，必须
- * @return  {object}    err     请求失败的错误，如果请求成功，则为空。
- * @return  {object}    data 返回的数据
- *     @return  {object}    data.InitiateMultipartUploadResult  初始化上传信息，包括 Bucket(Bucket名称), Key(文件名称) 和 UploadId (上传任务ID)
+ * @param  {object}  params                                     参数对象，必须
+ *     @param  {string}  params.Bucket                          Bucket名称，必须
+ *     @param  {string}  params.Region                          地域名称，必须
+ *     @param  {string}  params.Key                             object名称，必须
+ *     @param  {string}  params.CacheControl                    RFC 2616 中定义的缓存策略，将作为 Object 元数据保存，非必须
+ *     @param  {string}  params.ContentDisposition              RFC 2616 中定义的文件名称，将作为 Object 元数据保存    ，非必须
+ *     @param  {string}  params.ContentEncoding                 RFC 2616 中定义的编码格式，将作为 Object 元数据保存，非必须
+ *     @param  {string}  params.ContentType                     RFC 2616 中定义的内容类型（MIME），将作为 Object 元数据保存，非必须
+ *     @param  {string}  params.Expires                         RFC 2616 中定义的过期时间，将作为 Object 元数据保存，非必须
+ *     @param  {string}  params.ACL                             允许用户自定义文件权限，非必须
+ *     @param  {string}  params.GrantRead                       赋予被授权者读的权限 ，非必须
+ *     @param  {string}  params.GrantWrite                      赋予被授权者写的权限 ，非必须
+ *     @param  {string}  params.GrantFullControl                赋予被授权者读写权限 ，非必须
+ *     @param  {string}  params.StorageClass                    设置Object的存储级别，枚举值：Standard，Standard_IA，Nearline，非必须
+ * @param  {function}  callback                                 回调函数，必须
+ * @return  {object}  err                                       请求失败的错误，如果请求成功，则为空。
+ * @return  {object}  data                                      返回的数据
+ *     @return  {object}  data.InitiateMultipartUploadResult    初始化上传信息，包括 Bucket(Bucket名称), Key(文件名称) 和 UploadId (上传任务ID)
  */
 function multipartInit(params, callback) {
     var headers = {};
@@ -1385,26 +1278,23 @@ function multipartInit(params, callback) {
         if (data && data.InitiateMultipartUploadResult) {
             return callback(null, data.InitiateMultipartUploadResult);
         }
-
-        return callback(null, data);
-
-
+        callback(null, data);
     });
 }
 
 /**
  * 分块上传
- * @param  {object}   params     参数对象，必须
- *     @param  {string}   params.Bucket     Bucket名称，必须
- *     @param  {string}   params.Region     地域名称，必须
- *     @param  {string}   params.Key     object名称，必须
- * @param  {string}      params.ContentLength        RFC 2616 中定义的 HTTP 请求内容长度（字节），非必须
- * @param  {string}      params.Expect        当使用 Expect: 100-continue 时，在收到服务端确认后，才会发送请求内容，非必须
- * @param  {string}      params.ContentSha1    RFC 3174 中定义的 160-bit 内容 SHA-1 算法校验值，非必须
- * @param  {function}   callback      回调函数，必须
- * @return  {object}    err     请求失败的错误，如果请求成功，则为空。
- * @return  {object}    data 返回的数据
- *     @return  {object}    data.ETag  返回的文件分块 sha1 值
+ * @param  {object}  params                     参数对象，必须
+ *     @param  {string}  params.Bucket          Bucket名称，必须
+ *     @param  {string}  params.Region          地域名称，必须
+ *     @param  {string}  params.Key             object名称，必须
+ * @param  {string}      params.ContentLength   RFC 2616 中定义的 HTTP 请求内容长度（字节），非必须
+ * @param  {string}      params.Expect          当使用 Expect: 100-continue 时，在收到服务端确认后，才会发送请求内容，非必须
+ * @param  {string}      params.ContentSha1     RFC 3174 中定义的 160-bit 内容 SHA-1 算法校验值，非必须
+ * @param  {function}  callback                 回调函数，必须
+ * @return  {object}  err                       请求失败的错误，如果请求成功，则为空。
+ * @return  {object}  data                      返回的数据
+ *     @return  {object}  data.ETag             返回的文件分块 sha1 值
  */
 function multipartUpload(params, callback) {
     var headers = {};
@@ -1437,27 +1327,25 @@ function multipartUpload(params, callback) {
         data = data || {};
 
         data['headers'] = data['headers'] || {};
-
-        return callback(null, {
+        callback(null, {
             ETag: data['headers']['etag'] || ''
         });
-
     });
 }
 
 /**
  * 完成分块上传
- * @param  {object}   params     参数对象，必须
- *     @param  {string}  params.Bucket     Bucket名称，必须
- *     @param  {string}  params.Region     地域名称，必须
- *     @param  {string}  params.Key     object名称，必须
- *     @param  {array}   params.Parts        分块信息列表，必须
- *     @param  {string}  params.Parts[i].PartNumber    块编号，必须
- *     @param  {string}  params.Parts[i].ETag        分块的 sha1 校验值
- * @param  {function}   callback      回调函数，必须
- * @return  {object}    err     请求失败的错误，如果请求成功，则为空。
- * @return  {object}    data 返回的数据
- *     @return  {object}    data.CompleteMultipartUpload   完成分块上传后的文件信息，包括Location, Bucket, Key 和 ETag
+ * @param  {object}  params                             参数对象，必须
+ *     @param  {string}  params.Bucket                  Bucket名称，必须
+ *     @param  {string}  params.Region                  地域名称，必须
+ *     @param  {string}  params.Key                     object名称，必须
+ *     @param  {array}   params.Parts                   分块信息列表，必须
+ *     @param  {string}  params.Parts[i].PartNumber     块编号，必须
+ *     @param  {string}  params.Parts[i].ETag           分块的 sha1 校验值
+ * @param  {function}  callback                         回调函数，必须
+ * @return  {object}  err                               请求失败的错误，如果请求成功，则为空。
+ * @return  {object}  data                              返回的数据
+ *     @return  {object}  data.CompleteMultipartUpload  完成分块上传后的文件信息，包括Location, Bucket, Key 和 ETag
  */
 function multipartComplete(params, callback) {
     var headers = {};
@@ -1503,25 +1391,25 @@ function multipartComplete(params, callback) {
             return callback(err);
         }
         data = data || {};
-        return callback(null, data.CompleteMultipartUploadResult || {});
+        callback(null, data.CompleteMultipartUploadResult || {});
     });
 }
 
 /**
  * 分块上传任务列表查询
- * @param  {object}   params     参数对象，必须
- *     @param  {string}   params.Bucket     Bucket名称，必须
- *     @param  {string}   params.Region     地域名称，必须
- *     @param  {string}   params.Delimiter     定界符为一个符号，如果有Prefix，则将Prefix到delimiter之间的相同路径归为一类，定义为Common Prefix，然后列出所有Common Prefix。如果没有Prefix，则从路径起点开始，非必须
- *     @param  {string}   params.EncodingType     规定返回值的编码方式，非必须
- *     @param  {string}   params.Prefix     前缀匹配，用来规定返回的文件前缀地址，非必须
- *     @param  {string}   params.MaxUploads     单次返回最大的条目数量，默认1000，非必须
- *     @param  {string}   params.KeyMarker     与upload-id-marker一起使用 </Br>当upload-id-marker未被指定时，ObjectName字母顺序大于key-marker的条目将被列出 </Br>当upload-id-marker被指定时，ObjectName字母顺序大于key-marker的条目被列出，ObjectName字母顺序等于key-marker同时UploadId大于upload-id-marker的条目将被列出，非必须
- *     @param  {string}   params.UploadIdMarker     与key-marker一起使用 </Br>当key-marker未被指定时，upload-id-marker将被忽略 </Br>当key-marker被指定时，ObjectName字母顺序大于key-marker的条目被列出，ObjectName字母顺序等于key-marker同时UploadId大于upload-id-marker的条目将被列出，非必须
- * @param  {function}   callback      回调函数，必须
- * @return  {object}    err     请求失败的错误，如果请求成功，则为空。
- * @return  {object}    data 返回的数据
- *     @return  {object}    data.ListMultipartUploadsResult   分块上传任务信息
+ * @param  {object}  params                                 参数对象，必须
+ *     @param  {string}  params.Bucket                      Bucket名称，必须
+ *     @param  {string}  params.Region                      地域名称，必须
+ *     @param  {string}  params.Delimiter                   定界符为一个符号，如果有Prefix，则将Prefix到delimiter之间的相同路径归为一类，定义为Common Prefix，然后列出所有Common Prefix。如果没有Prefix，则从路径起点开始，非必须
+ *     @param  {string}  params.EncodingType                规定返回值的编码方式，非必须
+ *     @param  {string}  params.Prefix                      前缀匹配，用来规定返回的文件前缀地址，非必须
+ *     @param  {string}  params.MaxUploads                  单次返回最大的条目数量，默认1000，非必须
+ *     @param  {string}  params.KeyMarker                   与upload-id-marker一起使用 </Br>当upload-id-marker未被指定时，ObjectName字母顺序大于key-marker的条目将被列出 </Br>当upload-id-marker被指定时，ObjectName字母顺序大于key-marker的条目被列出，ObjectName字母顺序等于key-marker同时UploadId大于upload-id-marker的条目将被列出，非必须
+ *     @param  {string}  params.UploadIdMarker              与key-marker一起使用 </Br>当key-marker未被指定时，upload-id-marker将被忽略 </Br>当key-marker被指定时，ObjectName字母顺序大于key-marker的条目被列出，ObjectName字母顺序等于key-marker同时UploadId大于upload-id-marker的条目将被列出，非必须
+ * @param  {function}  callback                             回调函数，必须
+ * @return  {object}  err                                   请求失败的错误，如果请求成功，则为空。
+ * @return  {object}  data                                  返回的数据
+ *     @return  {object}  data.ListMultipartUploadsResult   分块上传任务信息
  */
 function multipartList(params, callback) {
     var reqParams = {};
@@ -1568,25 +1456,24 @@ function multipartList(params, callback) {
             data.ListMultipartUploadsResult.Upload = Upload;
             data.ListMultipartUploadsResult.CommonPrefixes = CommonPrefixes;
         }
-
-        return callback(null, data.ListMultipartUploadsResult || {});
+        callback(null, data.ListMultipartUploadsResult || {});
     });
 }
 
 /**
  * 上传的分块列表查询
- * @param  {object}   params     参数对象，必须
- *     @param  {string}   params.Bucket     Bucket名称，必须
- *     @param  {string}   params.Region     地域名称，必须
- *     @param  {string}   params.Key     object名称，必须
- *     @param  {string}   params.UploadId     标示本次分块上传的ID，必须
- *     @param  {string}   params.EncodingType     规定返回值的编码方式，非必须
- *     @param  {string}   params.MaxParts     单次返回最大的条目数量，默认1000，非必须
- *     @param  {string}   params.PartNumberMarker     默认以UTF-8二进制顺序列出条目，所有列出条目从marker开始，非必须
- * @param  {function}   callback      回调函数，必须
- * @return  {object}    err     请求失败的错误，如果请求成功，则为空。
- * @return  {object}    data 返回的数据
- *     @return  {object}    data.ListMultipartUploadsResult   分块信息
+ * @param  {object}  params                                 参数对象，必须
+ *     @param  {string}  params.Bucket                      Bucket名称，必须
+ *     @param  {string}  params.Region                      地域名称，必须
+ *     @param  {string}  params.Key                         object名称，必须
+ *     @param  {string}  params.UploadId                    标示本次分块上传的ID，必须
+ *     @param  {string}  params.EncodingType                规定返回值的编码方式，非必须
+ *     @param  {string}  params.MaxParts                    单次返回最大的条目数量，默认1000，非必须
+ *     @param  {string}  params.PartNumberMarker            默认以UTF-8二进制顺序列出条目，所有列出条目从marker开始，非必须
+ * @param  {function}  callback                             回调函数，必须
+ * @return  {object}  err                                   请求失败的错误，如果请求成功，则为空。
+ * @return  {object}  data                                  返回的数据
+ *     @return  {object}  data.ListMultipartUploadsResult   分块信息
  */
 function multipartListPart(params, callback) {
     var reqParams = {};
@@ -1616,29 +1503,26 @@ function multipartListPart(params, callback) {
         if (!(Part instanceof Array)) {
             Part = [Part];
         }
-
         data.ListPartsResult.Part = Part;
-
-        return callback(null, data.ListPartsResult || {});
+        callback(null, data.ListPartsResult || {});
     });
 }
 
 /**
  * 抛弃分块上传
- * @param  {object}   params     参数对象，必须
- *     @param  {string}   params.Bucket     Bucket名称，必须
- *     @param  {string}   params.Region     地域名称，必须
- *     @param  {string}   params.Key     object名称，必须
- *     @param  {string}   params.UploadId     标示本次分块上传的ID，必须
- * @param  {function}   callback      回调函数，必须
- *     @return  {object}    err     请求失败的错误，如果请求成功，则为空。
- *     @return  {object}    data 返回的数据
+ * @param  {object}  params                 参数对象，必须
+ *     @param  {string}  params.Bucket      Bucket名称，必须
+ *     @param  {string}  params.Region      地域名称，必须
+ *     @param  {string}  params.Key         object名称，必须
+ *     @param  {string}  params.UploadId    标示本次分块上传的ID，必须
+ * @param  {function}  callback             回调函数，必须
+ *     @return  {object}    err             请求失败的错误，如果请求成功，则为空。
+ *     @return  {object}    data            返回的数据
  */
 function multipartAbort(params, callback) {
     var reqParams = {};
 
     reqParams['uploadId'] = params['UploadId'];
-
     submitRequest.call(this, {
         method: 'DELETE',
         Bucket: params.Bucket,
@@ -1651,8 +1535,7 @@ function multipartAbort(params, callback) {
         if (err) {
             return callback(err);
         }
-
-        return callback(null, {
+        callback(null, {
             MultipartAbortSuccess: true
         });
     });
@@ -1660,10 +1543,10 @@ function multipartAbort(params, callback) {
 
 /**
  * 获取签名
- * @param  {object}  params  参数对象，必须
- *     @param  {string}  params.Method     请求方法，必须
- *     @param  {string}  params.Key        object名称，必须
- * @return  {string}  data  返回签名字符串
+ * @param  {object}  params             参数对象，必须
+ *     @param  {string}  params.Method  请求方法，必须
+ *     @param  {string}  params.Key     object名称，必须
+ * @return  {string}  data              返回签名字符串
  */
 function getAuth(params) {
     return util.getAuth({
@@ -1696,7 +1579,6 @@ function getUrl(params) {
     if (action) {
         url += action;
     }
-
     return url;
 }
 
@@ -1757,9 +1639,17 @@ function submitRequest(params, callback) {
 
     var sender = REQUEST(opt, function (err, response, body) {
 
+        // 返回内容添加 状态码 和 headers
+        var cb = function (err, data) {
+            data = data || {};
+            data.statusCode = response.statusCode;
+            data.headers = response.headers;
+            callback(err, data);
+        };
+
         // 请求错误，发生网络错误
         if (err) {
-            callback({
+            cb({
                 error: err
             });
             return;
@@ -1776,7 +1666,7 @@ function submitRequest(params, callback) {
 
         // 请求返回码不为 200
         if (statusCode !== 200 && statusCode !== 204 && statusCode !== 206) {
-            callback({
+            cb({
                 statusCode: statusCode,
                 error: jsonRes.Error || jsonRes
             });
@@ -1795,12 +1685,13 @@ function submitRequest(params, callback) {
         }
 
         if (jsonRes.Error) {
-            return callback({
+            cb({
                 statusCode: statusCode,
                 error: jsonRes.Error
             });
+            return;
         }
-        callback(null, jsonRes);
+        cb(null, jsonRes);
     });
 
     // progress
@@ -1859,14 +1750,14 @@ var API_MAP = {
     putBucketCORS: putBucketCORS,
     deleteBucketCORS: deleteBucketCORS,
     getBucketLocation: getBucketLocation,
-    getBucketTagging: getBucketTagging,
     putBucketTagging: putBucketTagging,
+    getBucketTagging: getBucketTagging,
     deleteBucketTagging: deleteBucketTagging,
     getBucketPolicy: getBucketPolicy,
     putBucketPolicy: putBucketPolicy,
-    // getBucketLifecycle: getBucketLifecycle,
-    // putBucketLifecycle: putBucketLifecycle,
-    // deleteBucketLifecycle: deleteBucketLifecycle,
+    getBucketLifecycle: getBucketLifecycle,
+    putBucketLifecycle: putBucketLifecycle,
+    deleteBucketLifecycle: deleteBucketLifecycle,
 
     // Object 相关方法
     getObject: getObject,

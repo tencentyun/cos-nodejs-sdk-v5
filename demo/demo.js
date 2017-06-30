@@ -95,7 +95,7 @@ function getBucketACL() {
         if (err) {
             return console.log(err);
         }
-        console.log(data.AccessControlList.Grant);
+        console.log(JSON.stringify(data, null, '  '));
     });
 }
 
@@ -512,7 +512,7 @@ function sliceUploadFile() {
     });
 }
 
-getService();
+// getService();
 // getAuth();
 // putBucket();
 // getBucket();

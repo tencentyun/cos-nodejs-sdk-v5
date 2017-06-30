@@ -527,7 +527,7 @@ describe('BucketLifecycle', function () {
                     Bucket: config.Bucket,
                     Region: config.Region
                 }, function (err, data) {
-                    assert(comparePlainObject(Rules, data.LifecycleConfiguration.Rule));
+                    assert(comparePlainObject(Rules, data));
                     done();
                 });
             }, 50);
@@ -565,7 +565,7 @@ describe('BucketLifecycle', function () {
                     Bucket: config.Bucket,
                     Region: config.Region
                 }, function (err, data) {
-                    assert(comparePlainObject(Rules, data.LifecycleConfiguration.Rule));
+                    assert(comparePlainObject(Rules, data));
                     done();
                 });
             }, 50);

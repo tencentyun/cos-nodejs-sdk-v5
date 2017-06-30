@@ -655,7 +655,10 @@ function getBucketLifecycle(params, callback) {
         if (err) {
             return callback(err);
         }
-        callback(null, data);
+        var result = {
+            Rules: data.LifecycleConfiguration.Rule
+        };
+        callback(null, result);
     });
 }
 

@@ -131,6 +131,56 @@ function getBucketCORS() {
     });
 }
 
+function putBucketTagging() {
+    cos.putBucketTagging({
+        Bucket: config.Bucket,
+        Region: config.Region,
+        Tags: [{
+            Key: 'tagA',
+            Value: 123,
+        }, {
+            Key: 'tagB',
+            Value: 456,
+        }]
+    }, function (err, data) {
+        if (err) {
+            return console.log(err);
+        }
+        console.log(JSON.stringify(data, null, '  '));
+    });
+}
+
+function getBucketTagging() {
+    cos.getBucketTagging({
+        Bucket: config.Bucket,
+        Region: config.Region,
+        Tags: [{
+            Key: 'tagA',
+            Value: 123,
+        }, {
+            Key: 'tagB',
+            Value: 456,
+        }]
+    }, function (err, data) {
+        if (err) {
+            return console.log(err);
+        }
+        console.log(JSON.stringify(data, null, '  '));
+    });
+}
+
+function deleteBucketTagging() {
+    cos.deleteBucketTagging({
+        Bucket: config.Bucket,
+        Region: config.Region
+    }, function (err, data) {
+        if (err) {
+            return console.log(err);
+        }
+        console.log(JSON.stringify(data, null, '  '));
+    });
+}
+
 function putBucketPolicy() {
     var AppId = config.AppId;
     var Bucket = config.Bucket;
@@ -174,8 +224,74 @@ function putBucketPolicy() {
     });
 }
 
+function getBucketPolicy() {
+    cos.getBucketPolicy({
+        Bucket: config.Bucket,
+        Region: config.Region
+    }, function (err, data) {
+        if (err) {
+            console.log(err);
+        } else {
+            console.log(JSON.stringify(data, null, '  '));
+        }
+    });
+}
+
 function getBucketLocation() {
     cos.getBucketLocation({
+        Bucket: config.Bucket,
+        Region: config.Region
+    }, function (err, data) {
+        if (err) {
+            return console.log(err);
+        }
+        console.log(JSON.stringify(data, null, '  '));
+    });
+}
+
+function getBucketLifecycle() {
+    cos.getBucketLifecycle({
+        Bucket: config.Bucket,
+        Region: config.Region
+    }, function (err, data) {
+        if (err) {
+            return console.log(err);
+        }
+        console.log(JSON.stringify(data, null, '  '));
+    });
+}
+
+function putBucketLifecycle() {
+    cos.putBucketLifecycle({
+        Bucket: config.Bucket,
+        Region: config.Region,
+        Rules: [{
+            'ID': 1,
+            'Prefix': 'test',
+            'Status': 'Enabled',
+            'Transition': {
+                'Date': '2016-10-31T00:00:00+08:00',
+                'StorageClass': 'Standard_IA'
+            }
+        }, {
+            'ID': 2,
+            'Prefix': 'abc',
+            'Status': 'Enabled',
+            'Transition': {
+                'Days': '0',
+                'StorageClass': 'Nearline'
+            }
+        }]
+    }, function (err, data) {
+        if (err) {
+            return console.log(err);
+        }
+        console.log(JSON.stringify(data, null, '  '));
+    });
+}
+
+function deleteBucketLifecycle() {
+    cos.deleteBucketLifecycle({
         Bucket: config.Bucket,
         Region: config.Region
     }, function (err, data) {
@@ -195,19 +311,6 @@ function deleteBucket() {
             return console.log(err);
         }
         console.log(JSON.stringify(data, null, '  '));
-    });
-}
-
-function getBucketPolicy() {
-    cos.getBucketPolicy({
-        Bucket: config.Bucket,
-        Region: config.Region
-    }, function (err, data) {
-        if (err) {
-            console.log(err);
-        } else {
-            console.log(JSON.stringify(data, null, '  '));
-        }
     });
 }
 
@@ -418,9 +521,15 @@ getService();
 // getBucketACL();
 // putBucketCORS();
 // getBucketCORS();
+// putBucketTagging();
+// getBucketTagging();
+// deleteBucketTagging();
 // putBucketPolicy();
 // getBucketPolicy();
 // getBucketLocation();
+// getBucketLifecycle();
+// putBucketLifecycle();
+// deleteBucketLifecycle();
 // deleteBucket();
 // putObject();
 // putObjectCopy();

@@ -887,6 +887,7 @@ function putObject(params, callback) {
 
     if (FilePath) {
         readStream = fs.createReadStream(FilePath); // 传入 './1mb.zip'
+        Body = readStream;
         headers['Content-Length'] = fs.statSync(FilePath).size;
     } else if (Body && typeof Body.pipe === 'function') { // fs.createReadStream(filepath)
         readStream = Body;
@@ -1644,6 +1645,10 @@ function submitRequest(params, callback) {
 
         // 返回内容添加 状态码 和 headers
         var cb = function (err, data) {
+            if (err && !response) {
+              callback(err, null);
+              return;
+            }
             data = data || {};
             data.statusCode = response.statusCode;
             data.headers = response.headers;

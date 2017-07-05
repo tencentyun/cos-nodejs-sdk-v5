@@ -327,11 +327,9 @@ function putObject() {
             onProgress: function (progressData) {
                 console.log(JSON.stringify(progressData));
             },
-            // 格式1. 只传文件路径
-            FilePath: path.resolve(__dirname, filename),
-            // 格式2. 传入文件内容
+            // 格式1. 传入文件内容
             // Body: fs.readFileSync(filepath),
-            // 格式3. 传入文件流，必须需要传文件大小
+            // 格式2. 传入文件流，必须需要传文件大小
             // Body: fs.createReadStream(filepath),
             // ContentLength: fs.statSync(filepath).size
         }, function (err, data) {

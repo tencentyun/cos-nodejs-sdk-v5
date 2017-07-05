@@ -330,8 +330,8 @@ function putObject() {
             // 格式1. 传入文件内容
             // Body: fs.readFileSync(filepath),
             // 格式2. 传入文件流，必须需要传文件大小
-            // Body: fs.createReadStream(filepath),
-            // ContentLength: fs.statSync(filepath).size
+            Body: fs.createReadStream(filepath),
+            ContentLength: fs.statSync(filepath).size
         }, function (err, data) {
             if (err) {
                 console.log(err);
@@ -371,10 +371,7 @@ function getObject() {
         Bucket: config.Bucket,
         Region: config.Region,
         Key: '1mb.zip',
-        // 格式1. 传文件路径
-        FilePath: filepath,
-        // 格式2：传写文件流
-        // Output: fs.createWriteStream(filepath)
+        Output: fs.createWriteStream(filepath)
     }, function (err, data) {
         if (err) {
             return console.log(err);

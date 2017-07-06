@@ -47,10 +47,10 @@ var getAuth = function (opt) {
 
     // 签名有效起止时间
     var now = parseInt(new Date().getTime() / 1000) - 1;
-    var expired = now; // now + ';' + (now + 60) + ''; // 签名过期时间为当前 + 3600s
+    var expired = now;
 
     if (opt.expires === undefined) {
-        expired += 3600;
+        expired += 3600; // 签名过期时间为当前 + 3600s
     } else {
         expired += (opt.expires * 1) || 0;
     }
@@ -129,21 +129,6 @@ var clearKey = function (obj) {
     return retObj;
 };
 
-// 获取文件 sha1 值
-var getFileSHA = function (readStream, callback) {
-    var SHA = crypto.createHash('sha1');
-    readStream.on('data', function (chunk) {
-        SHA.update(chunk);
-    });
-    readStream.on('error', function (err) {
-        callback(err);
-    });
-    readStream.on('end', function () {
-        var hash = SHA.digest('hex');
-        callback(null, hash);
-    });
-};
-
 // 获取文件 md5 值
 var getFileMd5 = function (readStream, callback) {
     var md5 = crypto.createHash('md5');
@@ -158,8 +143,11 @@ var getFileMd5 = function (readStream, callback) {
         callback(null, hash);
     });
 };
-
-// 简单的属性复制方法
+function clone(obj) {
+    return map(obj, function (v) {
+        return typeof v === 'object' ? clone(v) : v;
+    });
+}
 function extend(target, source) {
     for (var method in source) {
         if (!target[method]) {
@@ -168,7 +156,25 @@ function extend(target, source) {
     }
     return target;
 }
-
+function isArray(arr) {
+    return arr instanceof Array;
+}
+function each(obj, fn) {
+    for (var i in obj) {
+        if (obj.hasOwnProperty(i)) {
+            fn(obj[i], i);
+        }
+    }
+}
+function map(obj, fn) {
+    var o = isArray(obj) ? [] : {};
+    for (var i in obj) {
+        if (obj.hasOwnProperty(i)) {
+            o[i] = fn(obj[i], i);
+        }
+    }
+    return o;
+}
 var binaryBase64 = function (str) {
     var i, len, char, arr = [];
     for (i = 0, len = str.length / 2; i < len; i++) {
@@ -191,8 +197,13 @@ var checkParams = function (apiName, params) {
     return true;
 };
 
-
 var apiWrapper = function (apiName, apiFn) {
+    var regionMap = {
+        'gz': 'cn-south',
+        'tj': 'cn-north',
+        'sh': 'cn-east',
+        'cd': 'cn-southwest'
+    };
     return function (params, callback) {
         callback = callback || function () { };
         if (apiName !== 'getService' && apiName !== 'abortUploadTask') {
@@ -204,6 +215,11 @@ var apiWrapper = function (apiName, apiFn) {
             // 优化 Key 参数
             if (params.Key && params.Key.indexOf('/') === 0) {
                 callback({error: 'params Key can not start width "/"'});
+                return;
+            }
+            // 判断 region 格式
+            if (params.Region && regionMap[params.Region]) {
+                callback({error: 'Region error, it should be ' + regionMap[params.Region]});
                 return;
             }
             // 兼容带有 AppId 的 Bucket
@@ -219,8 +235,6 @@ var apiWrapper = function (apiName, apiFn) {
         var res = apiFn.call(this, params, callback);
         if (apiName === 'getAuth') {
             return res;
-        } else {
-            return;
         }
     }
 };
@@ -232,10 +246,14 @@ var util = {
     json2xml: json2xml,
     md5: md5,
     clearKey: clearKey,
-    getFileSHA: getFileSHA,
     getFileMd5: getFileMd5,
     extend: extend,
-    binaryBase64: binaryBase64
+    isArray: isArray,
+    each: each,
+    map: map,
+    clone: clone,
+    binaryBase64: binaryBase64,
+    isBrowser: !!global.window
 };
 
 

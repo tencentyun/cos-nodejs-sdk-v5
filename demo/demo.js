@@ -12,7 +12,7 @@ var cos = new COS({
 
 function getService() {
     cos.getService(function (err, data) {
-        return console.log(err || data);
+        console.log(err || data);
     });
 }
 
@@ -37,10 +37,7 @@ function putBucket() {
         Bucket: 'testnew',
         Region: config.Region
     }, function (err, data) {
-        if (err) {
-            return console.log(err);
-        }
-        console.log(JSON.stringify(data, null, '  '));
+        console.log(err || data);
     });
 }
 
@@ -49,11 +46,7 @@ function getBucket() {
         Bucket: config.Bucket,
         Region: config.Region
     }, function (err, data) {
-        if (err) {
-            return console.log(err);
-        }
-
-        console.log(JSON.stringify(data, null, '  '));
+        console.log(err || data);
     });
 }
 
@@ -62,15 +55,12 @@ function headBucket() {
         Bucket: config.Bucket,
         Region: config.Region
     }, function (err, data) {
-        if (err) {
-            return console.log(err);
-        }
-        console.log(JSON.stringify(data, null, '  '));
+        console.log(err || data);
     });
 }
 
-function putBucketACL() {
-    cos.putBucketACL({
+function putBucketAcl() {
+    cos.putBucketAcl({
         Bucket: config.Bucket,
         Region: config.Region,
         // GrantFullControl: 'uin="1001", uin="1002"',
@@ -78,56 +68,65 @@ function putBucketACL() {
         // GrantRead: 'uin="1001", uin="1002"',
         // ACL: 'public-read-write',
         // ACL: 'public-read',
-        ACL: 'private'
+        ACL: 'private',
+        // AccessControlPolicy: {
+        //     "Owner": {
+        //         "ID": 'qcs::cam::uin/10001:uin/10001' // 10001 是 QQ 号
+        //     },
+        //     "Grants": [{
+        //         "Grantee": {
+        //             "ID": "qcs::cam::uin/10002:uin/10002", // 10002 是 QQ 号
+        //         },
+        //         "Permission": "READ"
+        //     }]
+        // }
     }, function (err, data) {
-        if (err) {
-            return console.log(err);
-        }
-        console.log(JSON.stringify(data, null, '  '));
+        console.log(err || data);
     });
 }
 
-function getBucketACL() {
-    cos.getBucketACL({
+function getBucketAcl() {
+    cos.getBucketAcl({
         Bucket: config.Bucket,
         Region: config.Region
     }, function (err, data) {
-        if (err) {
-            return console.log(err);
-        }
-        console.log(JSON.stringify(data, null, '  '));
+        console.log(err || data);
     });
 }
 
-function putBucketCORS() {
-    //  该接口存在问题，Content-MD5 错误
-    cos.putBucketCORS({
+function putBucketCors() {
+    cos.putBucketCors({
         Bucket: config.Bucket,
         Region: config.Region,
-        CORSRules: [{
-            "AllowedOrigin": ["*"],
-            "AllowedMethod": ["GET", "POST", "PUT", "DELETE", "HEAD"],
-            "AllowedHeader": ["origin", "accept", "content-type", "authorzation"],
-            "ExposeHeader": ["ETag"],
-            "MaxAgeSeconds": "300"
-        }]
-    }, function (err, data) {
-        if (err) {
-            return console.log(err);
+        CORSConfiguration: {
+            "CORSRules": [{
+                "AllowedOrigin": ["*"],
+                "AllowedMethod": ["GET", "POST", "PUT", "DELETE", "HEAD"],
+                "AllowedHeader": ["origin", "accept", "content-type", "authorzation"],
+                "ExposeHeader": ["ETag"],
+                "MaxAgeSeconds": "600"
+            }]
         }
-        console.log(JSON.stringify(data, null, '  '));
+    }, function (err, data) {
+        console.log(err || data);
     });
 }
 
-function getBucketCORS() {
-    cos.getBucketCORS({
+function getBucketCors() {
+    cos.getBucketCors({
         Bucket: config.Bucket,
         Region: config.Region
     }, function (err, data) {
-        if (err) {
-            return console.log(err);
-        }
-        console.log(JSON.stringify(data, null, '  '));
+        console.log(err || data);
+    });
+}
+
+function deleteBucketCors() {
+    cos.deleteBucketCors({
+        Bucket: config.Bucket,
+        Region: config.Region
+    }, function (err, data) {
+        console.log(err || data);
     });
 }
 
@@ -135,37 +134,23 @@ function putBucketTagging() {
     cos.putBucketTagging({
         Bucket: config.Bucket,
         Region: config.Region,
-        Tags: [{
-            Key: 'tagA',
-            Value: 123,
-        }, {
-            Key: 'tagB',
-            Value: 456,
-        }]
-    }, function (err, data) {
-        if (err) {
-            return console.log(err);
+        Tagging: {
+            "Tags": [
+                {"Key": "k1", "Value": "v1"},
+                {"Key": "k2", "Value": "v2"}
+            ]
         }
-        console.log(JSON.stringify(data, null, '  '));
+    }, function (err, data) {
+        console.log(err || data);
     });
 }
 
 function getBucketTagging() {
     cos.getBucketTagging({
         Bucket: config.Bucket,
-        Region: config.Region,
-        Tags: [{
-            Key: 'tagA',
-            Value: 123,
-        }, {
-            Key: 'tagB',
-            Value: 456,
-        }]
+        Region: config.Region
     }, function (err, data) {
-        if (err) {
-            return console.log(err);
-        }
-        console.log(JSON.stringify(data, null, '  '));
+        console.log(err || data);
     });
 }
 
@@ -174,10 +159,7 @@ function deleteBucketTagging() {
         Bucket: config.Bucket,
         Region: config.Region
     }, function (err, data) {
-        if (err) {
-            return console.log(err);
-        }
-        console.log(JSON.stringify(data, null, '  '));
+        console.log(err || data);
     });
 }
 
@@ -192,7 +174,7 @@ function putBucketPolicy() {
     cos.putBucketPolicy({
         Policy: {
             "version": "2.0",
-            "principal": {"qcs": ["qcs::cam::uin/909600000:uin/909600000"]}, // 这里的 909600000 是 QQ 号
+            "principal": {"qcs": ["qcs::cam::uin/10001:uin/10001"]}, // 这里的 10001 是 QQ 号
             "statement": [
                 {
                     "effect": "allow",
@@ -216,11 +198,7 @@ function putBucketPolicy() {
         Bucket: config.Bucket,
         Region: config.Region
     }, function (err, data) {
-        if (err) {
-            console.log(err);
-        } else {
-            getBucketPolicy();
-        }
+        console.log(err || data);
     });
 }
 
@@ -229,11 +207,7 @@ function getBucketPolicy() {
         Bucket: config.Bucket,
         Region: config.Region
     }, function (err, data) {
-        if (err) {
-            console.log(err);
-        } else {
-            console.log(JSON.stringify(data, null, '  '));
-        }
+        console.log(err || data);
     });
 }
 
@@ -242,10 +216,29 @@ function getBucketLocation() {
         Bucket: config.Bucket,
         Region: config.Region
     }, function (err, data) {
-        if (err) {
-            return console.log(err);
+        console.log(err || data);
+    });
+}
+
+function putBucketLifecycle() {
+    cos.putBucketLifecycle({
+        Bucket: config.Bucket,
+        Region: config.Region,
+        LifecycleConfiguration: {
+            "Rules": [{
+                'ID': 1,
+                'Filter': {
+                    'Prefix': 'test123',
+                },
+                'Status': 'Enabled',
+                'Transition': {
+                    'Date': '2016-10-31T00:00:00+08:00',
+                    'StorageClass': 'Standard_IA'
+                }
+            }]
         }
-        console.log(JSON.stringify(data, null, '  '));
+    }, function (err, data) {
+        console.log(err || data);
     });
 }
 
@@ -254,39 +247,7 @@ function getBucketLifecycle() {
         Bucket: config.Bucket,
         Region: config.Region
     }, function (err, data) {
-        if (err) {
-            return console.log(err);
-        }
-        console.log(JSON.stringify(data, null, '  '));
-    });
-}
-
-function putBucketLifecycle() {
-    cos.putBucketLifecycle({
-        Bucket: config.Bucket,
-        Region: config.Region,
-        Rules: [{
-            'ID': 1,
-            'Prefix': 'test',
-            'Status': 'Enabled',
-            'Transition': {
-                'Date': '2016-10-31T00:00:00+08:00',
-                'StorageClass': 'Standard_IA'
-            }
-        }, {
-            'ID': 2,
-            'Prefix': 'abc',
-            'Status': 'Enabled',
-            'Transition': {
-                'Days': '0',
-                'StorageClass': 'Nearline'
-            }
-        }]
-    }, function (err, data) {
-        if (err) {
-            return console.log(err);
-        }
-        console.log(JSON.stringify(data, null, '  '));
+        console.log(err || data);
     });
 }
 
@@ -295,10 +256,7 @@ function deleteBucketLifecycle() {
         Bucket: config.Bucket,
         Region: config.Region
     }, function (err, data) {
-        if (err) {
-            return console.log(err);
-        }
-        console.log(JSON.stringify(data, null, '  '));
+        console.log(err || data);
     });
 }
 
@@ -307,10 +265,7 @@ function deleteBucket() {
         Bucket: 'testnew',
         Region: config.Region
     }, function (err, data) {
-        if (err) {
-            return console.log(err);
-        }
-        console.log(JSON.stringify(data, null, '  '));
+        console.log(err || data);
     });
 }
 
@@ -318,7 +273,7 @@ function putObject() {
     // 创建测试文件
     var filename = '1mb.zip';
     var filepath = path.resolve(__dirname, filename);
-    util.createFile(filepath, 1024 * 1024 * 1, function (err) {
+    util.createFile(filepath, 1024 * 1024, function (err) {
         // 调用方法
         cos.putObject({
             Bucket: config.Bucket, /* 必须 */
@@ -333,11 +288,7 @@ function putObject() {
             Body: fs.createReadStream(filepath),
             ContentLength: fs.statSync(filepath).size
         }, function (err, data) {
-            if (err) {
-                console.log(err);
-            } else {
-                console.log(JSON.stringify(data, null, '  '));
-            }
+            console.log(err || data);
             fs.unlinkSync(filepath);
         });
     });
@@ -357,26 +308,27 @@ function putObjectCopy() {
         Key: '1mb.copy.zip',
         CopySource: Bucket + '-' + AppId + '.' + config.Region + '.myqcloud.com/1mb.zip',
     }, function (err, data) {
-        if (err) {
-            console.log(err);
-        } else {
-            console.log(JSON.stringify(data, null, '  '));
-        }
+        console.log(err || data);
     });
 }
 
 function getObject() {
-    var filepath = path.resolve(__dirname, '1mb.out.zip');
+    var filepath1 = path.resolve(__dirname, '1mb.out1.zip');
+    var filepath2 = path.resolve(__dirname, '1mb.out2.zip');
     cos.getObject({
         Bucket: config.Bucket,
         Region: config.Region,
         Key: '1mb.zip',
-        Output: fs.createWriteStream(filepath)
     }, function (err, data) {
-        if (err) {
-            return console.log(err);
-        }
-        console.log(JSON.stringify(data, null, '  '));
+        fs.writeFileSync(filepath1, data.Body);
+    });
+    cos.getObject({
+        Bucket: config.Bucket,
+        Region: config.Region,
+        Key: '1mb.zip',
+        Output: fs.createWriteStream(filepath2)
+    }, function (err, data) {
+        console.log(err || data);
     });
 }
 
@@ -386,15 +338,12 @@ function headObject() {
         Region: config.Region,
         Key: '1mb.zip'
     }, function (err, data) {
-        if (err) {
-            return console.log(err);
-        }
-        console.log(JSON.stringify(data, null, '  '));
+        console.log(err || data);
     });
 }
 
-function putObjectACL() {
-    cos.putBucketACL({
+function putObjectAcl() {
+    cos.putObjectAcl({
         Bucket: config.Bucket,
         Region: config.Region,
         Key: '1mb.zip',
@@ -403,25 +352,30 @@ function putObjectACL() {
         // GrantRead: 'uin="1001", uin="1002"',
         // ACL: 'public-read-write',
         // ACL: 'public-read',
-        ACL: 'private'
+        ACL: 'private',
+        // AccessControlPolicy: {
+        //     "Owner": {
+        //         "ID": 'qcs::cam::uin/10001:uin/10001' // 10001 是 QQ 号
+        //     },
+        //     "Grants": [{
+        //         "Grantee": {
+        //             "ID": "qcs::cam::uin/10002:uin/10002", // 10002 是 QQ 号
+        //         },
+        //         "Permission": "READ"
+        //     }]
+        // }
     }, function (err, data) {
-        if (err) {
-            return console.log(err);
-        }
-        console.log(JSON.stringify(data, null, '  '));
+        console.log(err || data);
     });
 }
 
-function getObjectACL() {
-    cos.getObjectACL({
+function getObjectAcl() {
+    cos.getObjectAcl({
         Bucket: config.Bucket,
         Region: config.Region,
         Key: '1mb.zip'
     }, function (err, data) {
-        if (err) {
-            return console.log(err);
-        }
-        console.log(JSON.stringify(data, null, '  '));
+        console.log(err || data);
     });
 }
 
@@ -431,11 +385,7 @@ function deleteObject() {
         Region: config.Region,
         Key: '1mb.zip'
     }, function (err, data) {
-        if (err) {
-            return console.log(err);
-        }
-
-        console.log(JSON.stringify(data, null, '  '));
+        console.log(err || data);
     });
 }
 
@@ -448,10 +398,7 @@ function deleteMultipleObject() {
             {Key: '3mb.zip'},
         ]
     }, function (err, data) {
-        if (err) {
-            return console.log(err);
-        }
-        console.log(JSON.stringify(data, null, '  '));
+        console.log(err || data);
     });
 }
 
@@ -461,19 +408,15 @@ function abortUploadTask() {
         Region: config.Region, /* 必须 */
         // 格式1，删除单个上传任务
         // Level: 'task',
-        // Key: '100mb.zip',
+        // Key: '10mb.zip',
         // UploadId: '14985543913e4e2642e31db217b9a1a3d9b3cd6cf62abfda23372c8d36ffa38585492681e3',
         // 格式2，删除单个文件所有未完成上传任务
         Level: 'file',
-        Key: '1mb.zip',
+        Key: '10mb.zip',
         // 格式3，删除 Bucket 下所有未完成上传任务
         // Level: 'bucket',
     }, function (err, data) {
-        if (err) {
-            console.log(err);
-        } else {
-            console.log(JSON.stringify(data, null, '  '));
-        }
+        console.log(err || data);
     });
 }
 
@@ -497,11 +440,7 @@ function sliceUploadFile() {
                 console.log(JSON.stringify(progressData));
             },
         }, function (err, data) {
-            if (err) {
-                console.log(err);
-            } else {
-                console.log(JSON.stringify(data, null, '  '));
-            }
+            console.log(err || data);
             fs.unlinkSync(filepath);
         });
     });
@@ -512,10 +451,11 @@ function sliceUploadFile() {
 // putBucket();
 // getBucket();
 // headBucket();
-// putBucketACL();
-// getBucketACL();
-// putBucketCORS();
-// getBucketCORS();
+// putBucketAcl();
+// getBucketAcl();
+// putBucketCors();
+// getBucketCors();
+// deleteBucketCors();
 // putBucketTagging();
 // getBucketTagging();
 // deleteBucketTagging();
@@ -530,9 +470,9 @@ function sliceUploadFile() {
 // putObjectCopy();
 // getObject();
 // headObject();
-// putObjectACL();
-// getObjectACL();
+// putObjectAcl();
+// getObjectAcl();
 // deleteObject();
 // deleteMultipleObject();
 // abortUploadTask();
-// sliceUploadFile();
+sliceUploadFile();

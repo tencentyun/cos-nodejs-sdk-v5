@@ -11,6 +11,7 @@ var COS = function (options) {
     this.AppId = options.AppId;
     this.SecretId = options.SecretId;
     this.SecretKey = options.SecretKey;
+    this.ProgressInterval = options.ProgressInterval || 100;
 };
 util.extend(COS.prototype, base);
 util.extend(COS.prototype, advance);

@@ -420,6 +420,7 @@ function abortUploadTask() {
     });
 }
 
+var TaskId
 function sliceUploadFile() {
     // 创建测试文件
     var filename = '10mb.zip';
@@ -431,7 +432,9 @@ function sliceUploadFile() {
             Region: config.Region,
             Key: filename, /* 必须 */
             FilePath: filepath, /* 必须 */
-            SliceSize: 1024 * 1024,  //1MB  /* 非必须 */
+            TaskReady: function (tid) {
+                TaskId = tid;
+            },
             onHashProgress: function (progressData) {
                 console.log(JSON.stringify(progressData));
             },
@@ -443,6 +446,30 @@ function sliceUploadFile() {
             fs.unlinkSync(filepath);
         });
     });
+}
+
+function cancelTask() {
+    sliceUploadFile();
+    setTimeout(function () {
+        cos.cancelTask(TaskId);
+        console.log('canceled');
+    }, 2000);
+}
+
+function pauseTask() {
+    sliceUploadFile();
+    setTimeout(function () {
+        cos.pauseTask(TaskId);
+        console.log('paused');
+        restartTask();
+    }, 2000);
+}
+
+function restartTask() {
+    setTimeout(function () {
+        cos.restartTask(TaskId);
+        console.log('restart');
+    }, 4000);
 }
 
 getService();
@@ -475,3 +502,6 @@ getService();
 // deleteMultipleObject();
 // abortUploadTask();
 // sliceUploadFile();
+// cancelTask();
+// pauseTask();
+// restartTask();

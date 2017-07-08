@@ -58,7 +58,7 @@ var initTask = function (cos) {
         var waiting = task && task.state === 'waiting';
         var running = task && (task.state === 'checking' || task.state === 'uploading');
         if (waiting || running) {
-            if (switchToState === 'paused' && typeof task.params.Body.pipe === 'function') {
+            if (switchToState === 'paused' && task.params.Body && typeof task.params.Body.pipe === 'function') {
                 console.error('stream not support pause');
                 return;
             }

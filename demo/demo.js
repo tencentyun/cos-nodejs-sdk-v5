@@ -419,7 +419,7 @@ function abortUploadTask() {
         console.log(err || data);
     });
 }
-
+sliceUploadFile();
 function sliceUploadFile() {
     // 创建测试文件
     var filename = '10mb.zip';
@@ -432,7 +432,6 @@ function sliceUploadFile() {
             Key: filename, /* 必须 */
             FilePath: filepath, /* 必须 */
             SliceSize: 1024 * 1024,  //1MB  /* 非必须 */
-            AsyncLimit: 5, /* 非必须 */
             onHashProgress: function (progressData) {
                 console.log(JSON.stringify(progressData));
             },
@@ -475,4 +474,4 @@ function sliceUploadFile() {
 // deleteObject();
 // deleteMultipleObject();
 // abortUploadTask();
-sliceUploadFile();
+// sliceUploadFile();

@@ -419,7 +419,7 @@ function abortUploadTask() {
         console.log(err || data);
     });
 }
-sliceUploadFile();
+
 function sliceUploadFile() {
     // 创建测试文件
     var filename = '10mb.zip';
@@ -445,7 +445,7 @@ function sliceUploadFile() {
     });
 }
 
-// getService();
+getService();
 // getAuth();
 // putBucket();
 // getBucket();

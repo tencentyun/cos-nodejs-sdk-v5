@@ -747,8 +747,8 @@ function abortUploadTaskArray(params, callback) {
 
 
 var API_MAP = {
-    _sliceUploadFile: _sliceUploadFile,
     sliceUploadFile: sliceUploadFile,
+    _sliceUploadFile: _sliceUploadFile,
     abortUploadTask: abortUploadTask,
 };
 

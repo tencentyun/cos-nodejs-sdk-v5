@@ -1391,7 +1391,6 @@ function multipartUpload(params, callback) {
         inputStream: params.Body || null,
         onProgress: params.onProgress
     }, function (err, data) {
-        debugger;
         if (params.TaskId) self.off('inner-kill-task', killTask);
         if (err) {
             return callback(err);

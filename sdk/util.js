@@ -149,11 +149,9 @@ function clone(obj) {
     });
 }
 function extend(target, source) {
-    for (var method in source) {
-        if (!target[method]) {
-            target[method] = source[method];
-        }
-    }
+    each(source, function (val, key) {
+        target[key] = source[key];
+    });
     return target;
 }
 function isArray(arr) {

@@ -18,8 +18,11 @@ function getService(params, callback) {
         callback = params;
         params = {};
     }
+
+    var protocol = util.isBrowser && location.protocol === 'https:' ? 'https:' : 'http:';
+
     submitRequest.call(this, {
-        url: 'http://service.cos.myqcloud.com',
+        url: protocol + '//service.cos.myqcloud.com',
         method: 'GET',
     }, function (err, data) {
         if (err) {

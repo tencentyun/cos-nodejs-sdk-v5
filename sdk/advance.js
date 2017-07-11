@@ -543,8 +543,8 @@ function uploadSliceItem(params, callback) {
         start: start,
         end: end - 1
     });
-
-    var ContentSha1 = UploadData.PartList[PartNumber - 1].ETag;
+    var PartItem = UploadData.PartList[PartNumber - 1];
+    var ContentSha1 = PartItem.ETag;
     Async.retry(sliceRetryTimes, function (tryCallback) {
         if (!self._isRunningTask(TaskId)) return;
         self.multipartUpload({
@@ -563,6 +563,7 @@ function uploadSliceItem(params, callback) {
             if (err) {
                 return tryCallback(err);
             } else {
+                PartItem.Uploaded = true;
                 return tryCallback(null, data);
             }
         });

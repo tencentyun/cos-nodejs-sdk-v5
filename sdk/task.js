@@ -82,7 +82,7 @@ var initTask = function (cos) {
             size = params.Body.size;
         } else if (params.Body && params.Body.length) {
             size = params.Body.length;
-        } else if (params.ContentLength) {
+        } else if (params.ContentLength === undefined) {
             size = params.ContentLength;
         } else if (params.FilePath) {
             try {
@@ -92,7 +92,7 @@ var initTask = function (cos) {
                 return;
             }
         }
-        if (!params.ContentLength) params.ContentLength = size;
+        if (params.ContentLength === undefined) params.ContentLength = size;
         params.TaskId = id;
         var task = {
             // env

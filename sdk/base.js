@@ -1685,7 +1685,7 @@ function submitRequest(params, callback) {
             appId: params.AppId || this.options.AppId,
         }),
         method: method,
-        headers: headers,
+        headers: headers || {},
         qs: qs,
         body: body,
         json: json,
@@ -1695,19 +1695,18 @@ function submitRequest(params, callback) {
         object = '/' + object;
     }
 
+    // 预先处理 undefined 和 null 的属性
+    opt.headers = util.clearKey(opt.headers);
+
     // 获取签名
     opt.headers['User-Agent'] = 'cos-nodejs-sdk-v5-' + pkg.version;
     opt.headers.Authorization = util.getAuth({
         method: opt.method,
         pathname: object || '/',
+        // headers: opt.headers,
         SecretId: params.SecretId || this.options.SecretId,
         SecretKey: params.SecretKey || this.options.SecretKey,
     });
-
-    // 预先处理 undefined 的属性
-    if (opt.headers) {
-        opt.headers = util.clearKey(opt.headers);
-    }
 
     if (opt.qs) {
         opt.qs = util.clearKey(opt.qs);

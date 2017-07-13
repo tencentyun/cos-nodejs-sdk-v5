@@ -8,7 +8,12 @@ var cos = new COS({
     AppId: config.AppId,
     SecretId: config.SecretId,
     SecretKey: config.SecretKey,
+    ProgressInterval: 1000,
+    FileParallelLimit: 3,
+    ChunkParallelLimit: 3,
+    ChunkSize: 1024 * 1024,
 });
+var TaskId;
 
 function getService() {
     cos.getService(function (err, data) {
@@ -279,6 +284,9 @@ function putObject() {
             Bucket: config.Bucket, /* 必须 */
             Region: config.Region,
             Key: filename, /* 必须 */
+            TaskReady: function (tid) {
+                TaskId = tid;
+            },
             onProgress: function (progressData) {
                 console.log(JSON.stringify(progressData));
             },
@@ -420,7 +428,6 @@ function abortUploadTask() {
     });
 }
 
-var TaskId
 function sliceUploadFile() {
     // 创建测试文件
     var filename = '10mb.zip';

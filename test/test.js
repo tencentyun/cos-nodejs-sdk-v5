@@ -97,7 +97,7 @@ describe('getAuth()', function () {
     this.timeout(60000);
     it('通过获取签名能正常获取文件', function (done) {
         var content = Date.now().toString();
-        var key = '1.txt';
+        var key = '1mb.zip';
         prepareBucket().then(function () {
             cos.putObject({
                 Bucket: config.Bucket,

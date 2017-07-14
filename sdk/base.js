@@ -959,7 +959,7 @@ function _putObject(params, callback) {
         inputStream: readStream,
         onProgress: onFileProgress
     }, function (err, data) {
-        params.TaskId === TaskId && self.off('inner-kill-task', killTask);
+        TaskId && self.off('inner-kill-task', killTask);
         onFileProgress(null, true);
         if (err) {
             return callback(err);
@@ -975,10 +975,12 @@ function _putObject(params, callback) {
     });
 
     var killTask = function (data) {
-        sender && sender.abort && sender.abort();
-        params.TaskId === data.TaskId && self.off('inner-kill-task', killTask);
+        if (data.TaskId === TaskId) {
+            sender && sender.abort && sender.abort();
+            self.off('inner-kill-task', killTask);
+        }
     };
-    params.TaskId && this.on('inner-kill-task', killTask);
+    TaskId && this.on('inner-kill-task', killTask);
 }
 
 /**
@@ -1372,6 +1374,7 @@ function multipartInit(params, callback) {
  */
 function multipartUpload(params, callback) {
     var self = this;
+    var TaskId = params.TaskId;
     var headers = {};
 
     headers['Content-Length'] = params['ContentLength'];
@@ -1394,7 +1397,7 @@ function multipartUpload(params, callback) {
         inputStream: params.Body || null,
         onProgress: params.onProgress
     }, function (err, data) {
-        if (params.TaskId) self.off('inner-kill-task', killTask);
+        if (TaskId) self.off('inner-kill-task', killTask);
         if (err) {
             return callback(err);
         }
@@ -1406,11 +1409,13 @@ function multipartUpload(params, callback) {
         });
     });
 
-    var killTask = function (TaskId) {
-        sender && sender.abort && sender.abort();
-        if (params.TaskId === TaskId) self.off('inner-kill-task', killTask);
+    var killTask = function (data) {
+        if (data.TaskId === TaskId) {
+            sender && sender.abort && sender.abort();
+            self.off('inner-kill-task', killTask);
+        }
     };
-    if (params.TaskId) this.on('inner-kill-task', killTask);
+    TaskId && this.on('inner-kill-task', killTask);
 
 }
 
@@ -1719,12 +1724,12 @@ function submitRequest(params, callback) {
         var cb = function (err, data) {
             if (err) {
                 err = err || {};
-                response.statusCode && (err.statusCode = response.statusCode);
+                response && response.statusCode && (err.statusCode = response.statusCode);
                 callback(err, null);
             } else {
                 data = data || {};
-                response.statusCode && (data.statusCode = response.statusCode);
-                response.headers && (data.headers = response.headers);
+                response && response.statusCode && (data.statusCode = response.statusCode);
+                response && response.headers && (data.headers = response.headers);
                 callback(null, data);
             }
         };

@@ -987,7 +987,6 @@ describe('BucketLifecycle', function () {
         'Filter': {
             'Prefix': 'test_' + Date.now().toString(36),
         },
-        'Prefix': 'test_' + Date.now().toString(36),
         'Status': 'Enabled',
         'Transition': {
             'Date': '2018-07-30T00:00:00+08:00',

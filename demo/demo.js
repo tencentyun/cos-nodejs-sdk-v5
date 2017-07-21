@@ -477,7 +477,7 @@ getService();
 // getAuth();
 // putBucket();
 // getBucket();
-headBucket();
+// headBucket();
 // putBucketAcl();
 // getBucketAcl();
 // putBucketCors();

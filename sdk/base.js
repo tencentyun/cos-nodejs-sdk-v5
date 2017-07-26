@@ -1803,13 +1803,15 @@ function submitRequest(params, callback) {
         var size0 = 0;
         sender.on('drain', function () {
             var time1 = Date.now();
+            if (time1 < time0 + 100) return;
             var loaded = 0;
             try {
                 loaded = sender.req.connection.bytesWritten - sender.req._header.length;
             } catch (e) {
+                return
             }
             var total = contentLength;
-            var speed = parseInt((loaded - size0) / ((time1 - time0) / 1000) * 100) / 100;
+            var speed = parseInt((loaded - size0) * 1000 / (time1 - time0) * 100) / 100;
             var percent = total ? (parseInt(loaded / total * 100) / 100) : 0;
             time0 = time1;
             size0 = loaded;

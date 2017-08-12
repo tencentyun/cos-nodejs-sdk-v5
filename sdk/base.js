@@ -783,6 +783,7 @@ function headObject(params, callback) {
  * @param  {Object}  data                                   为对应的 object 数据，包括 body 和 headers
  */
 function getObject(params, callback) {
+    var self = this;
     var headers = {};
     var reqParams = {};
 
@@ -811,6 +812,47 @@ function getObject(params, callback) {
         BodyType = util.isBrowser ? 'string' : 'buffer';
     }
 
+    var onProgress = params.onProgress;
+    var onDownloadProgress = (function () {
+        var time0 = Date.now();
+        var size0 = 0;
+        var FinishSize = 0;
+        var FileSize = 0;
+        var progressTimer;
+        var update = function () {
+            progressTimer = 0;
+            if (onProgress && (typeof onProgress === 'function')) {
+                var time1 = Date.now();
+                var speed = parseInt((FinishSize - size0) / ((time1 - time0) / 1000) * 100) / 100 || 0;
+                var percent = parseInt(FinishSize / FileSize * 100) / 100 || 0;
+                time0 = time1;
+                size0 = FinishSize;
+                try {
+                    onProgress({
+                        loaded: FinishSize,
+                        total: FileSize,
+                        speed: speed,
+                        percent: percent
+                    });
+                } catch (e) {
+                }
+            }
+        };
+        return function (info, immediately) {
+            if (info && info.loaded) {
+                FinishSize = info.loaded;
+                FileSize = info.total;
+            }
+            if (immediately) {
+                clearTimeout(progressTimer);
+                update();
+            } else {
+                if (progressTimer) return;
+                progressTimer = setTimeout(update, self.options.ProgressInterval || 1000);
+            }
+        };
+    })();
+
     // 如果用户自己传入了 output
     submitRequest.call(this, {
         method: 'GET',
@@ -822,7 +864,9 @@ function getObject(params, callback) {
         qs: reqParams,
         rawBody: true,
         outputStream: outputStream,
+        onDownloadProgress: onDownloadProgress,
     }, function (err, data) {
+        onDownloadProgress(null, true);
         if (err) {
             var statusCode = err.statusCode;
             if (headers['If-Modified-Since'] && statusCode && statusCode === 304) {
@@ -1740,56 +1784,80 @@ function submitRequest(params, callback) {
     }
     opt = util.clearKey(opt);
 
-    var sender = REQUEST(opt, function (err, response, body) {
-
-        // 返回内容添加 状态码 和 headers
-        var cb = function (err, data) {
-            if (err) {
-                err = err || {};
-                response && response.statusCode && (err.statusCode = response.statusCode);
-                callback(err, null);
-            } else {
-                data = data || {};
-                response && response.statusCode && (data.statusCode = response.statusCode);
-                response && response.headers && (data.headers = response.headers);
-                callback(null, data);
-            }
-        };
-
-        // 请求错误，发生网络错误
+    var sender = REQUEST(opt);
+    var retResponse;
+    var hasReturned;
+    var cb = function (err, data) {
+        if (hasReturned) return;
+        hasReturned = true;
         if (err) {
-            cb({error: err});
-            return;
+            err = err || {};
+            retResponse && retResponse.statusCode && (err.statusCode = retResponse.statusCode);
+            callback(err, null);
+        } else {
+            data = data || {};
+            retResponse && retResponse.statusCode && (data.statusCode = retResponse.statusCode);
+            retResponse && retResponse.headers && (data.headers = retResponse.headers);
+            callback(null, data);
         }
-
-        var jsonRes;
+    };
+    var xml2json = function (body) {
         try {
-            jsonRes = util.xml2json(body) || {};
+            json = util.xml2json(body) || {};
         } catch (e) {
-            jsonRes = body || {};
+            json = body || {};
         }
-
-        // 请求返回码不为 200
+        return json;
+    };
+    sender.on('error', function (err) {
+        cb({error: err});
+    });
+    sender.on('response', function (response) {
+        retResponse = response;
+        var contentLength = response.headers['content-length'] || 0;
         var statusCode = response.statusCode;
-        if (statusCode !== 200 && statusCode !== 204 && statusCode !== 206) {
-            cb({error: jsonRes.Error || jsonRes});
-            return;
+        var chunkList = [];
+        var statusSuccess = statusCode === 200 || statusCode === 204 || statusCode === 206;
+        if (statusSuccess && params.outputStream) {
+            sender.on('end', function () {
+                cb(null, {});
+            });
+        } else if (contentLength >= process.binding('buffer').kMaxLength) {
+            cb({error: 'file size large than ' + process.binding('buffer').kMaxLength + ', please use "Output" Stream to getObject.'});
+        } else {
+            sender.on('data', function (chunk) {
+                chunkList.push(chunk);
+            });
+            sender.on('end', function () {
+                var json;
+                try {
+                    var body = Buffer.concat(chunkList);
+                } catch (e) {
+                    cb({error: e});
+                    return;
+                }
+                if (statusSuccess) {
+                    if (rawBody) { // 不对 body 进行转换，body 直接挂载返回
+                        cb(null, {body: body});
+                    } else if (body.length) {
+                        json = xml2json(body.toString());
+                        if (json && json.Error) {
+                            cb({error: json.Error});
+                        } else {
+                            cb(null, json);
+                        }
+                    } else {
+                        cb(null, {});
+                    }
+                } else {
+                    json = xml2json(body.toString());
+                    cb({error: json && json.Error || json});
+                }
+            });
         }
-
-        // 不对 body 进行转换，body 直接挂载返回
-        if (rawBody) {
-            jsonRes = {};
-            jsonRes.body = body;
-        }
-
-        if (jsonRes.Error) {
-            cb({error: jsonRes.Error});
-            return;
-        }
-        cb(null, jsonRes);
     });
 
-    // progress
+    // upload progress
     if (params.onProgress && typeof params.onProgress === 'function') {
         var contentLength = opt.headers['Content-Length'];
         var time0 = Date.now();
@@ -1811,6 +1879,30 @@ function submitRequest(params, callback) {
                 total: total,
                 speed: speed,
                 percent: percent,
+            });
+        });
+    }
+    // download progress
+    if (params.onDownloadProgress && typeof params.onDownloadProgress === 'function') {
+        var time0 = Date.now();
+        var size0 = 0;
+        var loaded = 0;
+        var total = 0;
+        sender.on('response', function (res) {
+            total = res.headers['content-length'];
+            sender.on('data', function (chunk) {
+                loaded += chunk.length;
+                var time1 = Date.now();
+                var speed = parseInt((loaded - size0) / ((time1 - time0) / 1000) * 100) / 100;
+                var percent = total ? (parseInt(loaded / total * 100) / 100) : 0;
+                time0 = time1;
+                size0 = loaded;
+                params.onDownloadProgress({
+                    loaded: loaded,
+                    total: total,
+                    speed: speed,
+                    percent: percent,
+                });
             });
         });
     }

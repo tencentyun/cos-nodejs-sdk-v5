@@ -330,6 +330,9 @@ function getObject() {
         Bucket: config.Bucket,
         Region: config.Region,
         Key: '1mb.zip',
+        onProgress: function (progressData) {
+            console.log(JSON.stringify(progressData));
+        }
     }, function (err, data) {
         fs.writeFileSync(filepath1, data.Body);
     });
@@ -337,7 +340,10 @@ function getObject() {
         Bucket: config.Bucket,
         Region: config.Region,
         Key: '1mb.zip',
-        Output: fs.createWriteStream(filepath2)
+        Output: fs.createWriteStream(filepath2),
+        onProgress: function (progressData) {
+            console.log(JSON.stringify(progressData));
+        }
     }, function (err, data) {
         console.log(err || data);
     });
@@ -473,10 +479,10 @@ function restartTask() {
     console.log('restart');
 }
 
-getService();
+// getService();
 // getAuth();
 // putBucket();
-// getBucket();
+getBucket();
 // headBucket();
 // putBucketAcl();
 // getBucketAcl();

@@ -479,10 +479,10 @@ function restartTask() {
     console.log('restart');
 }
 
-// getService();
+getService();
 // getAuth();
 // putBucket();
-getBucket();
+// getBucket();
 // headBucket();
 // putBucketAcl();
 // getBucketAcl();

@@ -732,27 +732,27 @@ describe('BucketCORS', function () {
     var CORSRules = [{
         "AllowedOrigins": ["*"],
         "AllowedMethods": ["GET", "POST", "PUT", "DELETE", "HEAD"],
-        "AllowedHeaders": ["origin", "accept", "content-type", "authorzation", "test"],
+        "AllowedHeaders": ["origin", "accept", "content-type", "authorization", "test"],
         "ExposeHeaders": ["ETag"],
         "MaxAgeSeconds": "600"
     }];
     var CORSRules1 = [{
         "AllowedOrigin": "*",
         "AllowedMethods": ["GET", "POST", "PUT", "DELETE", "HEAD"],
-        "AllowedHeader": ["origin", "accept", "content-type", "authorzation", "test"],
+        "AllowedHeader": ["origin", "accept", "content-type", "authorization", "test"],
         "ExposeHeader": "ETag",
         "MaxAgeSeconds": "600"
     }];
     var CORSRulesMulti = [{
         "AllowedOrigins": ["*"],
         "AllowedMethods": ["GET", "POST", "PUT", "DELETE", "HEAD"],
-        "AllowedHeaders": ["origin", "accept", "content-type", "authorzation", "test"],
+        "AllowedHeaders": ["origin", "accept", "content-type", "authorization", "test"],
         "ExposeHeaders": ["ETag"],
         "MaxAgeSeconds": "600"
     }, {
         "AllowedOrigins": ["http://qq.com", "http://qcloud.com"],
         "AllowedMethods": ["GET", "POST", "PUT", "DELETE", "HEAD"],
-        "AllowedHeaders": ["origin", "accept", "content-type", "authorzation", "test"],
+        "AllowedHeaders": ["origin", "accept", "content-type", "authorization", "test"],
         "ExposeHeaders": ["ETag"],
         "MaxAgeSeconds": "600"
     }];

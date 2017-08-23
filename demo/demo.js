@@ -110,7 +110,7 @@ function putBucketCors() {
             "CORSRules": [{
                 "AllowedOrigin": ["*"],
                 "AllowedMethod": ["GET", "POST", "PUT", "DELETE", "HEAD"],
-                "AllowedHeader": ["origin", "accept", "content-type", "authorzation"],
+                "AllowedHeader": ["origin", "accept", "content-type", "authorization"],
                 "ExposeHeader": ["ETag"],
                 "MaxAgeSeconds": "600"
             }]

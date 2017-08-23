@@ -1195,8 +1195,7 @@ function optionsObject(params, callback) {
             if (err.statusCode && err.statusCode == 403) {
                 return callback(null, {
                     OptionsForbidden: true,
-                    statusCode: data.statusCode,
-                    headers: data.headers,
+                    statusCode: err.statusCode
                 });
             }
             return callback(err);

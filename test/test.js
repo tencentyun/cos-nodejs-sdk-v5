@@ -417,9 +417,9 @@ describe('BucketACL', function () {
         }, function (err, data) {
             assert(!err);
             cos.getBucketAcl({Bucket: config.Bucket, Region: config.Region}, function (err, data) {
-                assert(data.Grants.length === 2);
-                assert(data.Grants[1].Grantee.ID === 'qcs::cam::anyone:anyone');
-                assert(data.Grants[1].Permission === 'READ');
+                assert(data.Grants.length === 1);
+                assert(data.Grants[0].Grantee.ID === 'qcs::cam::anyone:anyone');
+                assert(data.Grants[0].Permission === 'READ');
                 done();
             });
         });
@@ -432,9 +432,9 @@ describe('BucketACL', function () {
         }, function (err, data) {
             assert(!err);
             cos.getBucketAcl({Bucket: config.Bucket, Region: config.Region}, function (err, data) {
-                assert(data.Grants.length === 2);
-                assert(data.Grants[1].Grantee.ID === 'qcs::cam::anyone:anyone');
-                assert(data.Grants[1].Permission === 'FULL_CONTROL');
+                assert(data.Grants.length === 1);
+                assert(data.Grants[0].Grantee.ID === 'qcs::cam::anyone:anyone');
+                assert(data.Grants[0].Permission === 'FULL_CONTROL');
                 done();
             });
         });
@@ -447,11 +447,11 @@ describe('BucketACL', function () {
         }, function (err, data) {
             assert(!err);
             cos.getBucketAcl({Bucket: config.Bucket, Region: config.Region}, function (err, data) {
-                assert(data.Grants.length === 3);
-                assert(data.Grants[1].Grantee.ID === 'qcs::cam::uin/1001:uin/1001');
+                assert(data.Grants.length === 2);
+                assert(data.Grants[0].Grantee.ID === 'qcs::cam::uin/1001:uin/1001');
+                assert(data.Grants[0].Permission === 'READ');
+                assert(data.Grants[1].Grantee.ID === 'qcs::cam::uin/1002:uin/1002');
                 assert(data.Grants[1].Permission === 'READ');
-                assert(data.Grants[2].Grantee.ID === 'qcs::cam::uin/1002:uin/1002');
-                assert(data.Grants[2].Permission === 'READ');
                 done();
             });
         });
@@ -464,11 +464,11 @@ describe('BucketACL', function () {
         }, function (err, data) {
             assert(!err);
             cos.getBucketAcl({Bucket: config.Bucket, Region: config.Region}, function (err, data) {
-                assert(data.Grants.length === 3);
-                assert(data.Grants[1].Grantee.ID === 'qcs::cam::uin/1001:uin/1001');
+                assert(data.Grants.length === 2);
+                assert(data.Grants[0].Grantee.ID === 'qcs::cam::uin/1001:uin/1001');
+                assert(data.Grants[0].Permission === 'WRITE');
+                assert(data.Grants[1].Grantee.ID === 'qcs::cam::uin/1002:uin/1002');
                 assert(data.Grants[1].Permission === 'WRITE');
-                assert(data.Grants[2].Grantee.ID === 'qcs::cam::uin/1002:uin/1002');
-                assert(data.Grants[2].Permission === 'WRITE');
                 done();
             });
         });
@@ -481,11 +481,11 @@ describe('BucketACL', function () {
         }, function (err, data) {
             assert(!err);
             cos.getBucketAcl({Bucket: config.Bucket, Region: config.Region}, function (err, data) {
-                assert(data.Grants.length === 3);
-                assert(data.Grants[1].Grantee.ID === 'qcs::cam::uin/1001:uin/1001');
+                assert(data.Grants.length === 2);
+                assert(data.Grants[0].Grantee.ID === 'qcs::cam::uin/1001:uin/1001');
+                assert(data.Grants[0].Permission === 'FULL_CONTROL');
+                assert(data.Grants[1].Grantee.ID === 'qcs::cam::uin/1002:uin/1002');
                 assert(data.Grants[1].Permission === 'FULL_CONTROL');
-                assert(data.Grants[2].Grantee.ID === 'qcs::cam::uin/1002:uin/1002');
-                assert(data.Grants[2].Permission === 'FULL_CONTROL');
                 done();
             });
         });
@@ -499,13 +499,13 @@ describe('BucketACL', function () {
         }, function (err, data) {
             assert(!err);
             cos.getBucketAcl({Bucket: config.Bucket, Region: config.Region}, function (err, data) {
-                assert(data.Grants.length === 4);
+                assert(data.Grants.length === 3);
+                assert(data.Grants[0].Grantee.ID === 'qcs::cam::anyone:anyone');
+                assert(data.Grants[0].Permission === 'READ');
                 assert(data.Grants[1].Grantee.ID === 'qcs::cam::uin/1001:uin/1001');
                 assert(data.Grants[1].Permission === 'FULL_CONTROL');
                 assert(data.Grants[2].Grantee.ID === 'qcs::cam::uin/1002:uin/1002');
                 assert(data.Grants[2].Permission === 'FULL_CONTROL');
-                assert(data.Grants[3].Grantee.ID === 'qcs::cam::anyone:anyone');
-                assert(data.Grants[3].Permission === 'READ');
                 done();
             });
         });
@@ -518,9 +518,9 @@ describe('BucketACL', function () {
         }, function (err, data) {
             assert(!err);
             cos.getBucketAcl({Bucket: config.Bucket, Region: config.Region}, function (err, data) {
-                assert(data.Grants.length === 2);
-                assert(data.Grants[1].Grantee.ID === 'qcs::cam::uin/10002:uin/10002');
-                assert(data.Grants[1].Permission === 'READ');
+                assert(data.Grants.length === 1);
+                assert(data.Grants[0].Grantee.ID === 'qcs::cam::uin/10002:uin/10002');
+                assert(data.Grants[0].Permission === 'READ');
                 done();
             });
         });
@@ -533,9 +533,9 @@ describe('BucketACL', function () {
         }, function (err, data) {
             assert(!err);
             cos.getBucketAcl({Bucket: config.Bucket, Region: config.Region}, function (err, data) {
-                assert(data.Grants.length === 2);
-                assert(data.Grants[1].Grantee.ID === 'qcs::cam::uin/10002:uin/10002');
-                assert(data.Grants[1].Permission === 'READ');
+                assert(data.Grants.length === 1);
+                assert(data.Grants[0].Grantee.ID === 'qcs::cam::uin/10002:uin/10002');
+                assert(data.Grants[0].Permission === 'READ');
                 done();
             });
         });
@@ -596,9 +596,9 @@ describe('ObjectACL', function () {
         }, function (err, data) {
             assert(!err);
             cos.getObjectAcl({Bucket: config.Bucket, Region: config.Region, Key: '1mb.zip'}, function (err, data) {
-                assert(data.Grants.length === 2);
-                assert(data.Grants[1].Grantee.ID === 'qcs::cam::anyone:anyone');
-                assert(data.Grants[1].Permission === 'READ');
+                assert(data.Grants.length === 1);
+                assert(data.Grants[0].Grantee.ID === 'qcs::cam::anyone:anyone');
+                assert(data.Grants[0].Permission === 'READ');
                 done();
             });
         });
@@ -612,9 +612,9 @@ describe('ObjectACL', function () {
         }, function (err, data) {
             assert(!err);
             cos.getObjectAcl({Bucket: config.Bucket, Region: config.Region, Key: '1mb.zip'}, function (err, data) {
-                assert(data.Grants.length === 2);
-                assert(data.Grants[1].Grantee.ID === 'qcs::cam::anyone:anyone');
-                assert(data.Grants[1].Permission === 'FULL_CONTROL');
+                assert(data.Grants.length === 1);
+                assert(data.Grants[0].Grantee.ID === 'qcs::cam::anyone:anyone');
+                assert(data.Grants[0].Permission === 'FULL_CONTROL');
                 done();
             });
         });
@@ -628,11 +628,11 @@ describe('ObjectACL', function () {
         }, function (err, data) {
             assert(!err);
             cos.getObjectAcl({Bucket: config.Bucket, Region: config.Region, Key: '1mb.zip'}, function (err, data) {
-                assert(data.Grants.length === 3);
-                assert(data.Grants[1].Grantee.ID === 'qcs::cam::uin/1001:uin/1001');
+                assert(data.Grants.length === 2);
+                assert(data.Grants[0].Grantee.ID === 'qcs::cam::uin/1001:uin/1001');
+                assert(data.Grants[0].Permission === 'READ');
+                assert(data.Grants[1].Grantee.ID === 'qcs::cam::uin/1002:uin/1002');
                 assert(data.Grants[1].Permission === 'READ');
-                assert(data.Grants[2].Grantee.ID === 'qcs::cam::uin/1002:uin/1002');
-                assert(data.Grants[2].Permission === 'READ');
                 done();
             });
         });
@@ -646,11 +646,11 @@ describe('ObjectACL', function () {
         }, function (err, data) {
             assert(!err);
             cos.getObjectAcl({Bucket: config.Bucket, Region: config.Region, Key: '1mb.zip'}, function (err, data) {
-                assert(data.Grants.length === 3);
-                assert(data.Grants[1].Grantee.ID === 'qcs::cam::uin/1001:uin/1001');
+                assert(data.Grants.length === 2);
+                assert(data.Grants[0].Grantee.ID === 'qcs::cam::uin/1001:uin/1001');
+                assert(data.Grants[0].Permission === 'WRITE');
+                assert(data.Grants[1].Grantee.ID === 'qcs::cam::uin/1002:uin/1002');
                 assert(data.Grants[1].Permission === 'WRITE');
-                assert(data.Grants[2].Grantee.ID === 'qcs::cam::uin/1002:uin/1002');
-                assert(data.Grants[2].Permission === 'WRITE');
                 done();
             });
         });
@@ -664,11 +664,11 @@ describe('ObjectACL', function () {
         }, function (err, data) {
             assert(!err);
             cos.getObjectAcl({Bucket: config.Bucket, Region: config.Region, Key: '1mb.zip'}, function (err, data) {
-                assert(data.Grants.length === 3);
-                assert(data.Grants[1].Grantee.ID === 'qcs::cam::uin/1001:uin/1001');
+                assert(data.Grants.length === 2);
+                assert(data.Grants[0].Grantee.ID === 'qcs::cam::uin/1001:uin/1001');
+                assert(data.Grants[0].Permission === 'FULL_CONTROL');
+                assert(data.Grants[1].Grantee.ID === 'qcs::cam::uin/1002:uin/1002');
                 assert(data.Grants[1].Permission === 'FULL_CONTROL');
-                assert(data.Grants[2].Grantee.ID === 'qcs::cam::uin/1002:uin/1002');
-                assert(data.Grants[2].Permission === 'FULL_CONTROL');
                 done();
             });
         });
@@ -683,13 +683,13 @@ describe('ObjectACL', function () {
         }, function (err, data) {
             assert(!err);
             cos.getObjectAcl({Bucket: config.Bucket, Region: config.Region, Key: '1mb.zip'}, function (err, data) {
-                assert(data.Grants.length === 4);
+                assert(data.Grants.length === 3);
+                assert(data.Grants[0].Grantee.ID === 'qcs::cam::anyone:anyone');
+                assert(data.Grants[0].Permission === 'READ');
                 assert(data.Grants[1].Grantee.ID === 'qcs::cam::uin/1001:uin/1001');
                 assert(data.Grants[1].Permission === 'FULL_CONTROL');
                 assert(data.Grants[2].Grantee.ID === 'qcs::cam::uin/1002:uin/1002');
                 assert(data.Grants[2].Permission === 'FULL_CONTROL');
-                assert(data.Grants[3].Grantee.ID === 'qcs::cam::anyone:anyone');
-                assert(data.Grants[3].Permission === 'READ');
                 done();
             });
         });
@@ -703,9 +703,9 @@ describe('ObjectACL', function () {
         }, function (err, data) {
             assert(!err);
             cos.getBucketAcl({Bucket: config.Bucket, Region: config.Region, Key: '1mb.zip'}, function (err, data) {
-                assert(data.Grants.length === 2);
-                assert(data.Grants[1].Grantee.ID === 'qcs::cam::uin/10002:uin/10002');
-                assert(data.Grants[1].Permission === 'READ');
+                assert(data.Grants.length === 1);
+                assert(data.Grants[0].Grantee.ID === 'qcs::cam::uin/10002:uin/10002');
+                assert(data.Grants[0].Permission === 'READ');
                 done();
             });
         });
@@ -719,9 +719,9 @@ describe('ObjectACL', function () {
         }, function (err, data) {
             assert(!err);
             cos.getBucketAcl({Bucket: config.Bucket, Region: config.Region, Key: '1mb.zip'}, function (err, data) {
-                assert(data.Grants.length === 2);
-                assert(data.Grants[1].Grantee.ID === 'qcs::cam::uin/10002:uin/10002');
-                assert(data.Grants[1].Permission === 'READ');
+                assert(data.Grants.length === 1);
+                assert(data.Grants[0].Grantee.ID === 'qcs::cam::uin/10002:uin/10002');
+                assert(data.Grants[0].Permission === 'READ');
                 done();
             });
         });

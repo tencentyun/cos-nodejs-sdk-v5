@@ -109,7 +109,7 @@ describe('getAuth()', function () {
                     Method: 'get',
                     Key: key
                 });
-                var link = 'http://' + Bucket + '-' + AppId + '.' + config.Region + '.myqcloud.com/' + key + '?sign=' + encodeURIComponent(auth);
+                var link = 'http://' + Bucket + '-' + AppId + '.cos.' + config.Region + '.myqcloud.com/' + key + '?sign=' + encodeURIComponent(auth);
                 request(link, function (err, response, body) {
                     assert(response.statusCode === 200);
                     assert(body === content);
@@ -129,7 +129,7 @@ describe('putBucket()', function () {
             Bucket: bucket,
             Region: config.Region
         }, function (err, data) {
-            assert.equal('http://' + bucket + '-' + AppId + '.' + config.Region + '.myqcloud.com', data.Location);
+            assert.equal('http://' + bucket + '-' + AppId + '.cos.' + config.Region + '.myqcloud.com', data.Location);
             cos.headBucket({
                 Bucket: bucket,
                 Region: config.Region

@@ -1717,7 +1717,7 @@ function getUrl(params) {
             domain = domain.slice(0, -1);
         }
     } else {
-        domain = protocol + '//' + bucket + '-' + appId + '.' + region + '.myqcloud.com';
+        domain = protocol + '//' + bucket + '-' + appId + '.cos.' + region + '.myqcloud.com';
     }
     var url = domain;
 

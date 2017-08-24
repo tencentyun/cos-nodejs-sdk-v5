@@ -117,7 +117,7 @@ var initTask = function (cos) {
         params.onHashProgress = function (info) {
             if (!cos._isRunningTask(task.id)) return;
             task.hashPercent = info.percent;
-            onHashProgress(info);
+            onHashProgress && onHashProgress(info);
             cos.emit('task-update', {task: formatTask(task)});
         };
         var onProgress = params.onProgress;
@@ -127,7 +127,7 @@ var initTask = function (cos) {
             task.loaded = info.loaded;
             task.speed = info.speed;
             task.percent = info.percent;
-            onProgress(info);
+            onProgress && onProgress(info);
             cos.emit('task-update', {task: formatTask(task)});
         };
         queue.push(task);

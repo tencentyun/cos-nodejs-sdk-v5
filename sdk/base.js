@@ -1705,19 +1705,18 @@ function getUrl(params) {
     var action = params.action;
     var appId = params.appId;
     var protocol = util.isBrowser && location.protocol === 'https:' ? 'https:' : 'http:';
-    if (domain) {
-        domain = domain.replace(/\{\{AppId\}\}/ig, appId)
-            .replace(/\{\{Bucket\}\}/ig, bucket)
-            .replace(/\{\{Region\}\}/ig, region)
-            .replace(/\{\{.*?\}\}/ig, '');
-        if (!/^[a-zA-Z]+:\/\//.test(domain)) {
-            domain = protocol + '//' + domain;
-        }
-        if (domain.slice(-1) === '/') {
-            domain = domain.slice(0, -1);
-        }
-    } else {
-        domain = protocol + '//' + bucket + '-' + appId + '.cos.' + region + '.myqcloud.com';
+    if (!domain) {
+        domain = '{{Bucket}}-{{AppId}}.cos.{{Region}}.myqcloud.com';
+    }
+    domain = domain.replace(/\{\{AppId\}\}/ig, appId)
+        .replace(/\{\{Bucket\}\}/ig, bucket)
+        .replace(/\{\{Region\}\}/ig, region)
+        .replace(/\{\{.*?\}\}/ig, '');
+    if (!/^[a-zA-Z]+:\/\//.test(domain)) {
+        domain = protocol + '//' + domain;
+    }
+    if (domain.slice(-1) === '/') {
+        domain = domain.slice(0, -1);
     }
     var url = domain;
 

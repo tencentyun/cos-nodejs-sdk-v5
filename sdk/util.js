@@ -42,7 +42,7 @@ var getAuth = function (opt) {
     var obj2str = function (obj) {
         var i, key, val;
         var list = [];
-        var keyList = Object.keys(obj);
+        var keyList = getObjectKeys(obj);
         for (i = 0; i < keyList.length; i++) {
             key = keyList[i];
             val = obj[key] || '';

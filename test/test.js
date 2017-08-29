@@ -439,11 +439,11 @@ describe('BucketACL', function () {
             });
         });
     });
-    it('putBucketAcl() header GrantRead:uin="1001", uin="1002"', function (done) {
+    it('putBucketAcl() header GrantRead:1001,1002', function (done) {
         cos.putBucketAcl({
             Bucket: config.Bucket,
             Region: config.Region,
-            GrantRead: 'uin="1001", uin="1002"',
+            GrantRead: 'id="qcs::cam::uin/1001:uin/1001", id="qcs::cam::uin/1002:uin/1002"',
         }, function (err, data) {
             assert(!err);
             cos.getBucketAcl({Bucket: config.Bucket, Region: config.Region}, function (err, data) {
@@ -456,11 +456,11 @@ describe('BucketACL', function () {
             });
         });
     });
-    it('putBucketAcl() header GrantWrite:uin="1001", uin="1002"', function (done) {
+    it('putBucketAcl() header GrantWrite:1001,1002', function (done) {
         cos.putBucketAcl({
             Bucket: config.Bucket,
             Region: config.Region,
-            GrantWrite: 'uin="1001", uin="1002"',
+            GrantWrite: 'id="qcs::cam::uin/1001:uin/1001", id="qcs::cam::uin/1002:uin/1002"',
         }, function (err, data) {
             assert(!err);
             cos.getBucketAcl({Bucket: config.Bucket, Region: config.Region}, function (err, data) {
@@ -473,11 +473,11 @@ describe('BucketACL', function () {
             });
         });
     });
-    it('putBucketAcl() header GrantFullControl:uin="1001", uin="1002"', function (done) {
+    it('putBucketAcl() header GrantFullControl:1001,1002', function (done) {
         cos.putBucketAcl({
             Bucket: config.Bucket,
             Region: config.Region,
-            GrantFullControl: 'uin="1001", uin="1002"',
+            GrantFullControl: 'id="qcs::cam::uin/1001:uin/1001", id="qcs::cam::uin/1002:uin/1002"',
         }, function (err, data) {
             assert(!err);
             cos.getBucketAcl({Bucket: config.Bucket, Region: config.Region}, function (err, data) {
@@ -490,11 +490,11 @@ describe('BucketACL', function () {
             });
         });
     });
-    it('putBucketAcl() header ACL:public-read, GrantFullControl:uin="1001", uin="1002"', function (done) {
+    it('putBucketAcl() header ACL:public-read, GrantFullControl:1001,1002', function (done) {
         cos.putBucketAcl({
             Bucket: config.Bucket,
             Region: config.Region,
-            GrantFullControl: 'uin="1001", uin="1002"',
+            GrantFullControl: 'id="qcs::cam::uin/1001:uin/1001", id="qcs::cam::uin/1002:uin/1002"',
             ACL: 'public-read',
         }, function (err, data) {
             assert(!err);
@@ -619,11 +619,11 @@ describe('ObjectACL', function () {
             });
         });
     });
-    it('putObjectAcl() header GrantRead:uin="1001", uin="1002"', function (done) {
+    it('putObjectAcl() header GrantRead:1001,1002', function (done) {
         cos.putObjectAcl({
             Bucket: config.Bucket,
             Region: config.Region,
-            GrantRead: 'uin="1001", uin="1002"',
+            GrantRead: 'id="qcs::cam::uin/1001:uin/1001",id="qcs::cam::uin/1002:uin/1002"',
             Key: '1mb.zip',
         }, function (err, data) {
             assert(!err);
@@ -637,11 +637,11 @@ describe('ObjectACL', function () {
             });
         });
     });
-    it('putObjectAcl() header GrantWrite:uin="1001", uin="1002"', function (done) {
+    it('putObjectAcl() header GrantWrite:1001,1002', function (done) {
         cos.putObjectAcl({
             Bucket: config.Bucket,
             Region: config.Region,
-            GrantWrite: 'uin="1001", uin="1002"',
+            GrantWrite: 'id="qcs::cam::uin/1001:uin/1001", id="qcs::cam::uin/1002:uin/1002"',
             Key: '1mb.zip',
         }, function (err, data) {
             assert(!err);
@@ -655,11 +655,11 @@ describe('ObjectACL', function () {
             });
         });
     });
-    it('putObjectAcl() header GrantFullControl:uin="1001", uin="1002"', function (done) {
+    it('putObjectAcl() header GrantFullControl:1001,1002', function (done) {
         cos.putObjectAcl({
             Bucket: config.Bucket,
             Region: config.Region,
-            GrantFullControl: 'uin="1001", uin="1002"',
+            GrantFullControl: 'id="qcs::cam::uin/1001:uin/1001", id="qcs::cam::uin/1002:uin/1002"',
             Key: '1mb.zip',
         }, function (err, data) {
             assert(!err);
@@ -673,11 +673,11 @@ describe('ObjectACL', function () {
             });
         });
     });
-    it('putObjectAcl() header ACL:public-read, GrantRead:uin="1001", uin="1002"', function (done) {
+    it('putObjectAcl() header ACL:public-read, GrantRead:1001,1002', function (done) {
         cos.putObjectAcl({
             Bucket: config.Bucket,
             Region: config.Region,
-            GrantFullControl: 'uin="1001", uin="1002"',
+            GrantFullControl: 'id="qcs::cam::uin/1001:uin/1001", id="qcs::cam::uin/1002:uin/1002"',
             ACL: 'public-read',
             Key: '1mb.zip',
         }, function (err, data) {
@@ -732,27 +732,71 @@ describe('BucketCORS', function () {
     var CORSRules = [{
         "AllowedOrigins": ["*"],
         "AllowedMethods": ["GET", "POST", "PUT", "DELETE", "HEAD"],
-        "AllowedHeaders": ["origin", "accept", "content-type", "authorization", "test"],
+        "AllowedHeaders": [
+            "origin",
+            "accept",
+            "content-type",
+            "authorization",
+            "content-md5",
+            "x-cos-copy-source",
+            "x-cos-acl",
+            "x-cos-grant-read",
+            "x-cos-grant-write",
+            "x-cos-grant-full-control",
+        ],
         "ExposeHeaders": ["ETag"],
         "MaxAgeSeconds": "600"
     }];
     var CORSRules1 = [{
         "AllowedOrigin": "*",
         "AllowedMethods": ["GET", "POST", "PUT", "DELETE", "HEAD"],
-        "AllowedHeader": ["origin", "accept", "content-type", "authorization", "test"],
+        "AllowedHeader": [
+            "origin",
+            "accept",
+            "content-type",
+            "authorization",
+            "content-md5",
+            "x-cos-copy-source",
+            "x-cos-acl",
+            "x-cos-grant-read",
+            "x-cos-grant-write",
+            "x-cos-grant-full-control",
+        ],
         "ExposeHeader": "ETag",
         "MaxAgeSeconds": "600"
     }];
     var CORSRulesMulti = [{
         "AllowedOrigins": ["*"],
         "AllowedMethods": ["GET", "POST", "PUT", "DELETE", "HEAD"],
-        "AllowedHeaders": ["origin", "accept", "content-type", "authorization", "test"],
+        "AllowedHeaders": [
+            "origin",
+            "accept",
+            "content-type",
+            "authorization",
+            "content-md5",
+            "x-cos-copy-source",
+            "x-cos-acl",
+            "x-cos-grant-read",
+            "x-cos-grant-write",
+            "x-cos-grant-full-control",
+        ],
         "ExposeHeaders": ["ETag"],
         "MaxAgeSeconds": "600"
     }, {
         "AllowedOrigins": ["http://qq.com", "http://qcloud.com"],
         "AllowedMethods": ["GET", "POST", "PUT", "DELETE", "HEAD"],
-        "AllowedHeaders": ["origin", "accept", "content-type", "authorization", "test"],
+        "AllowedHeaders": [
+            "origin",
+            "accept",
+            "content-type",
+            "authorization",
+            "content-md5",
+            "x-cos-copy-source",
+            "x-cos-acl",
+            "x-cos-grant-read",
+            "x-cos-grant-write",
+            "x-cos-grant-full-control",
+        ],
         "ExposeHeaders": ["ETag"],
         "MaxAgeSeconds": "600"
     }];
@@ -1076,7 +1120,19 @@ describe('params check', function () {
             Bucket: config.Bucket,
             Region: 'gz'
         }, function (err, data) {
-            assert(err.error === 'Region error, it should be cn-south');
+            assert(err.error === 'Region should be cn-south');
+            done();
+        });
+    });
+});
+
+describe('params check', function () {
+    it('Region', function (done) {
+        cos.headBucket({
+            Bucket: config.Bucket,
+            Region: 'cos.cn-south'
+        }, function (err, data) {
+            assert(err.error === 'Region should not be start with "cos."');
             done();
         });
     });

@@ -976,7 +976,7 @@ describe('BucketPolicy', function () {
                 "name/cos:AbortMultipartUpload",
                 "name/cos:AppendObject"
             ],
-            "resource": ["qcs::cos:" + config.Region + ":uid/" + AppId + ":" + Bucket + "-" + AppId + "." + config.Region + ".myqcloud.com//" + AppId + "/" + Bucket + "/" + Prefix + "/*"] // 1250000000 是 appid
+            "resource": ["qcs::cos:" + config.Region + ":uid/" + AppId + ":" + Bucket + "-" + AppId + ".cos." + config.Region + ".myqcloud.com//" + AppId + "/" + Bucket + "/" + Prefix + "/*"] // 1250000000 是 appid
         }]
     };
     it('putBucketPolicy(),getBucketPolicy()', function (done) {

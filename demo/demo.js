@@ -207,8 +207,8 @@ function putBucketPolicy() {
                         "name/cos:AbortMultipartUpload",
                         "name/cos:AppendObject"
                     ],
-                    // "resource": ["qcs::cos:cn-south:uid/1250000000:test-1250000000.cn-south.myqcloud.com//1250000000/test/*"] // 1250000000 是 appid
-                    "resource": ["qcs::cos:" + config.Region + ":uid/" + AppId + ":" + Bucket + "-" + AppId + "." + config.Region + ".myqcloud.com//" + AppId + "/" + Bucket + "/*"] // 1250000000 是 appid
+                    // "resource": ["qcs::cos:cn-south:uid/1250000000:test-1250000000.cos.cn-south.myqcloud.com//1250000000/test/*"] // 1250000000 是 appid
+                    "resource": ["qcs::cos:" + config.Region + ":uid/" + AppId + ":" + Bucket + "-" + AppId + ".cos." + config.Region + ".myqcloud.com//" + AppId + "/" + Bucket + "/*"] // 1250000000 是 appid
                 }
             ]
         },

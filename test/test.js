@@ -1019,7 +1019,22 @@ describe('BucketLocation', function () {
             Bucket: config.Bucket,
             Region: config.Region
         }, function (err, data) {
-            assert(data.LocationConstraint === config.Region);
+            var map1 = {
+                'tianjin': 'ap-beijing-1',
+                'cn-south-2': 'ap-guangzhou-2',
+                'cn-south': 'ap-guangzhou',
+                'cn-east': 'ap-shanghai',
+                'cn-southwest': 'ap-chengdu',
+            };
+            var map2 = {
+                'ap-beijing-1': 'tianjin',
+                'ap-guangzhou-2': 'cn-south-2',
+                'ap-guangzhou': 'cn-south',
+                'ap-shanghai': 'cn-east',
+                'ap-chengdu': 'cn-southwest',
+            };
+            assert(data.LocationConstraint === config.Region || data.LocationConstraint === map1[config.Region] ||
+                data.LocationConstraint === map2[config.Region]);
             done();
         });
     });

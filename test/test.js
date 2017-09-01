@@ -745,7 +745,7 @@ describe('BucketCORS', function () {
             "x-cos-grant-full-control",
         ],
         "ExposeHeaders": ["ETag"],
-        "MaxAgeSeconds": "600"
+        "MaxAgeSeconds": "5"
     }];
     var CORSRules1 = [{
         "AllowedOrigin": "*",
@@ -763,7 +763,7 @@ describe('BucketCORS', function () {
             "x-cos-grant-full-control",
         ],
         "ExposeHeader": "ETag",
-        "MaxAgeSeconds": "600"
+        "MaxAgeSeconds": "5"
     }];
     var CORSRulesMulti = [{
         "AllowedOrigins": ["*"],
@@ -781,7 +781,7 @@ describe('BucketCORS', function () {
             "x-cos-grant-full-control",
         ],
         "ExposeHeaders": ["ETag"],
-        "MaxAgeSeconds": "600"
+        "MaxAgeSeconds": "5"
     }, {
         "AllowedOrigins": ["http://qq.com", "http://qcloud.com"],
         "AllowedMethods": ["GET", "POST", "PUT", "DELETE", "HEAD"],
@@ -798,7 +798,7 @@ describe('BucketCORS', function () {
             "x-cos-grant-full-control",
         ],
         "ExposeHeaders": ["ETag"],
-        "MaxAgeSeconds": "600"
+        "MaxAgeSeconds": "5"
     }];
     it('deleteBucketCors()', function (done) {
         cos.deleteBucketCors({

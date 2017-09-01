@@ -1043,32 +1043,35 @@ describe('BucketLocation', function () {
 describe('BucketLifecycle', function () {
     this.timeout(60000);
     var Rules = [{
+        'ID': '1',
         'Filter': {
             'Prefix': 'test_' + Date.now().toString(36),
         },
         'Status': 'Enabled',
         'Transition': {
             'Date': '2018-07-30T00:00:00+08:00',
-            'StorageClass': 'Standard_IA'
+            'StorageClass': 'STANDARD_IA'
         }
     }];
     var RulesMulti = [{
+        'ID': '1',
         'Filter': {
-            'Prefix': 'test_' + Date.now().toString(36),
+            'Prefix': 'test1_' + Date.now().toString(36),
         },
         'Status': 'Enabled',
         'Transition': {
             'Date': '2018-07-30T00:00:00+08:00',
-            'StorageClass': 'Standard_IA'
+            'StorageClass': 'STANDARD_IA'
         }
     }, {
+        'ID': '2',
         'Filter': {
-            'Prefix': 'test',
+            'Prefix': 'test2_' + Date.now().toString(36),
         },
         'Status': 'Enabled',
         'Transition': {
-            'Days': '0',
-            'StorageClass': 'Nearline'
+            'Date': '2018-07-30T00:00:00+08:00',
+            'StorageClass': 'STANDARD_IA'
         }
     }];
     it('deleteBucketLifecycle()', function (done) {
@@ -1083,7 +1086,6 @@ describe('BucketLifecycle', function () {
                     Region: config.Region
                 }, function (err, data) {
                     assert(err.statusCode === 404);
-                    assert(err.error.Code === 'NoSuchLifecycleConfiguration');
                     done();
                 });
             }, 2000);

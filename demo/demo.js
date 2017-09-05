@@ -76,7 +76,7 @@ function putBucketAcl() {
         // ACL: 'public-read',
         ACL: 'private',
         // AccessControlPolicy: {
-        //     "Owner": {
+        //     "Owner": { // AccessControlPolicy 里必须有 owner
         //         "ID": 'qcs::cam::uin/10001:uin/10001' // 10001 是 QQ 号
         //     },
         //     "Grants": [{
@@ -380,7 +380,7 @@ function putObjectAcl() {
         // ACL: 'public-read',
         ACL: 'private',
         // AccessControlPolicy: {
-        //     "Owner": {
+        //     "Owner": { // AccessControlPolicy 里必须有 owner
         //         "ID": 'qcs::cam::uin/10001:uin/10001' // 10001 是 QQ 号
         //     },
         //     "Grants": [{

@@ -1703,7 +1703,11 @@ function getUrl(params) {
     var appId = params.appId;
     var protocol = util.isBrowser && location.protocol === 'https:' ? 'https:' : 'http:';
     if (!domain) {
-        domain = '{{Bucket}}-{{AppId}}.cos.{{Region}}.myqcloud.com';
+        if (['cn-south', 'cn-south-2', 'cn-north', 'cn-east', 'cn-southwest', 'sg'].indexOf(region) > -1) {
+            domain = '{{Bucket}}-{{AppId}}.{{Region}}.myqcloud.com';
+        } else {
+            domain = '{{Bucket}}-{{AppId}}.cos.{{Region}}.myqcloud.com';
+        }
     }
     domain = domain.replace(/\{\{AppId\}\}/ig, appId)
         .replace(/\{\{Bucket\}\}/ig, bucket)

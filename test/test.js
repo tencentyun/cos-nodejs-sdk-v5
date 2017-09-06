@@ -729,6 +729,7 @@ describe('ObjectACL', function () {
 });
 
 describe('BucketCORS', function () {
+    this.timeout(60000);
     var CORSRules = [{
         "AllowedOrigins": ["*"],
         "AllowedMethods": ["GET", "POST", "PUT", "DELETE", "HEAD"],
@@ -806,13 +807,15 @@ describe('BucketCORS', function () {
             Region: config.Region
         }, function (err, data) {
             assert(!err);
-            cos.getBucketCors({
-                Bucket: config.Bucket,
-                Region: config.Region
-            }, function (err, data) {
-                assert(comparePlainObject([], data.CORSRules));
-                done();
-            });
+            setTimeout(function () {
+                cos.getBucketCors({
+                    Bucket: config.Bucket,
+                    Region: config.Region
+                }, function (err, data) {
+                    assert(comparePlainObject([], data.CORSRules));
+                    done();
+                });
+            }, 2000);
         });
     });
     it('putBucketCors(),getBucketCors()', function (done) {
@@ -826,13 +829,15 @@ describe('BucketCORS', function () {
             }
         }, function (err, data) {
             assert(!err);
-            cos.getBucketCors({
-                Bucket: config.Bucket,
-                Region: config.Region
-            }, function (err, data) {
-                assert(comparePlainObject(CORSRules, data.CORSRules));
-                done();
-            });
+            setTimeout(function () {
+                cos.getBucketCors({
+                    Bucket: config.Bucket,
+                    Region: config.Region
+                }, function (err, data) {
+                    assert(comparePlainObject(CORSRules, data.CORSRules));
+                    done();
+                });
+            }, 2000);
         });
     });
     it('putBucketCors() old', function (done) {
@@ -847,13 +852,15 @@ describe('BucketCORS', function () {
             }
         }, function (err, data) {
             assert(!err);
-            cos.getBucketCors({
-                Bucket: config.Bucket,
-                Region: config.Region
-            }, function (err, data) {
-                assert(comparePlainObject(CORSRules, data.CORSRules));
-                done();
-            });
+            setTimeout(function () {
+                cos.getBucketCors({
+                    Bucket: config.Bucket,
+                    Region: config.Region
+                }, function (err, data) {
+                    assert(comparePlainObject(CORSRules, data.CORSRules));
+                    done();
+                });
+            }, 2000);
         });
     });
     it('putBucketCors() old', function (done) {
@@ -865,13 +872,15 @@ describe('BucketCORS', function () {
             CORSRules: CORSRules
         }, function (err, data) {
             assert(!err);
-            cos.getBucketCors({
-                Bucket: config.Bucket,
-                Region: config.Region
-            }, function (err, data) {
-                assert(comparePlainObject(CORSRules, data.CORSRules));
-                done();
-            });
+            setTimeout(function () {
+                cos.getBucketCors({
+                    Bucket: config.Bucket,
+                    Region: config.Region
+                }, function (err, data) {
+                    assert(comparePlainObject(CORSRules, data.CORSRules));
+                    done();
+                });
+            }, 2000);
         });
     });
     it('putBucketCors() multi', function (done) {
@@ -883,18 +892,21 @@ describe('BucketCORS', function () {
             }
         }, function (err, data) {
             assert(!err);
-            cos.getBucketCors({
-                Bucket: config.Bucket,
-                Region: config.Region
-            }, function (err, data) {
-                assert(comparePlainObject(CORSRulesMulti, data.CORSRules));
-                done();
-            });
+            setTimeout(function () {
+                cos.getBucketCors({
+                    Bucket: config.Bucket,
+                    Region: config.Region
+                }, function (err, data) {
+                    assert(comparePlainObject(CORSRulesMulti, data.CORSRules));
+                    done();
+                });
+            }, 2000);
         });
     });
 });
 
 describe('BucketTagging', function () {
+    this.timeout(60000);
     var Tags = [
         {Key: "k1", Value: "v1"}
     ];
@@ -912,13 +924,15 @@ describe('BucketTagging', function () {
             }
         }, function (err, data) {
             assert(!err);
-            cos.getBucketTagging({
-                Bucket: config.Bucket,
-                Region: config.Region
-            }, function (err, data) {
-                assert(comparePlainObject(Tags, data.Tags));
-                done();
-            });
+            setTimeout(function () {
+                cos.getBucketTagging({
+                    Bucket: config.Bucket,
+                    Region: config.Region
+                }, function (err, data) {
+                    assert(comparePlainObject(Tags, data.Tags));
+                    done();
+                });
+            }, 2000);
         });
     });
     it('deleteBucketTagging()', function (done) {
@@ -927,13 +941,15 @@ describe('BucketTagging', function () {
             Region: config.Region
         }, function (err, data) {
             assert(!err);
-            cos.getBucketTagging({
-                Bucket: config.Bucket,
-                Region: config.Region
-            }, function (err, data) {
-                assert(comparePlainObject([], data.Tags));
-                done();
-            });
+            setTimeout(function () {
+                cos.getBucketTagging({
+                    Bucket: config.Bucket,
+                    Region: config.Region
+                }, function (err, data) {
+                    assert(comparePlainObject([], data.Tags));
+                    done();
+                });
+            }, 2000);
         });
     });
     it('putBucketTagging() multi', function (done) {
@@ -946,13 +962,15 @@ describe('BucketTagging', function () {
             }
         }, function (err, data) {
             assert(!err);
-            cos.getBucketTagging({
-                Bucket: config.Bucket,
-                Region: config.Region
-            }, function (err, data) {
-                assert(comparePlainObject(TagsMulti, data.Tags));
-                done();
-            });
+            setTimeout(function () {
+                cos.getBucketTagging({
+                    Bucket: config.Bucket,
+                    Region: config.Region
+                }, function (err, data) {
+                    assert(comparePlainObject(TagsMulti, data.Tags));
+                    done();
+                });
+            }, 2000);
         });
     });
 });
@@ -1101,13 +1119,15 @@ describe('BucketLifecycle', function () {
             }
         }, function (err, data) {
             assert(!err);
-            cos.getBucketLifecycle({
-                Bucket: config.Bucket,
-                Region: config.Region
-            }, function (err, data) {
-                assert(comparePlainObject(Rules, data.Rules));
-                done();
-            });
+            setTimeout(function () {
+                cos.getBucketLifecycle({
+                    Bucket: config.Bucket,
+                    Region: config.Region
+                }, function (err, data) {
+                    assert(comparePlainObject(Rules, data.Rules));
+                    done();
+                });
+            }, 2000);
         });
     });
     it('putBucketLifecycle() multi', function (done) {
@@ -1120,13 +1140,15 @@ describe('BucketLifecycle', function () {
             }
         }, function (err, data) {
             assert(!err);
-            cos.getBucketLifecycle({
-                Bucket: config.Bucket,
-                Region: config.Region
-            }, function (err, data) {
-                assert(comparePlainObject(RulesMulti, data.Rules));
-                done();
-            });
+            setTimeout(function () {
+                cos.getBucketLifecycle({
+                    Bucket: config.Bucket,
+                    Region: config.Region
+                }, function (err, data) {
+                    assert(comparePlainObject(RulesMulti, data.Rules));
+                    done();
+                });
+            }, 2000);
         });
     });
 });

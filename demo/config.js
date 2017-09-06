@@ -1,9 +1,9 @@
 var config = {
-    AppId: '1250000000',
-    SecretId: 'AKIDxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
-    SecretKey: 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
-    Bucket: 'test',
-    Region: 'cn-south'
+    AppId: '1251902136',
+    SecretId: 'AKIDjrvuu4W3qPp9VrgCC2iGgw32veTB58cx',
+    SecretKey: 'Sn8LSQHxToyHdqwvtobHxeBYmqpgPHzj',
+    Bucket: 'guangzhou',
+    Region: 'ap-guangzhou'
 };
 
 module.exports = config;

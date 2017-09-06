@@ -373,7 +373,7 @@ describe('sliceUploadFile()', function () {
     });
 });
 
-describe('BucketACL', function () {
+describe('BucketAcl', function () {
     var AccessControlPolicy = {
         "Owner": {
             "ID": 'qcs::cam::uin/10001:uin/10001' // 10001 是 QQ 号
@@ -542,7 +542,7 @@ describe('BucketACL', function () {
     });
 });
 
-describe('ObjectACL', function () {
+describe('ObjectAcl', function () {
     var AccessControlPolicy = {
         "Owner": {
             "ID": 'qcs::cam::uin/10001:uin/10001' // 10001 是 QQ 号
@@ -728,7 +728,7 @@ describe('ObjectACL', function () {
     });
 });
 
-describe('BucketCORS', function () {
+describe('BucketCors', function () {
     this.timeout(60000);
     var CORSRules = [{
         "AllowedOrigins": ["*"],

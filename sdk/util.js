@@ -47,8 +47,7 @@ var getAuth = function (opt) {
             key = keyList[i];
             val = obj[key] || '';
             key = key.toLowerCase();
-            key = camSafeUrlEncode(key);
-            list.push(key + '=' + camSafeUrlEncode(val));
+            list.push(camSafeUrlEncode(key) + '=' + camSafeUrlEncode(val));
         }
         return list.join('&');
     };

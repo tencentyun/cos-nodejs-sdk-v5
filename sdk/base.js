@@ -934,7 +934,6 @@ function _putObject(params, callback) {
     headers['Content-Type'] = params['ContentType'];
     headers['Expect'] = params['Expect'];
     headers['Expires'] = params['Expires'];
-    headers['x-cos-content-sha1'] = params['ContentSha1'];
     headers['x-cos-acl'] = params['ACL'];
     headers['x-cos-grant-read'] = params['GrantRead'];
     headers['x-cos-grant-write'] = params['GrantWrite'];
@@ -950,7 +949,7 @@ function _putObject(params, callback) {
     var Body = params.Body;
     var readStream;
 
-    if (util.isBrowser && (Body instanceof global.Blob || Body instanceof global.File)) { // 传入 Blob 或者 File 文件内容
+    if (util.isBrowser && (typeof Body === 'string' || Body instanceof global.Blob || Body instanceof global.File)) { // 在浏览器传入 String、Blob 或者 File 文件内容
         headers['Content-Length'] = Body.length;
     } else if (Body && Body instanceof Buffer) { // 传入 fs.readFileSync(filepath) 或者 文件内容
         headers['Content-Length'] = Body.length;
@@ -1261,7 +1260,6 @@ function putObjectCopy(params, callback) {
     headers['Content-Type'] = params['ContentType'];
     headers['Expect'] = params['Expect'];
     headers['Expires'] = params['Expires'];
-    headers['x-cos-content-sha1'] = params['ContentSha1'];
 
     for (var key in params) {
         if (key.indexOf('x-cos-meta-') > -1) {
@@ -1429,7 +1427,6 @@ function multipartUpload(params, callback) {
 
     headers['Content-Length'] = params['ContentLength'];
     headers['Expect'] = params['Expect'];
-    headers['x-cos-content-sha1'] = params['ContentSha1'];
 
     var PartNumber = params['PartNumber'];
     var UploadId = params['UploadId'];

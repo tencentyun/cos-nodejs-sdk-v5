@@ -227,10 +227,10 @@ var checkParams = function (apiName, params) {
 
 var apiWrapper = function (apiName, apiFn) {
     var regionMap = {
-        'gz': 'cn-south',
-        'tj': 'cn-north',
-        'sh': 'cn-east',
-        'cd': 'cn-southwest'
+        'gz': 'ap-guangzhou',
+        'tj': 'ap-beijing-2',
+        'sh': 'ap-shanghai',
+        'cd': 'ap-chengdu'
     };
     return function (params, callback) {
         callback = callback || function () {

@@ -1159,7 +1159,7 @@ describe('params check', function () {
             Bucket: config.Bucket,
             Region: 'gz'
         }, function (err, data) {
-            assert(err.error === 'Region should be cn-south');
+            assert(err.error === 'Region should be ap-guangzhou');
             done();
         });
     });
@@ -1169,7 +1169,7 @@ describe('params check', function () {
     it('Region', function (done) {
         cos.headBucket({
             Bucket: config.Bucket,
-            Region: 'cos.cn-south'
+            Region: 'cos.ap-guangzhou'
         }, function (err, data) {
             assert(err.error === 'Region should not be start with "cos."');
             done();

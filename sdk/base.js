@@ -1721,7 +1721,7 @@ function getUrl(params) {
     var url = domain;
 
     if (object) {
-        url += '/' + encodeURIComponent(object);
+        url += '/' + encodeURIComponent(object).replace(/%2F/g, '/');
     }
 
     if (action) {

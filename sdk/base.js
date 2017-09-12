@@ -235,7 +235,6 @@ function deleteBucket(params, callback) {
  *     @return  {Object}  data.AccessControlPolicy  访问权限信息
  */
 function getBucketAcl(params, callback) {
-
     submitRequest.call(this, {
         method: 'GET',
         Bucket: params.Bucket,
@@ -249,12 +248,14 @@ function getBucketAcl(params, callback) {
         var Owner = data.AccessControlPolicy.Owner || {};
         var Grant = data.AccessControlPolicy.AccessControlList.Grant || [];
         Grant = util.isArray(Grant) ? Grant : [Grant];
-        callback(null, {
+        var result = decodeAcl(data.AccessControlPolicy);
+        result = util.extend(result, {
             Owner: Owner,
             Grants: Grant,
             statusCode: data.statusCode,
             headers: data.headers,
         });
+        callback(null, result);
     });
 }
 
@@ -1105,12 +1106,14 @@ function getObjectAcl(params, callback) {
         var Owner = data.AccessControlPolicy.Owner || {};
         var Grant = data.AccessControlPolicy.AccessControlList.Grant || [];
         Grant = util.isArray(Grant) ? Grant : [Grant];
-        callback(null, {
+        var result = decodeAcl(data.AccessControlPolicy);
+        result = util.extend(result, {
             Owner: Owner,
             Grants: Grant,
             statusCode: data.statusCode,
             headers: data.headers,
         });
+        callback(null, result);
     });
 }
 
@@ -1692,6 +1695,43 @@ function getAuth(params) {
 /**
  * 私有方法
  */
+function decodeAcl(AccessControlPolicy) {
+    var result = {
+        GrantFullControl: [],
+        GrantWrite: [],
+        GrantRead: [],
+        ACL: '',
+    };
+    var GrantMap  = {
+        'FULL_CONTROL': 'GrantFullControl',
+        'WRITE': 'GrantWrite',
+        'READ': 'GrantRead',
+    };
+    var AclMap  = {
+        'FULL_CONTROL': 'public-read-write',
+        'READ': 'public-read',
+    };
+    var Grant = AccessControlPolicy.AccessControlList.Grant;
+    if (Grant) {
+        Grant = util.isArray(Grant) ? Grant : [Grant];
+    }
+    if (Grant.length) {
+        util.each(Grant, function (item) {
+            if (item.Grantee.ID === 'qcs::cam::anyone:anyone') {
+                result.ACL = AclMap[item.Permission];
+            } else if (item.Grantee.ID !== AccessControlPolicy.Owner.ID) {
+                result[GrantMap[item.Permission]].push('id=' + item.Grantee.ID);
+            }
+        });
+        if (!result.ACL && AccessControlPolicy.Owner.ID === Grant[0].Grantee.ID && Grant[0].Permission === 'FULL_CONTROL') {
+            result.ACL = 'private';
+        }
+    }
+    util.each(GrantMap, function (item) {
+        result[item] = result[item].join(',');
+    });
+    return result;
+}
 
 // 生成操作 url
 function getUrl(params) {

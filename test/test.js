@@ -443,7 +443,7 @@ describe('BucketAcl', function () {
         cos.putBucketAcl({
             Bucket: config.Bucket,
             Region: config.Region,
-            GrantRead: 'id="qcs::cam::uin/1001:uin/1001", id="qcs::cam::uin/1002:uin/1002"',
+            GrantRead: 'id="qcs::cam::uin/1001:uin/1001",id="qcs::cam::uin/1002:uin/1002"',
         }, function (err, data) {
             assert(!err);
             cos.getBucketAcl({Bucket: config.Bucket, Region: config.Region}, function (err, data) {
@@ -460,7 +460,7 @@ describe('BucketAcl', function () {
         cos.putBucketAcl({
             Bucket: config.Bucket,
             Region: config.Region,
-            GrantWrite: 'id="qcs::cam::uin/1001:uin/1001", id="qcs::cam::uin/1002:uin/1002"',
+            GrantWrite: 'id="qcs::cam::uin/1001:uin/1001",id="qcs::cam::uin/1002:uin/1002"',
         }, function (err, data) {
             assert(!err);
             cos.getBucketAcl({Bucket: config.Bucket, Region: config.Region}, function (err, data) {
@@ -477,7 +477,7 @@ describe('BucketAcl', function () {
         cos.putBucketAcl({
             Bucket: config.Bucket,
             Region: config.Region,
-            GrantFullControl: 'id="qcs::cam::uin/1001:uin/1001", id="qcs::cam::uin/1002:uin/1002"',
+            GrantFullControl: 'id="qcs::cam::uin/1001:uin/1001",id="qcs::cam::uin/1002:uin/1002"',
         }, function (err, data) {
             assert(!err);
             cos.getBucketAcl({Bucket: config.Bucket, Region: config.Region}, function (err, data) {
@@ -494,7 +494,7 @@ describe('BucketAcl', function () {
         cos.putBucketAcl({
             Bucket: config.Bucket,
             Region: config.Region,
-            GrantFullControl: 'id="qcs::cam::uin/1001:uin/1001", id="qcs::cam::uin/1002:uin/1002"',
+            GrantFullControl: 'id="qcs::cam::uin/1001:uin/1001",id="qcs::cam::uin/1002:uin/1002"',
             ACL: 'public-read',
         }, function (err, data) {
             assert(!err);
@@ -641,7 +641,7 @@ describe('ObjectAcl', function () {
         cos.putObjectAcl({
             Bucket: config.Bucket,
             Region: config.Region,
-            GrantWrite: 'id="qcs::cam::uin/1001:uin/1001", id="qcs::cam::uin/1002:uin/1002"',
+            GrantWrite: 'id="qcs::cam::uin/1001:uin/1001",id="qcs::cam::uin/1002:uin/1002"',
             Key: '1mb.zip',
         }, function (err, data) {
             assert(!err);
@@ -659,7 +659,7 @@ describe('ObjectAcl', function () {
         cos.putObjectAcl({
             Bucket: config.Bucket,
             Region: config.Region,
-            GrantFullControl: 'id="qcs::cam::uin/1001:uin/1001", id="qcs::cam::uin/1002:uin/1002"',
+            GrantFullControl: 'id="qcs::cam::uin/1001:uin/1001",id="qcs::cam::uin/1002:uin/1002"',
             Key: '1mb.zip',
         }, function (err, data) {
             assert(!err);
@@ -677,7 +677,7 @@ describe('ObjectAcl', function () {
         cos.putObjectAcl({
             Bucket: config.Bucket,
             Region: config.Region,
-            GrantFullControl: 'id="qcs::cam::uin/1001:uin/1001", id="qcs::cam::uin/1002:uin/1002"',
+            GrantFullControl: 'id="qcs::cam::uin/1001:uin/1001",id="qcs::cam::uin/1002:uin/1002"',
             ACL: 'public-read',
             Key: '1mb.zip',
         }, function (err, data) {

@@ -488,7 +488,7 @@ function restartTask() {
     console.log('restart');
 }
 
-// getService();
+getService();
 // getAuth();
 // putBucket();
 // getBucket();
@@ -521,7 +521,3 @@ function restartTask() {
 // cancelTask();
 // pauseTask();
 // restartTask();
-
-cos.getService(function (err, data) {
-    console.log(data);
-});

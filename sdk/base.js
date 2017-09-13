@@ -249,6 +249,9 @@ function getBucketAcl(params, callback) {
         var Grant = data.AccessControlPolicy.AccessControlList.Grant || [];
         Grant = util.isArray(Grant) ? Grant : [Grant];
         var result = decodeAcl(data.AccessControlPolicy);
+        if (data.headers && data.headers['x-cos-acl']) {
+            result.ACL = data.headers['x-cos-acl'];
+        }
         result = util.extend(result, {
             Owner: Owner,
             Grants: Grant,
@@ -1106,6 +1109,9 @@ function getObjectAcl(params, callback) {
         var Grant = data.AccessControlPolicy.AccessControlList.Grant || [];
         Grant = util.isArray(Grant) ? Grant : [Grant];
         var result = decodeAcl(data.AccessControlPolicy);
+        if (data.headers && data.headers['x-cos-acl']) {
+            result.ACL = data.headers['x-cos-acl'];
+        }
         result = util.extend(result, {
             Owner: Owner,
             Grants: Grant,

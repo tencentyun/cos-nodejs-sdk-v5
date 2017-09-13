@@ -394,37 +394,14 @@ function putObjectAcl() {
         console.log(err || data);
     });
 }
-cos.putObjectAcl({
-    Bucket: config.Bucket,
-    Region: config.Region,
-    Key: '1mb.zip',
-    // GrantFullControl: 'id="qcs::cam::uin/1001:uin/1001",id="qcs::cam::uin/1002:uin/1002"',
-    // GrantWrite: 'id="qcs::cam::uin/1001:uin/1001",id="qcs::cam::uin/1002:uin/1002"',
-    // GrantRead: 'id="qcs::cam::uin/1001:uin/1001",id="qcs::cam::uin/1002:uin/1002"',
-    // ACL: 'public-read-write',
-    // ACL: 'public-write',
-    // ACL: 'private',
-    // AccessControlPolicy: {
-    //     "Owner": { // AccessControlPolicy 里必须有 owner
-    //         "ID": 'qcs::cam::uin/10001:uin/10001' // 10001 是 QQ 号
-    //     },
-    //     "Grants": [{
-    //         "Grantee": {
-    //             "ID": "qcs::cam::uin/10002:uin/10002", // 10002 是 QQ 号
-    //         },
-    //         "Permission": "READ"
-    //     }]
-    // }
-}, function (err, data) {
-    getObjectAcl();
-});
+
 function getObjectAcl() {
     cos.getObjectAcl({
         Bucket: config.Bucket,
         Region: config.Region,
         Key: '1mb.zip'
     }, function (err, data) {
-        console.log(err || JSON.stringify(data, null, '    '));
+        console.log(err || data);
     });
 }
 
@@ -544,3 +521,7 @@ function restartTask() {
 // cancelTask();
 // pauseTask();
 // restartTask();
+
+cos.getService(function (err, data) {
+    console.log(data);
+});

@@ -334,7 +334,6 @@ function getBucketCors(params, callback) {
             return callback(err);
         }
         var CORSConfiguration = data.CORSConfiguration || {};
-
         var CORSRules = CORSConfiguration.CORSRules || CORSConfiguration.CORSRule || [];
         CORSRules = util.clone(util.isArray(CORSRules) ? CORSRules : [CORSRules]);
 
@@ -1720,7 +1719,7 @@ function decodeAcl(AccessControlPolicy) {
             if (item.Grantee.ID === 'qcs::cam::anyone:anyone') {
                 result.ACL = AclMap[item.Permission];
             } else if (item.Grantee.ID !== AccessControlPolicy.Owner.ID) {
-                result[GrantMap[item.Permission]].push('id=' + item.Grantee.ID);
+                result[GrantMap[item.Permission]].push('id="' + item.Grantee.ID + '"');
             }
         });
         if (!result.ACL && AccessControlPolicy.Owner.ID === Grant[0].Grantee.ID && Grant[0].Permission === 'FULL_CONTROL') {

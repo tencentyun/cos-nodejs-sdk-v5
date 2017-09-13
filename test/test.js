@@ -316,28 +316,6 @@ describe('getObject()', function () {
             }, 2000);
         });
     });
-    // it('捕获输出流异常', function (done) {
-    //     prepareBigObject().then(function () {
-    //         var filepath = path.resolve(__dirname, 'big.out.zip');
-    //         var Output = fs.createWriteStream(filepath);
-    //         setTimeout(function () {
-    //             Output.emit('error', new Error('some error'))
-    //         }, 500);
-    //         cos.getObject({
-    //             Bucket: config.Bucket,
-    //             Region: config.Region,
-    //             Key: filename,
-    //             Output: Output
-    //         }, function (err, data) {
-    //             fs.unlinkSync(filepath);
-    //             fs.unlinkSync('big.zip');
-    //             assert.throws(function () {
-    //                 throw err
-    //             }, /some error/);
-    //             done();
-    //         })
-    //     });
-    // });
 });
 
 describe('sliceUploadFile()', function () {
@@ -529,13 +507,31 @@ describe('BucketAcl', function () {
         cos.putBucketAcl({
             Bucket: config.Bucket,
             Region: config.Region,
-            AccessControlPolicy: AccessControlPolicy2
+            AccessControlPolicy: AccessControlPolicy2,
         }, function (err, data) {
             assert(!err);
             cos.getBucketAcl({Bucket: config.Bucket, Region: config.Region}, function (err, data) {
                 assert(data.Grants.length === 1);
                 assert(data.Grants[0].Grantee.ID === 'qcs::cam::uin/10002:uin/10002');
                 assert(data.Grants[0].Permission === 'READ');
+                done();
+            });
+        });
+    });
+    it('putBucketAcl() decodeAcl', function (done) {
+        cos.getBucketAcl({
+            Bucket: config.Bucket,
+            Region: config.Region
+        }, function (err, data) {
+            cos.putBucketAcl({
+                Bucket: config.Bucket,
+                Region: config.Region,
+                GrantFullControl: data.GrantFullControl,
+                GrantWrite: data.GrantWrite,
+                GrantRead: data.GrantRead,
+                ACL: data.ACL,
+            }, function (err, data) {
+                assert(data);
                 done();
             });
         });
@@ -577,10 +573,10 @@ describe('ObjectAcl', function () {
                 Bucket: config.Bucket,
                 Region: config.Region,
                 ACL: 'private',
-                Key: '1mb.zip',
+                Key: '1.txt',
             }, function (err, data) {
                 assert(!err);
-                cos.getObjectAcl({Bucket: config.Bucket, Region: config.Region, Key: '1mb.zip'}, function (err, data) {
+                cos.getObjectAcl({Bucket: config.Bucket, Region: config.Region, Key: '1.txt'}, function (err, data) {
                     assert(data.Grants.length === 1);
                     done();
                 });
@@ -592,10 +588,10 @@ describe('ObjectAcl', function () {
             Bucket: config.Bucket,
             Region: config.Region,
             ACL: 'public-read',
-            Key: '1mb.zip',
+            Key: '1.txt',
         }, function (err, data) {
             assert(!err);
-            cos.getObjectAcl({Bucket: config.Bucket, Region: config.Region, Key: '1mb.zip'}, function (err, data) {
+            cos.getObjectAcl({Bucket: config.Bucket, Region: config.Region, Key: '1.txt'}, function (err, data) {
                 assert(data.Grants.length === 1);
                 assert(data.Grants[0].Grantee.ID === 'qcs::cam::anyone:anyone');
                 assert(data.Grants[0].Permission === 'READ');
@@ -608,10 +604,10 @@ describe('ObjectAcl', function () {
             Bucket: config.Bucket,
             Region: config.Region,
             ACL: 'public-read-write',
-            Key: '1mb.zip',
+            Key: '1.txt',
         }, function (err, data) {
             assert(!err);
-            cos.getObjectAcl({Bucket: config.Bucket, Region: config.Region, Key: '1mb.zip'}, function (err, data) {
+            cos.getObjectAcl({Bucket: config.Bucket, Region: config.Region, Key: '1.txt'}, function (err, data) {
                 assert(data.Grants.length === 1);
                 assert(data.Grants[0].Grantee.ID === 'qcs::cam::anyone:anyone');
                 assert(data.Grants[0].Permission === 'FULL_CONTROL');
@@ -624,10 +620,10 @@ describe('ObjectAcl', function () {
             Bucket: config.Bucket,
             Region: config.Region,
             GrantRead: 'id="qcs::cam::uin/1001:uin/1001",id="qcs::cam::uin/1002:uin/1002"',
-            Key: '1mb.zip',
+            Key: '1.txt',
         }, function (err, data) {
             assert(!err);
-            cos.getObjectAcl({Bucket: config.Bucket, Region: config.Region, Key: '1mb.zip'}, function (err, data) {
+            cos.getObjectAcl({Bucket: config.Bucket, Region: config.Region, Key: '1.txt'}, function (err, data) {
                 assert(data.Grants.length === 2);
                 assert(data.Grants[0].Grantee.ID === 'qcs::cam::uin/1001:uin/1001');
                 assert(data.Grants[0].Permission === 'READ');
@@ -642,10 +638,10 @@ describe('ObjectAcl', function () {
             Bucket: config.Bucket,
             Region: config.Region,
             GrantWrite: 'id="qcs::cam::uin/1001:uin/1001",id="qcs::cam::uin/1002:uin/1002"',
-            Key: '1mb.zip',
+            Key: '1.txt',
         }, function (err, data) {
             assert(!err);
-            cos.getObjectAcl({Bucket: config.Bucket, Region: config.Region, Key: '1mb.zip'}, function (err, data) {
+            cos.getObjectAcl({Bucket: config.Bucket, Region: config.Region, Key: '1.txt'}, function (err, data) {
                 assert(data.Grants.length === 2);
                 assert(data.Grants[0].Grantee.ID === 'qcs::cam::uin/1001:uin/1001');
                 assert(data.Grants[0].Permission === 'WRITE');
@@ -660,10 +656,10 @@ describe('ObjectAcl', function () {
             Bucket: config.Bucket,
             Region: config.Region,
             GrantFullControl: 'id="qcs::cam::uin/1001:uin/1001",id="qcs::cam::uin/1002:uin/1002"',
-            Key: '1mb.zip',
+            Key: '1.txt',
         }, function (err, data) {
             assert(!err);
-            cos.getObjectAcl({Bucket: config.Bucket, Region: config.Region, Key: '1mb.zip'}, function (err, data) {
+            cos.getObjectAcl({Bucket: config.Bucket, Region: config.Region, Key: '1.txt'}, function (err, data) {
                 assert(data.Grants.length === 2);
                 assert(data.Grants[0].Grantee.ID === 'qcs::cam::uin/1001:uin/1001');
                 assert(data.Grants[0].Permission === 'FULL_CONTROL');
@@ -679,10 +675,10 @@ describe('ObjectAcl', function () {
             Region: config.Region,
             GrantFullControl: 'id="qcs::cam::uin/1001:uin/1001",id="qcs::cam::uin/1002:uin/1002"',
             ACL: 'public-read',
-            Key: '1mb.zip',
+            Key: '1.txt',
         }, function (err, data) {
             assert(!err);
-            cos.getObjectAcl({Bucket: config.Bucket, Region: config.Region, Key: '1mb.zip'}, function (err, data) {
+            cos.getObjectAcl({Bucket: config.Bucket, Region: config.Region, Key: '1.txt'}, function (err, data) {
                 assert(data.Grants.length === 3);
                 assert(data.Grants[0].Grantee.ID === 'qcs::cam::anyone:anyone');
                 assert(data.Grants[0].Permission === 'READ');
@@ -699,10 +695,10 @@ describe('ObjectAcl', function () {
             Bucket: config.Bucket,
             Region: config.Region,
             AccessControlPolicy: AccessControlPolicy,
-            Key: '1mb.zip',
+            Key: '1.txt',
         }, function (err, data) {
             assert(!err);
-            cos.getBucketAcl({Bucket: config.Bucket, Region: config.Region, Key: '1mb.zip'}, function (err, data) {
+            cos.getBucketAcl({Bucket: config.Bucket, Region: config.Region, Key: '1.txt'}, function (err, data) {
                 assert(data.Grants.length === 1);
                 assert(data.Grants[0].Grantee.ID === 'qcs::cam::uin/10002:uin/10002');
                 assert(data.Grants[0].Permission === 'READ');
@@ -710,18 +706,38 @@ describe('ObjectAcl', function () {
             });
         });
     });
-    it('putBucketAcl() xml2', function (done) {
-        cos.putBucketAcl({
+    it('putObjectAcl() xml2', function (done) {
+        cos.putObjectAcl({
             Bucket: config.Bucket,
             Region: config.Region,
             AccessControlPolicy: AccessControlPolicy2,
-            Key: '1mb.zip',
+            Key: '1.txt',
         }, function (err, data) {
             assert(!err);
-            cos.getBucketAcl({Bucket: config.Bucket, Region: config.Region, Key: '1mb.zip'}, function (err, data) {
+            cos.getObjectAcl({Bucket: config.Bucket, Region: config.Region, Key: '1.txt'}, function (err, data) {
                 assert(data.Grants.length === 1);
                 assert(data.Grants[0].Grantee.ID === 'qcs::cam::uin/10002:uin/10002');
                 assert(data.Grants[0].Permission === 'READ');
+                done();
+            });
+        });
+    });
+    it('putObjectAcl() decodeAcl', function (done) {
+        cos.getObjectAcl({
+            Bucket: config.Bucket,
+            Region: config.Region,
+            Key: '1.txt'
+        }, function (err, data) {
+            cos.putObjectAcl({
+                Bucket: config.Bucket,
+                Region: config.Region,
+                Key: '1.txt',
+                GrantFullControl: data.GrantFullControl,
+                GrantWrite: data.GrantWrite,
+                GrantRead: data.GrantRead,
+                ACL: data.ACL,
+            }, function (err, data) {
+                assert(data);
                 done();
             });
         });
@@ -1037,22 +1053,14 @@ describe('BucketLocation', function () {
             Bucket: config.Bucket,
             Region: config.Region
         }, function (err, data) {
-            var map1 = {
+            var map = {
                 'tianjin': 'ap-beijing-1',
                 'cn-south-2': 'ap-guangzhou-2',
                 'cn-south': 'ap-guangzhou',
                 'cn-east': 'ap-shanghai',
                 'cn-southwest': 'ap-chengdu',
             };
-            var map2 = {
-                'ap-beijing-1': 'tianjin',
-                'ap-guangzhou-2': 'cn-south-2',
-                'ap-guangzhou': 'cn-south',
-                'ap-shanghai': 'cn-east',
-                'ap-chengdu': 'cn-southwest',
-            };
-            assert(data.LocationConstraint === config.Region || data.LocationConstraint === map1[config.Region] ||
-                data.LocationConstraint === map2[config.Region]);
+            assert(data.LocationConstraint === (map[config.Region] || config.Region));
             done();
         });
     });

@@ -7,7 +7,7 @@ var config = require('../demo/config');
 var Writable = require('stream').Writable;
 
 if (process.env.CONFIG) {
-    config = JSON.parse(process.env.CONFIG);
+    config = process.env.CONFIG;
 }
 
 var cos = new COS({

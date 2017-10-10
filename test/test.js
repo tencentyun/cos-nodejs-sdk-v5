@@ -362,6 +362,7 @@ describe('sliceUploadFile()', function () {
 });
 
 describe('BucketAcl', function () {
+    this.timeout(60000);
     var AccessControlPolicy = {
         "Owner": {
             "ID": 'qcs::cam::uin/10001:uin/10001' // 10001 是 QQ 号
@@ -549,6 +550,7 @@ describe('BucketAcl', function () {
 });
 
 describe('ObjectAcl', function () {
+    this.timeout(60000);
     var AccessControlPolicy = {
         "Owner": {
             "ID": 'qcs::cam::uin/10001:uin/10001' // 10001 是 QQ 号
@@ -1002,6 +1004,7 @@ describe('BucketTagging', function () {
 });
 
 describe('BucketPolicy', function () {
+    this.timeout(60000);
     var Prefix = Date.now().toString(36);
     var Policy = {
         "version": "2.0",
@@ -1058,6 +1061,7 @@ describe('BucketPolicy', function () {
 });
 
 describe('BucketLocation', function () {
+    this.timeout(60000);
     it('getBucketLocation()', function (done) {
         cos.getBucketLocation({
             Bucket: config.Bucket,

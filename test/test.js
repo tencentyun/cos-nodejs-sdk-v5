@@ -6,8 +6,14 @@ var util = require('../demo/util');
 var config = require('../demo/config');
 var Writable = require('stream').Writable;
 
-if (process.env.CONFIG) {
-    config = process.env.CONFIG;
+if (process.env.AppId) {
+    config = {
+        AppId: process.env.AppId,
+        SecretId: process.env.SecretId,
+        SecretKey: process.env.SecretKey,
+        Bucket: process.env.Bucket,
+        Region: process.env.Region,
+    }
 }
 
 var cos = new COS({

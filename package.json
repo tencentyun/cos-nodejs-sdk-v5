@@ -3,7 +3,6 @@
   "version": "2.0.12",
   "description": "cos nodejs sdk v5",
   "main": "index.js",
-  "devDependencies": {},
   "scripts": {
     "test": "mocha",
     "demo": "node demo/demo.js"
@@ -30,5 +29,8 @@
     "eventproxy": "^0.3.5",
     "request": "^2.81.0",
     "xml2js": "^0.4.17"
+  },
+  "devDependencies": {
+    "mocha": "^4.0.1"
   }
 }

@@ -378,7 +378,8 @@ function putObjectAcl() {
         // GrantRead: 'id="qcs::cam::uin/1001:uin/1001",id="qcs::cam::uin/1002:uin/1002"',
         // ACL: 'public-read-write',
         // ACL: 'public-read',
-        ACL: 'private',
+        // ACL: 'private',
+        ACL: 'default', // 继承上一级目录权限
         // AccessControlPolicy: {
         //     "Owner": { // AccessControlPolicy 里必须有 owner
         //         "ID": 'qcs::cam::uin/10001:uin/10001' // 10001 是 QQ 号

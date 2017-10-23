@@ -4,7 +4,7 @@
 
 [releases and changelog](https://github.com/tencentyun/cos-nodejs-sdk-v5/releases)
 
-## npm
+## install
 
  [npm 地址](https://www.npmjs.com/package/cos-nodejs-sdk-v5)
  
@@ -12,19 +12,19 @@
 npm i cos-nodejs-sdk-v5 --save
 ```
 
-## get started
+## demo
 
 ```javascript
+// 引入模块
 var COS = require('cos-nodejs-sdk-v5');
 // 创建实例
 var cos = new COS({
-    AppId: '1250000000',
     SecretId: 'AKIDxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
     SecretKey: 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
 });
 // 分片上传
 cos.sliceUploadFile({
-    Bucket: 'test',
+    Bucket: 'test-1250000000',
     Region: 'ap-guangzhou',
     Key: '1.zip',
     FilePath: './1.zip'
@@ -32,6 +32,8 @@ cos.sliceUploadFile({
     console.log(err, data);
 });
 ```
+
+## 相关文档 
 
 [更多例子](demo/demo.js)
 

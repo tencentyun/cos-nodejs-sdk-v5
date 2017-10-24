@@ -25,7 +25,7 @@ var getAuth = function (opt) {
     var pathname = opt.pathname || '/';
     var queryParams = opt.params || '';
     var headers = opt.headers || '';
-    pathname.indexOf('/') === -1 && (pathname = '/' + pathname);
+    pathname.indexOf('/') !== 0 && (pathname = '/' + pathname);
 
     if (!SecretId) return console.error('lack of param SecretId');
     if (!SecretKey) return console.error('lack of param SecretKey');

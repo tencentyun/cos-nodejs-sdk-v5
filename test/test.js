@@ -761,71 +761,27 @@ describe('BucketCors', function () {
     var CORSRules = [{
         "AllowedOrigins": ["*"],
         "AllowedMethods": ["GET", "POST", "PUT", "DELETE", "HEAD"],
-        "AllowedHeaders": [
-            "origin",
-            "accept",
-            "content-type",
-            "authorization",
-            "content-md5",
-            "x-cos-copy-source",
-            "x-cos-acl",
-            "x-cos-grant-read",
-            "x-cos-grant-write",
-            "x-cos-grant-full-control",
-        ],
+        "AllowedHeaders": ["*"],
         "ExposeHeaders": ["ETag"],
         "MaxAgeSeconds": "5"
     }];
     var CORSRules1 = [{
         "AllowedOrigin": "*",
         "AllowedMethods": ["GET", "POST", "PUT", "DELETE", "HEAD"],
-        "AllowedHeader": [
-            "origin",
-            "accept",
-            "content-type",
-            "authorization",
-            "content-md5",
-            "x-cos-copy-source",
-            "x-cos-acl",
-            "x-cos-grant-read",
-            "x-cos-grant-write",
-            "x-cos-grant-full-control",
-        ],
+        "AllowedHeaders": ["*"],
         "ExposeHeader": "ETag",
         "MaxAgeSeconds": "5"
     }];
     var CORSRulesMulti = [{
         "AllowedOrigins": ["*"],
         "AllowedMethods": ["GET", "POST", "PUT", "DELETE", "HEAD"],
-        "AllowedHeaders": [
-            "origin",
-            "accept",
-            "content-type",
-            "authorization",
-            "content-md5",
-            "x-cos-copy-source",
-            "x-cos-acl",
-            "x-cos-grant-read",
-            "x-cos-grant-write",
-            "x-cos-grant-full-control",
-        ],
+        "AllowedHeaders": ["*"],
         "ExposeHeaders": ["ETag"],
         "MaxAgeSeconds": "5"
     }, {
         "AllowedOrigins": ["http://qq.com", "http://qcloud.com"],
         "AllowedMethods": ["GET", "POST", "PUT", "DELETE", "HEAD"],
-        "AllowedHeaders": [
-            "origin",
-            "accept",
-            "content-type",
-            "authorization",
-            "content-md5",
-            "x-cos-copy-source",
-            "x-cos-acl",
-            "x-cos-grant-read",
-            "x-cos-grant-write",
-            "x-cos-grant-full-control",
-        ],
+        "AllowedHeaders": ["*"],
         "ExposeHeaders": ["ETag"],
         "MaxAgeSeconds": "5"
     }];
@@ -869,14 +825,13 @@ describe('BucketCors', function () {
         });
     });
     it('putBucketCors() old', function (done) {
-        CORSRules[0].AllowedHeaders[CORSRules[0].AllowedHeaders.length - 1] =
-            CORSRules1[0].AllowedHeader[CORSRules1[0].AllowedHeader.length - 1] =
-                'test-' + Date.now().toString(36);
+        var testVal = 'test-' + Date.now().toString(36);
+        CORSRules[0].AllowedHeaders.push(testVal);
         cos.putBucketCors({
             Bucket: config.Bucket,
             Region: config.Region,
             CORSConfiguration: {
-                CORSRules: CORSRules1
+                CORSRules: CORSRules
             }
         }, function (err, data) {
             assert(!err);
@@ -1125,7 +1080,7 @@ describe('BucketLifecycle', function () {
                     Bucket: config.Bucket,
                     Region: config.Region
                 }, function (err, data) {
-                    assert(err.statusCode === 404);
+                    assert(err && err.statusCode === 404);
                     done();
                 });
             }, 2000);

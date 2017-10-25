@@ -252,11 +252,10 @@ var apiWrapper = function (apiName, apiFn) {
                 return;
             }
             // 兼容带有 AppId 的 Bucket
-            var appId, bucket = params.Bucket;
-            if (bucket && bucket.indexOf('-') > -1) {
-                var arr = bucket.split('-');
-                appId = arr[1];
-                bucket = arr[0];
+            var appId, m, bucket = params.Bucket;
+            if (bucket && (m = bucket.match(/^(.+)-(\d+)$/))) {
+                appId = m[2];
+                bucket = m[1];
                 params.AppId = appId;
                 params.Bucket = bucket;
             }

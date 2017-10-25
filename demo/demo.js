@@ -40,7 +40,7 @@ function getAuth() {
 
 function putBucket() {
     cos.putBucket({
-        Bucket: 'testnew',
+        Bucket: 'test1',
         Region: config.Region
     }, function (err, data) {
         console.log(err || data);

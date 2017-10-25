@@ -170,12 +170,12 @@ function putBucket(params, callback) {
     headers['x-cos-grant-read'] = params['GrantRead'];
     headers['x-cos-grant-write'] = params['GrantWrite'];
     headers['x-cos-grant-full-control'] = params['GrantFullControl'];
-    var appId = this.options.AppId || '';
+    var appId = params.AppId || this.options.AppId || '';
     submitRequest.call(this, {
         method: 'PUT',
         Bucket: params.Bucket,
         Region: params.Region,
-        AppId: params.AppId,
+        AppId: appId,
         headers: headers,
     }, function (err, data) {
         if (err) {
@@ -1816,7 +1816,7 @@ function submitRequest(params, callback) {
             region: region,
             object: object,
             action: action,
-            appId: params.AppId || this.options.AppId,
+            appId: params.AppId || this.options.AppId || '',
         }),
         method: method,
         headers: headers || {},

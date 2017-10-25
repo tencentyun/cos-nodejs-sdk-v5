@@ -18,6 +18,7 @@ var defaultOptions = {
     ProgressInterval: 1000,
     Domain: '',
     ServiceDomain: '',
+    Proxy: '',
 };
 
 // 对外暴露的类

@@ -1080,7 +1080,7 @@ describe('BucketLifecycle', function () {
                     Bucket: config.Bucket,
                     Region: config.Region
                 }, function (err, data) {
-                    assert(err && err.statusCode === 404);
+                    assert(comparePlainObject([], data.Rules));
                     done();
                 });
             }, 2000);

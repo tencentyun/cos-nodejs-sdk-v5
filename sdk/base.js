@@ -334,7 +334,17 @@ function getBucketCors(params, callback) {
         action: '/?cors',
     }, function (err, data) {
         if (err) {
-            return callback(err);
+            if (err.statusCode === 404 && err.error && err.error.Code === 'NoSuchCORSConfiguration') {
+                var result  = {
+                    CORSRules: [],
+                    statusCode: err.statusCode,
+                };
+                err.headers && (result.headers = err.headers);
+                callback(null, result);
+            } else {
+                callback(err);
+            }
+            return;
         }
         var CORSConfiguration = data.CORSConfiguration || {};
         var CORSRules = CORSConfiguration.CORSRules || CORSConfiguration.CORSRule || [];
@@ -688,7 +698,17 @@ function getBucketLifecycle(params, callback) {
         action: '/?lifecycle',
     }, function (err, data) {
         if (err) {
-            return callback(err);
+            if (err.statusCode === 404 && err.error && err.error.Code === 'NoSuchLifecycleConfiguration') {
+                var result  = {
+                    Rules: [],
+                    statusCode: err.statusCode,
+                };
+                err.headers && (result.headers = err.headers);
+                callback(null, result);
+            } else {
+                callback(err);
+            }
+            return;
         }
         var Rules = [];
         try {
@@ -1825,6 +1845,9 @@ function submitRequest(params, callback) {
     if (opt.qs) {
         opt.qs = util.clearKey(opt.qs);
     }
+    if (this.options.Proxy) {
+        opt.proxy = this.options.Proxy;
+    }
     opt = util.clearKey(opt);
 
     var sender = REQUEST(opt);
@@ -1836,6 +1859,7 @@ function submitRequest(params, callback) {
         if (err) {
             err = err || {};
             retResponse && retResponse.statusCode && (err.statusCode = retResponse.statusCode);
+            retResponse && retResponse.headers && (err.headers = retResponse.headers);
             callback(err, null);
         } else {
             data = data || {};

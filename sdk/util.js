@@ -287,7 +287,7 @@ var util = {
     filter: filter,
     clone: clone,
     uuid: uuid,
-    isBrowser: document
+    isBrowser: global.document
 };
 
 

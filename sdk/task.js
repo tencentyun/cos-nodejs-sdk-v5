@@ -8,6 +8,19 @@ var initTask = function (cos) {
     var uploadingFileCount = 0;
     var nextUploadIndex = 0;
 
+    var originApiMap = {};
+
+    // 把上传方法替换成添加任务的方法
+    util.each([
+        'putObject',
+        'sliceUploadFile',
+    ], function (api) {
+        originApiMap[api] = cos[api];
+        cos[api] = function (params, callback) {
+            cos._addTask(api, params, callback);
+        };
+    });
+
     // 接口返回简略的任务信息
     var formatTask = function (task) {
         var t = {
@@ -27,6 +40,11 @@ var initTask = function (cos) {
         return t;
     };
 
+    var emitListUpdate = function () {
+        cos.emit('task-list-update', {list: util.map(queue, formatTask)});
+        cos.emit('list-update', {list: util.map(queue, formatTask)});
+    };
+
     var startNextTask = function () {
         if (nextUploadIndex < queue.length &&
             uploadingFileCount < cos.options.FileParallelLimit) {
@@ -35,10 +53,12 @@ var initTask = function (cos) {
                 uploadingFileCount++;
                 task.state = 'checking';
                 !task.params.UploadData && (task.params.UploadData = {});
-                cos[task.api](task.params, function (err, data) {
+                originApiMap[task.api].call(cos, task.params, function (err, data) {
+                    if (!cos._isRunningTask(task.id)) return;
                     if (task.state === 'checking' || task.state === 'uploading') {
                         task.state = err ? 'error' : 'success';
                         uploadingFileCount--;
+                        emitListUpdate();
                         startNextTask(cos);
                         task.callback && task.callback(err, data);
                         if (task.state === 'success') {
@@ -47,6 +67,7 @@ var initTask = function (cos) {
                         }
                     }
                 });
+                emitListUpdate();
             }
             nextUploadIndex++;
             startNextTask(cos);
@@ -57,14 +78,16 @@ var initTask = function (cos) {
         var task = tasks[id];
         var waiting = task && task.state === 'waiting';
         var running = task && (task.state === 'checking' || task.state === 'uploading');
-        if (waiting || running || (switchToState === 'canceled' && task.state === 'paused')) {
+        if (switchToState === 'canceled' && task.state !== 'canceled' ||
+            switchToState === 'paused' && waiting ||
+            switchToState === 'paused' && running) {
             if (switchToState === 'paused' && task.params.Body && typeof task.params.Body.pipe === 'function') {
                 console.error('stream not support pause');
                 return;
             }
             task.state = switchToState;
             cos.emit('inner-kill-task', {TaskId: id});
-            cos.emit('task-update', {task: formatTask(task)});
+            emitListUpdate();
             if (running) {
                 uploadingFileCount--;
                 startNextTask(cos);
@@ -76,11 +99,24 @@ var initTask = function (cos) {
         }
     };
 
-    cos._addTask = function (id, api, params, callback) {
-        var size;
-        if (params.Body && params.Body.size) {
+    cos._addTasks = function (taskList) {
+        util.each(taskList, function (task) {
+            task.params.IgnoreAddEvent = true;
+            cos._addTask(task.api, task.params, task.callback);
+        });
+        emitListUpdate();
+    };
+
+    cos._addTask = function (api, params, callback) {
+
+        // 生成 id
+        var id = util.uuid();
+        params.TaskReady && params.TaskReady(id);
+
+        var size = 0;
+        if (params.Body && params.Body.size !== undefined) {
             size = params.Body.size;
-        } else if (params.Body && params.Body.length) {
+        } else if (params.Body && params.Body.length !== undefined) {
             size = params.Body.length;
         } else if (params.ContentLength !== undefined) {
             size = params.ContentLength;
@@ -92,8 +128,10 @@ var initTask = function (cos) {
                 return;
             }
         }
+
         if (params.ContentLength === undefined) params.ContentLength = size;
         params.TaskId = id;
+
         var task = {
             // env
             params: params,
@@ -118,7 +156,7 @@ var initTask = function (cos) {
             if (!cos._isRunningTask(task.id)) return;
             task.hashPercent = info.percent;
             onHashProgress && onHashProgress(info);
-            cos.emit('task-update', {task: formatTask(task)});
+            emitListUpdate();
         };
         var onProgress = params.onProgress;
         params.onProgress = function (info) {
@@ -128,11 +166,11 @@ var initTask = function (cos) {
             task.speed = info.speed;
             task.percent = info.percent;
             onProgress && onProgress(info);
-            cos.emit('task-update', {task: formatTask(task)});
+            emitListUpdate();
         };
         queue.push(task);
         tasks[id] = task;
-        cos.emit('task-list-update', {list: util.map(queue, formatTask)});
+        !params.IgnoreAddEvent && emitListUpdate();
         startNextTask(cos);
         return id;
     };
@@ -153,7 +191,7 @@ var initTask = function (cos) {
         var task = tasks[id];
         if (task && (task.state === 'paused' || task.state === 'error')) {
             task.state = 'waiting';
-            cos.emit('task-update', {task: formatTask(task)});
+            emitListUpdate();
             nextUploadIndex = Math.min(nextUploadIndex, task.index);
             startNextTask();
         }

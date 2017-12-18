@@ -6,7 +6,6 @@ var config = require('./config');
 
 var cos = new COS({
     // 必选参数
-    AppId: config.AppId,
     SecretId: config.SecretId,
     SecretKey: config.SecretKey,
     // 可选参数
@@ -23,24 +22,18 @@ function getService() {
 }
 
 function getAuth() {
-    var AppId = config.AppId;
-    var Bucket = config.Bucket;
-    if (config.Bucket.indexOf('-') > -1) {
-        var arr = config.Bucket.split('-');
-        Bucket = arr[0];
-        AppId = arr[1];
-    }
     var key = '1mb.zip';
     var auth = cos.getAuth({
         Method: 'get',
         Key: key
     });
-    console.log('http://' + Bucket + '-' + AppId + '.cos.' + config.Region + '.myqcloud.com' + '/' + key + '?sign=' + encodeURIComponent(auth));
+    // 注意：这里的 Bucket 格式是 test-1250000000
+    console.log('http://' + config.Bucket + '.cos.' + config.Region + '.myqcloud.com' + '/' + key + '?sign=' + encodeURIComponent(auth));
 }
 
 function putBucket() {
     cos.putBucket({
-        Bucket: 'test1',
+        Bucket: 'testnew-' + config.Bucket.substr(config.Bucket.indexOf('-') + 1),
         Region: config.Region
     }, function (err, data) {
         console.log(err || data);
@@ -49,7 +42,7 @@ function putBucket() {
 
 function getBucket() {
     cos.getBucket({
-        Bucket: config.Bucket,
+        Bucket: config.Bucket, // Bucket 格式：test-1250000000
         Region: config.Region
     }, function (err, data) {
         console.log(err || data);
@@ -58,7 +51,7 @@ function getBucket() {
 
 function headBucket() {
     cos.headBucket({
-        Bucket: config.Bucket,
+        Bucket: config.Bucket, // Bucket 格式：test-1250000000
         Region: config.Region
     }, function (err, data) {
         console.log(err || data);
@@ -67,7 +60,7 @@ function headBucket() {
 
 function putBucketAcl() {
     cos.putBucketAcl({
-        Bucket: config.Bucket,
+        Bucket: config.Bucket, // Bucket 格式：test-1250000000
         Region: config.Region,
         // GrantFullControl: 'id="qcs::cam::uin/1001:uin/1001",id="qcs::cam::uin/1002:uin/1002"',
         // GrantWrite: 'id="qcs::cam::uin/1001:uin/1001",id="qcs::cam::uin/1002:uin/1002"',
@@ -93,7 +86,7 @@ function putBucketAcl() {
 
 function getBucketAcl() {
     cos.getBucketAcl({
-        Bucket: config.Bucket,
+        Bucket: config.Bucket, // Bucket 格式：test-1250000000
         Region: config.Region
     }, function (err, data) {
         console.log(err || data);
@@ -102,7 +95,7 @@ function getBucketAcl() {
 
 function putBucketCors() {
     cos.putBucketCors({
-        Bucket: config.Bucket,
+        Bucket: config.Bucket, // Bucket 格式：test-1250000000
         Region: config.Region,
         CORSConfiguration: {
             "CORSRules": [{
@@ -110,7 +103,7 @@ function putBucketCors() {
                 "AllowedMethod": ["GET", "POST", "PUT", "DELETE", "HEAD"],
                 "AllowedHeader": ["*"],
                 "ExposeHeader": ["ETag"],
-                "MaxAgeSeconds": "5"
+                "MaxAgeSeconds": "600"
             }]
         }
     }, function (err, data) {
@@ -120,7 +113,7 @@ function putBucketCors() {
 
 function getBucketCors() {
     cos.getBucketCors({
-        Bucket: config.Bucket,
+        Bucket: config.Bucket, // Bucket 格式：test-1250000000
         Region: config.Region
     }, function (err, data) {
         console.log(err || data);
@@ -129,7 +122,7 @@ function getBucketCors() {
 
 function deleteBucketCors() {
     cos.deleteBucketCors({
-        Bucket: config.Bucket,
+        Bucket: config.Bucket, // Bucket 格式：test-1250000000
         Region: config.Region
     }, function (err, data) {
         console.log(err || data);
@@ -138,7 +131,7 @@ function deleteBucketCors() {
 
 function putBucketTagging() {
     cos.putBucketTagging({
-        Bucket: config.Bucket,
+        Bucket: config.Bucket, // Bucket 格式：test-1250000000
         Region: config.Region,
         Tagging: {
             "Tags": [
@@ -153,7 +146,7 @@ function putBucketTagging() {
 
 function getBucketTagging() {
     cos.getBucketTagging({
-        Bucket: config.Bucket,
+        Bucket: config.Bucket, // Bucket 格式：test-1250000000
         Region: config.Region
     }, function (err, data) {
         console.log(err || data);
@@ -162,7 +155,7 @@ function getBucketTagging() {
 
 function deleteBucketTagging() {
     cos.deleteBucketTagging({
-        Bucket: config.Bucket,
+        Bucket: config.Bucket, // Bucket 格式：test-1250000000
         Region: config.Region
     }, function (err, data) {
         console.log(err || data);
@@ -170,13 +163,7 @@ function deleteBucketTagging() {
 }
 
 function putBucketPolicy() {
-    var AppId = config.AppId;
-    var Bucket = config.Bucket;
-    if (config.Bucket.indexOf('-') > -1) {
-        var arr = config.Bucket.split('-');
-        Bucket = arr[0];
-        AppId = arr[1];
-    }
+    var AppId = config.Bucket.substr(config.Bucket.indexOf('-') + 1);
     cos.putBucketPolicy({
         Policy: {
             "version": "2.0",
@@ -196,12 +183,12 @@ function putBucketPolicy() {
                         "name/cos:AbortMultipartUpload",
                         "name/cos:AppendObject"
                     ],
-                    // "resource": ["qcs::cos:ap-guangzhou:uid/1250000000:test-1250000000.cos.ap-guangzhou.myqcloud.com//1250000000/test/*"] // 1250000000 是 appid
-                    "resource": ["qcs::cos:" + config.Region + ":uid/" + AppId + ":" + Bucket + "-" + AppId + ".cos." + config.Region + ".myqcloud.com//" + AppId + "/" + Bucket + "/*"] // 1250000000 是 appid
+                    // "resource": ["qcs::cos:ap-guangzhou:uid/1250000000:test-1250000000/*"] // 1250000000 是 appid
+                    "resource": ["qcs::cos:" + config.Region + ":uid/" + AppId + ":" + config.Bucket + "/*"] // 1250000000 是 appid
                 }
             ]
         },
-        Bucket: config.Bucket,
+        Bucket: config.Bucket, // Bucket 格式：test-1250000000
         Region: config.Region
     }, function (err, data) {
         console.log(err || data);
@@ -210,7 +197,7 @@ function putBucketPolicy() {
 
 function getBucketPolicy() {
     cos.getBucketPolicy({
-        Bucket: config.Bucket,
+        Bucket: config.Bucket, // Bucket 格式：test-1250000000
         Region: config.Region
     }, function (err, data) {
         console.log(err || data);
@@ -219,7 +206,7 @@ function getBucketPolicy() {
 
 function getBucketLocation() {
     cos.getBucketLocation({
-        Bucket: config.Bucket,
+        Bucket: config.Bucket, // Bucket 格式：test-1250000000
         Region: config.Region
     }, function (err, data) {
         console.log(err || data);
@@ -228,7 +215,7 @@ function getBucketLocation() {
 
 function putBucketLifecycle() {
     cos.putBucketLifecycle({
-        Bucket: config.Bucket,
+        Bucket: config.Bucket, // Bucket 格式：test-1250000000
         Region: config.Region,
         LifecycleConfiguration: {
             "Rules": [{
@@ -250,7 +237,7 @@ function putBucketLifecycle() {
 
 function getBucketLifecycle() {
     cos.getBucketLifecycle({
-        Bucket: config.Bucket,
+        Bucket: config.Bucket, // Bucket 格式：test-1250000000
         Region: config.Region
     }, function (err, data) {
         console.log(err || data);
@@ -259,7 +246,68 @@ function getBucketLifecycle() {
 
 function deleteBucketLifecycle() {
     cos.deleteBucketLifecycle({
-        Bucket: config.Bucket,
+        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Region: config.Region
+    }, function (err, data) {
+        console.log(err || data);
+    });
+}
+
+function putBucketVersioning() {
+    cos.putBucketVersioning({
+        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Region: config.Region,
+        VersioningConfiguration: {
+            MFADelete: "Enabled",
+            Status: "Enabled"
+        }
+    }, function (err, data) {
+        console.log(err || data);
+    });
+}
+
+function getBucketVersioning() {
+    cos.getBucketVersioning({
+        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Region: config.Region
+    }, function (err, data) {
+        console.log(err || data);
+    });
+}
+
+function putBucketReplication() {
+    var AppId = config.Bucket.substr(config.Bucket.indexOf('-') + 1);
+    cos.putBucketReplication({
+        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Region: config.Region,
+        ReplicationConfiguration: {
+            Role: "qcs::cam::uin/459452372:uin/459452372",
+            Rules: [{
+                ID: "1",
+                Status: "Enabled",
+                Prefix: 'img/',
+                Destination: {
+                    Bucket:  "qcs::cos:ap-tianjin::shanghai-" + AppId,
+                },
+            }]
+        }
+    }, function (err, data) {
+        console.log(err || data);
+    });
+}
+
+function getBucketReplication() {
+    cos.getBucketReplication({
+        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Region: config.Region
+    }, function (err, data) {
+        console.log(err || data);
+    });
+}
+
+function deleteBucketReplication() {
+    cos.getBucketReplication({
+        Bucket: config.Bucket, // Bucket 格式：test-1250000000
         Region: config.Region
     }, function (err, data) {
         console.log(err || data);
@@ -282,7 +330,7 @@ function putObject() {
     util.createFile(filepath, 1024 * 1024, function (err) {
         // 调用方法
         cos.putObject({
-            Bucket: config.Bucket, /* 必须 */
+            Bucket: config.Bucket, /* 必须 */ // Bucket 格式：test-1250000000
             Region: config.Region,
             Key: filename, /* 必须 */
             TaskReady: function (tid) {
@@ -304,18 +352,11 @@ function putObject() {
 }
 
 function putObjectCopy() {
-    var AppId = config.AppId;
-    var Bucket = config.Bucket;
-    if (config.Bucket.indexOf('-') > -1) {
-        var arr = config.Bucket.split('-');
-        Bucket = arr[0];
-        AppId = arr[1];
-    }
     cos.putObjectCopy({
-        Bucket: config.Bucket,
+        Bucket: config.Bucket, // Bucket 格式：test-1250000000
         Region: config.Region,
         Key: '1mb.copy.zip',
-        CopySource: Bucket + '-' + AppId + '.cos.' + config.Region + '.myqcloud.com/1mb.zip',
+        CopySource: config.Bucket + '.cos.' + config.Region + '.myqcloud.com/1mb.zip', // Bucket 格式：test-1250000000
     }, function (err, data) {
         console.log(err || data);
     });
@@ -325,7 +366,7 @@ function getObject() {
     var filepath1 = path.resolve(__dirname, '1mb.out1.zip');
     var filepath2 = path.resolve(__dirname, '1mb.out2.zip');
     cos.getObject({
-        Bucket: config.Bucket,
+        Bucket: config.Bucket, // Bucket 格式：test-1250000000
         Region: config.Region,
         Key: '1mb.zip',
         onProgress: function (progressData) {
@@ -335,7 +376,7 @@ function getObject() {
         fs.writeFileSync(filepath1, data.Body);
     });
     cos.getObject({
-        Bucket: config.Bucket,
+        Bucket: config.Bucket, // Bucket 格式：test-1250000000
         Region: config.Region,
         Key: '1mb.zip',
         Output: fs.createWriteStream(filepath2),
@@ -349,7 +390,7 @@ function getObject() {
 
 function headObject() {
     cos.headObject({
-        Bucket: config.Bucket,
+        Bucket: config.Bucket, // Bucket 格式：test-1250000000
         Region: config.Region,
         Key: '1mb.zip'
     }, function (err, data) {
@@ -359,7 +400,7 @@ function headObject() {
 
 function putObjectAcl() {
     cos.putObjectAcl({
-        Bucket: config.Bucket,
+        Bucket: config.Bucket, // Bucket 格式：test-1250000000
         Region: config.Region,
         Key: '1mb.zip',
         // GrantFullControl: 'id="qcs::cam::uin/1001:uin/1001",id="qcs::cam::uin/1002:uin/1002"',
@@ -387,7 +428,7 @@ function putObjectAcl() {
 
 function getObjectAcl() {
     cos.getObjectAcl({
-        Bucket: config.Bucket,
+        Bucket: config.Bucket, // Bucket 格式：test-1250000000
         Region: config.Region,
         Key: '1mb.zip'
     }, function (err, data) {
@@ -397,7 +438,7 @@ function getObjectAcl() {
 
 function deleteObject() {
     cos.deleteObject({
-        Bucket: config.Bucket,
+        Bucket: config.Bucket, // Bucket 格式：test-1250000000
         Region: config.Region,
         Key: '1mb.zip'
     }, function (err, data) {
@@ -407,7 +448,7 @@ function deleteObject() {
 
 function deleteMultipleObject() {
     cos.deleteMultipleObject({
-        Bucket: config.Bucket,
+        Bucket: config.Bucket, // Bucket 格式：test-1250000000
         Region: config.Region,
         Objects: [
             {Key: '1mb.zip'},
@@ -420,7 +461,7 @@ function deleteMultipleObject() {
 
 function abortUploadTask() {
     cos.abortUploadTask({
-        Bucket: config.Bucket, /* 必须 */
+        Bucket: config.Bucket, /* 必须 */ // Bucket 格式：test-1250000000
         Region: config.Region, /* 必须 */
         // 格式1，删除单个上传任务
         // Level: 'task',
@@ -443,7 +484,7 @@ function sliceUploadFile() {
     util.createFile(filepath, 1024 * 1024 * 10, function (err) {
         // 调用方法
         cos.sliceUploadFile({
-            Bucket: config.Bucket, /* 必须 */
+            Bucket: config.Bucket, /* 必须 */ // Bucket 格式：test-1250000000
             Region: config.Region,
             Key: filename, /* 必须 */
             FilePath: filepath, /* 必须 */
@@ -497,6 +538,11 @@ getService();
 // getBucketLifecycle();
 // putBucketLifecycle();
 // deleteBucketLifecycle();
+// getBucketVersioning();
+// putBucketVersioning();
+// getBucketReplication();
+// putBucketReplication();
+// deleteBucketReplication();
 // deleteBucket();
 // putObject();
 // putObjectCopy();

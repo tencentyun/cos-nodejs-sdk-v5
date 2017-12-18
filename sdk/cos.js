@@ -9,7 +9,7 @@ var pkg = require('../package.json');
 
 
 var defaultOptions = {
-    AppId: '',
+    AppId: '', // AppId 已废弃，请拼接到 Bucket 后传入，例如：test-1250000000
     SecretId: '',
     SecretKey: '',
     FileParallelLimit: 3,
@@ -23,6 +23,9 @@ var defaultOptions = {
 
 // 对外暴露的类
 var COS = function (options) {
+    if (options.AppId) {
+        console.warn('AppId has been deprecated, Please put it at the end of parameter Bucket(E.g: "test-1250000000").');
+    }
     this.options = util.extend(util.clone(defaultOptions), options || {});
     event.init(this);
     task.init(this);
@@ -31,6 +34,7 @@ var COS = function (options) {
 util.extend(COS.prototype, base);
 util.extend(COS.prototype, advance);
 
+COS.getAuthorization = util.getAuth;
 COS.version = pkg.version;
 
 module.exports = COS;

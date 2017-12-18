@@ -21,8 +21,8 @@ var getAuth = function (opt) {
 
     var SecretId = opt.SecretId;
     var SecretKey = opt.SecretKey;
-    var method = (opt.method || 'get').toLowerCase();
-    var pathname = opt.pathname || '/';
+    var method = (opt.method || opt.Method || 'get').toLowerCase();
+    var pathname = opt.pathname || opt.Key || '/';
     var queryParams = opt.params || '';
     var headers = opt.headers || '';
     pathname.indexOf('/') !== 0 && (pathname = '/' + pathname);
@@ -251,13 +251,22 @@ var apiWrapper = function (apiName, apiFn) {
                 callback({error: 'Region should not be start with "cos."'});
                 return;
             }
-            // 兼容带有 AppId 的 Bucket
+            // 兼容不带 AppId 的 Bucket
             var appId, m, bucket = params.Bucket;
-            if (bucket && (m = bucket.match(/^(.+)-(\d+)$/))) {
-                appId = m[2];
-                bucket = m[1];
-                params.AppId = appId;
-                params.Bucket = bucket;
+            if (bucket) {
+                if (m = bucket.match(/^(.+)-(\d+)$/)) {
+                    appId = m[2];
+                    bucket = m[1];
+                    params.AppId = appId;
+                    params.Bucket = bucket;
+                } else if (!params.AppId) {
+                    if (this.options.AppId) {
+                        params.AppId = this.options.AppId;
+                    } else {
+                        console.log(apiName, params);
+                        callback({error: 'Bucket should format as "test-1250000000".'});
+                    }
+                }
             }
             // 兼容带有斜杠开头的 Key
             if (params.Key && params.Key.substr(0, 1) === '/') {
@@ -268,6 +277,52 @@ var apiWrapper = function (apiName, apiFn) {
         if (apiName === 'getAuth') {
             return res;
         }
+    }
+};
+
+var throttleOnProgress = function (total, onProgress) {
+    var self = this;
+    var size0 = 0;
+    var size1 = 0;
+    var time0 = Date.now();
+    var time1;
+    var timer;
+    var update = function () {
+        timer = 0;
+        if (onProgress && (typeof onProgress === 'function')) {
+            time1 = Date.now();
+            var speed = Math.max(0, parseInt((size1 - size0) / ((time1 - time0) / 1000) * 100) / 100);
+            var percent = size1 === 0 && total === 0 ? 1 : parseInt(size1 / total * 100) / 100 || 0;
+            time0 = time1;
+            size0 = size1;
+            try {
+                onProgress({loaded: size1, total: total, speed: speed, percent: percent});
+            } catch (e) {
+            }
+        }
+    };
+    return function (info, immediately) {
+        if (info) {
+            size1 = info.loaded;
+            total = info.total;
+        }
+        if (immediately) {
+            clearTimeout(timer);
+            update();
+        } else {
+            if (timer) return;
+            timer = setTimeout(update, self.options.ProgressInterval);
+        }
+    };
+};
+
+var fileSlice = function (file, start, end) {
+    if (file.slice) {
+        return file.slice(start, end);
+    } else if (file.mozSlice) {
+        return file.mozSlice(start, end);
+    } else if (file.webkitSlice) {
+        return file.webkitSlice(start, end);
     }
 };
 
@@ -287,7 +342,8 @@ var util = {
     filter: filter,
     clone: clone,
     uuid: uuid,
-    isBrowser: global.document
+    throttleOnProgress: throttleOnProgress,
+    isBrowser: !!global.document
 };
 
 

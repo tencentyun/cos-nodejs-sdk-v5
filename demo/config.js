@@ -1,8 +1,7 @@
 var config = {
-    AppId: '1250000000',
     SecretId: 'AKIDxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
     SecretKey: 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
-    Bucket: 'test',
+    Bucket: 'test-1250000000',
     Region: 'ap-guangzhou'
 };
 

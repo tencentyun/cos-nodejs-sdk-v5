@@ -18,7 +18,7 @@ function getService(params, callback) {
         callback = params;
         params = {};
     }
-    var protocol = util.isBrowser && location.protocol === 'https:' ? 'https:' : 'http:';
+    var protocol = util.isBrowser && location && location.protocol === 'https:' ? 'https:' : 'http:';
     var domain = this.options.ServiceDomain;
     var appId = params.AppId || this.options.appId;
     if (domain) {
@@ -335,7 +335,7 @@ function getBucketCors(params, callback) {
     }, function (err, data) {
         if (err) {
             if (err.statusCode === 404 && err.error && err.error.Code === 'NoSuchCORSConfiguration') {
-                var result  = {
+                var result = {
                     CORSRules: [],
                     statusCode: err.statusCode,
                 };
@@ -468,7 +468,7 @@ function putBucketPolicy(params, callback) {
         Region: params.Region,
         AppId: params.AppId,
         action: '/?policy',
-        body: Policy,
+        body: util.isBrowser ? PolicyStr : Policy,
         headers: headers,
         json: true,
     }, function (err, data) {
@@ -569,7 +569,17 @@ function getBucketTagging(params, callback) {
         action: '/?tagging',
     }, function (err, data) {
         if (err) {
-            return callback(err);
+            if (err.statusCode === 404 && err.error && (err.error === "Not Found" || err.error.Code === 'NoSuchLifecycleConfiguration')) {
+                var result = {
+                    Tags: [],
+                    statusCode: err.statusCode,
+                };
+                err.headers && (result.headers = err.headers);
+                callback(null, result);
+            } else {
+                callback(err);
+            }
+            return;
         }
         var Tags = [];
         try {
@@ -699,7 +709,7 @@ function getBucketLifecycle(params, callback) {
     }, function (err, data) {
         if (err) {
             if (err.statusCode === 404 && err.error && err.error.Code === 'NoSuchLifecycleConfiguration') {
-                var result  = {
+                var result = {
                     Rules: [],
                     statusCode: err.statusCode,
                 };
@@ -731,6 +741,132 @@ function deleteBucketLifecycle(params, callback) {
         Region: params.Region,
         AppId: params.AppId,
         action: '/?lifecycle',
+    }, function (err, data) {
+        if (err && err.statusCode === 204) {
+            return callback(null, {statusCode: err.statusCode});
+        } else if (err) {
+            return callback(err);
+        }
+        callback(null, {
+            statusCode: data.statusCode,
+            headers: data.headers,
+        });
+    });
+}
+
+function putBucketVersioning(params, callback) {
+    var VersioningConfiguration = params['VersioningConfiguration'] || {};
+    var xml = util.json2xml({VersioningConfiguration: VersioningConfiguration});
+
+    var headers = {};
+    headers['x-cos-mfa'] = params.MFA;
+    headers['Content-Type'] = 'application/xml';
+    headers['Content-MD5'] = util.binaryBase64(util.md5(xml));
+
+    submitRequest.call(this, {
+        method: 'PUT',
+        Bucket: params.Bucket,
+        Region: params.Region,
+        AppId: params.AppId,
+        body: xml,
+        action: '/?versioning',
+        headers: headers,
+    }, function (err, data) {
+        if (err && err.statusCode === 204) {
+            return callback(null, {statusCode: err.statusCode});
+        } else if (err) {
+            return callback(err);
+        }
+        callback(null, {
+            statusCode: data.statusCode,
+            headers: data.headers,
+        });
+    });
+}
+
+function getBucketVersioning(params, callback) {
+    submitRequest.call(this, {
+        method: 'GET',
+        Bucket: params.Bucket,
+        Region: params.Region,
+        AppId: params.AppId,
+        action: '/?versioning',
+    }, function (err, data) {
+        if (!err) {
+            !data.VersioningConfiguration && (data.VersioningConfiguration = {});
+            !data.VersioningConfiguration.MFADelete && (data.VersioningConfiguration.MFADelete = 'Disabled');
+            !data.VersioningConfiguration.Status && (data.VersioningConfiguration.Status = 'Disabled');
+        }
+        callback(err, data);
+    });
+}
+
+function putBucketReplication(params, callback) {
+    var ReplicationConfiguration = util.clone(params.ReplicationConfiguration);
+    ReplicationConfiguration.Rule = ReplicationConfiguration.Rules;
+    delete ReplicationConfiguration.Rules;
+    var xml = util.json2xml({ReplicationConfiguration: ReplicationConfiguration});
+
+    var headers = {};
+    headers['Content-Type'] = 'application/xml';
+    headers['Content-MD5'] = util.binaryBase64(util.md5(xml));
+
+    submitRequest.call(this, {
+        method: 'PUT',
+        Bucket: params.Bucket,
+        Region: params.Region,
+        AppId: params.AppId,
+        body: xml,
+        action: '/?replication',
+        headers: headers,
+    }, function (err, data) {
+        if (err && err.statusCode === 204) {
+            return callback(null, {statusCode: err.statusCode});
+        } else if (err) {
+            return callback(err);
+        }
+        callback(null, {
+            statusCode: data.statusCode,
+            headers: data.headers,
+        });
+    });
+}
+
+function getBucketReplication(params, callback) {
+    submitRequest.call(this, {
+        method: 'GET',
+        Bucket: params.Bucket,
+        Region: params.Region,
+        AppId: params.AppId,
+        action: '/?replication',
+    }, function (err, data) {
+        if (err) {
+            if (err.statusCode === 404 && err.error && (err.error === 'Not Found' || err.error.Code === 'ReplicationConfigurationnotFoundError')) {
+                var result = {
+                    ReplicationConfiguration: {Rules: []},
+                    statusCode: err.statusCode,
+                };
+                err.headers && (result.headers = err.headers);
+                callback(null, result);
+            } else {
+                callback(err);
+            }
+            return;
+        }
+        if (!err) {
+            !data.ReplicationConfiguration && (data.ReplicationConfiguration = {});
+        }
+        callback(err, data);
+    });
+}
+
+function deleteBucketReplication(params, callback) {
+    submitRequest.call(this, {
+        method: 'DELETE',
+        Bucket: params.Bucket,
+        Region: params.Region,
+        AppId: params.AppId,
+        action: '/?replication',
     }, function (err, data) {
         if (err && err.statusCode === 204) {
             return callback(null, {statusCode: err.statusCode});
@@ -940,13 +1076,7 @@ function getObject(params, callback) {
  *     @return  {String}  data.ETag                                 为对应上传文件的 ETag 值
  */
 function putObject(params, callback) {
-    var taskId = util.uuid();
-    params.TaskReady && params.TaskReady(taskId);
-    this._addTask(taskId, '_putObject', params, callback);
-}
-function _putObject(params, callback) {
     var self = this;
-    var TaskId = params.TaskId;
     var headers = {};
 
     headers['Cache-Control'] = params['CacheControl'];
@@ -990,48 +1120,10 @@ function _putObject(params, callback) {
         return;
     }
 
-    var onProgress = params.onProgress;
-    var onFileProgress = (function () {
-        var time0 = Date.now();
-        var size0 = 0;
-        var FinishSize = 0;
-        var FileSize = headers['Content-Length'];
-        var progressTimer;
-        var update = function () {
-            progressTimer = 0;
-            if (onProgress && (typeof onProgress === 'function')) {
-                var time1 = Date.now();
-                var speed = parseInt((FinishSize - size0) / ((time1 - time0) / 1000) * 100) / 100 || 0;
-                var percent = parseInt(FinishSize / FileSize * 100) / 100 || 0;
-                time0 = time1;
-                size0 = FinishSize;
-                try {
-                    onProgress({
-                        loaded: FinishSize,
-                        total: FileSize,
-                        speed: speed,
-                        percent: percent
-                    });
-                } catch (e) {
-                }
-            }
-        };
-        return function (info, immediately) {
-            if (info && info.loaded) {
-                FinishSize = info.loaded;
-                FileSize = info.total;
-            }
-            if (immediately) {
-                clearTimeout(progressTimer);
-                update();
-            } else {
-                if (progressTimer) return;
-                progressTimer = setTimeout(update, self.options.ProgressInterval || 1000);
-            }
-        };
-    })();
+    var onProgress = util.throttleOnProgress.call(self, headers['Content-Length'], params.onProgress);
 
-    var sender = submitRequest.call(this, {
+    submitRequest.call(this, {
+        TaskId: params.TaskId,
         method: 'PUT',
         Bucket: params.Bucket,
         Region: params.Region,
@@ -1039,11 +1131,10 @@ function _putObject(params, callback) {
         Key: params.Key,
         headers: headers,
         body: Body,
-        inputStream: readStream,
-        onProgress: onFileProgress
+        onProgress: onProgress,
+        inputStream: readStream
     }, function (err, data) {
-        TaskId && self.off('inner-kill-task', killTask);
-        onFileProgress(null, true);
+        onProgress(null, true);
         if (err) {
             return callback(err);
         }
@@ -1056,14 +1147,6 @@ function _putObject(params, callback) {
         }
         callback(null, data);
     });
-
-    var killTask = function (data) {
-        if (data.TaskId === TaskId) {
-            sender && sender.abort && sender.abort();
-            self.off('inner-kill-task', killTask);
-        }
-    };
-    TaskId && this.on('inner-kill-task', killTask);
 }
 
 /**
@@ -1315,6 +1398,38 @@ function putObjectCopy(params, callback) {
     });
 }
 
+function uploadPartCopy(params, callback) {
+    var headers = {};
+
+    headers['x-cos-copy-source'] = params['CopySource'];
+    headers['x-cos-copy-source-Range'] = params['CopySourceRange'];
+    headers['x-cos-copy-source-If-Modified-Since'] = params['CopySourceIfModifiedSince'];
+    headers['x-cos-copy-source-If-Unmodified-Since'] = params['CopySourceIfUnmodifiedSince'];
+    headers['x-cos-copy-source-If-Match'] = params['CopySourceIfMatch'];
+    headers['x-cos-copy-source-If-None-Match'] = params['CopySourceIfNoneMatch'];
+
+    var action = '?partNumber=' + params['PartNumber'] + '&uploadId=' + params['UploadId'];
+
+    submitRequest.call(this, {
+        method: 'PUT',
+        Bucket: params.Bucket,
+        Region: params.Region,
+        AppId: params.AppId,
+        Key: params.Key,
+        action: action,
+        headers: headers,
+    }, function (err, data) {
+        if (err) {
+            return callback(err);
+        }
+        var result = util.clone(data.CopyObjectResult);
+        util.extend(result, {
+            statusCode: data.statusCode,
+            headers: data.headers,
+        });
+        callback(null, result);
+    });
+}
 
 function deleteMultipleObject(params, callback) {
     var headers = {};
@@ -1449,8 +1564,6 @@ function multipartInit(params, callback) {
  *     @return  {Object}  data.ETag             返回的文件分块 sha1 值
  */
 function multipartUpload(params, callback) {
-    var self = this;
-    var TaskId = params.TaskId;
     var headers = {};
 
     headers['Content-Length'] = params['ContentLength'];
@@ -1461,7 +1574,8 @@ function multipartUpload(params, callback) {
 
     var action = '?partNumber=' + PartNumber + '&uploadId=' + UploadId;
 
-    var sender = submitRequest.call(this, {
+    submitRequest.call(this, {
+        TaskId: params.TaskId,
         method: 'PUT',
         Bucket: params.Bucket,
         Region: params.Region,
@@ -1469,10 +1583,9 @@ function multipartUpload(params, callback) {
         Key: params.Key,
         action: action,
         headers: headers,
-        inputStream: params.Body || null,
-        onProgress: params.onProgress
+        onProgress: params.onProgress,
+        inputStream: params.Body || null
     }, function (err, data) {
-        if (TaskId) self.off('inner-kill-task', killTask);
         if (err) {
             return callback(err);
         }
@@ -1483,14 +1596,6 @@ function multipartUpload(params, callback) {
             headers: data.headers,
         });
     });
-
-    var killTask = function (data) {
-        if (data.TaskId === TaskId) {
-            sender && sender.abort && sender.abort();
-            self.off('inner-kill-task', killTask);
-        }
-    };
-    TaskId && this.on('inner-kill-task', killTask);
 
 }
 
@@ -1709,8 +1814,8 @@ function multipartAbort(params, callback) {
  */
 function getAuth(params) {
     return util.getAuth({
-        method: params.Method || 'get',
-        pathname: '/' + (params.Key + ''),
+        Method: params.Method || 'get',
+        Key: params.Key || '',
         SecretId: params.SecretId || this.options.SecretId || '',
         SecretKey: params.SecretKey || this.options.SecretKey || ''
     });
@@ -1727,7 +1832,7 @@ function decodeAcl(AccessControlPolicy) {
         GrantRead: [],
         ACL: '',
     };
-    var GrantMap  = {
+    var GrantMap = {
         'FULL_CONTROL': 'GrantFullControl',
         'WRITE': 'GrantWrite',
         'READ': 'GrantRead',
@@ -1795,8 +1900,73 @@ function getUrl(params) {
     return url;
 }
 
-// 发起请求
+// 获取签名并发起请求
 function submitRequest(params, callback) {
+    var self = this;
+    var Key = params.Key || '';
+    if (self.options.getAuthorization) { // 外部计算签名
+        self.options.getAuthorization.call(self, {
+            Method: params.method,
+            Key: Key,
+        }, function (AuthData) {
+            if (typeof AuthData === 'object') {
+                params.AuthData = AuthData;
+            } else {
+                params.AuthData = {Authorization: AuthData};
+            }
+            _submitRequest.call(self, params, callback);
+        });
+    } else if (self.options.getSTS) { // 外部获取临时密钥
+        var Bucket = params.Bucket || '';
+        var AppId = params.AppId || self.options.AppId || '';
+        var StsBucket = Bucket ? Bucket + '-' + AppId : '';
+        self._StsMap = self._StsMap || {};
+        var StsData = self._StsMap[StsBucket] || {};
+        var runTemp = function () {
+            var Authorization = util.getAuth({
+                SecretId: StsData.SecretId,
+                SecretKey: StsData.SecretKey,
+                Method: params.method,
+                Key: Key,
+            });
+            params.AuthData = {
+                Authorization: Authorization,
+                XCosSecurityToken: StsData.XCosSecurityToken || '',
+                Token: StsData.Token || '',
+                ClientIP: StsData.ClientIP || '',
+                ClientUA: StsData.ClientUA || '',
+            };
+            _submitRequest.call(self, params, callback);
+        };
+        if (StsData.ExpiredTime && StsData.ExpiredTime - (Date.now() / 1000 > 60)) { // 如果缓存的临时密钥有效，并还有超过60秒有效期就直接使用
+            runTemp();
+        } else { // 如果有效时间小于 60 秒就重新获取临时密钥
+            self.options.getSTS.call(self, {
+                Bucket: StsBucket
+            }, function (data) {
+                StsData = self._StsMap[StsBucket] = data || {};
+                runTemp();
+            });
+        }
+    } else { // 内部计算获取签名
+        var Authorization = util.getAuth({
+            SecretId: params.SecretId || self.options.SecretId,
+            SecretKey: params.SecretKey || self.options.SecretKey,
+            Method: params.method,
+            Key: Key,
+            // headers: opt.headers,
+        });
+        params.AuthData = {Authorization: Authorization};
+        _submitRequest.call(self, params, callback);
+    }
+}
+
+// 发起请求
+function _submitRequest(params, callback) {
+    var self = this;
+    var TaskId = params.TaskId;
+    if (TaskId && !self._isRunningTask(TaskId)) return;
+
     var bucket = params.Bucket;
     var region = params.Region;
     var object = params.Key;
@@ -1811,12 +1981,12 @@ function submitRequest(params, callback) {
 
     var opt = {
         url: url || getUrl({
-            domain: this.options.Domain,
+            domain: self.options.Domain,
             bucket: bucket,
             region: region,
             object: object,
             action: action,
-            appId: params.AppId || this.options.AppId || '',
+            appId: params.AppId || self.options.AppId,
         }),
         method: method,
         headers: headers || {},
@@ -1825,35 +1995,28 @@ function submitRequest(params, callback) {
         json: json,
     };
 
-    if (object) {
-        object = '/' + object;
-    }
+    // 获取签名
+    opt.headers.Authorization = params.AuthData.Authorization;
+    params.AuthData.Token && (opt.headers['token'] = params.AuthData.Token);
+    params.AuthData.ClientIP && (opt.headers['clientIP'] = params.AuthData.ClientIP);
+    params.AuthData.ClientUA && (opt.headers['clientUA'] = params.AuthData.ClientUA);
+    params.AuthData.XCosSecurityToken && (opt.headers['x-cos-security-token'] = params.AuthData.XCosSecurityToken);
 
     // 预先处理 undefined 和 null 的属性
-    opt.headers = util.clearKey(opt.headers);
+    opt.headers && (opt.headers = util.clearKey(opt.headers));
+    opt.qs && (opt.qs = util.clearKey(opt.qs));
+    opt = util.clearKey(opt);
 
-    // 获取签名
     opt.headers['User-Agent'] = 'cos-nodejs-sdk-v5-' + pkg.version;
-    opt.headers.Authorization = util.getAuth({
-        method: opt.method,
-        pathname: object || '/',
-        // headers: opt.headers,
-        SecretId: params.SecretId || this.options.SecretId,
-        SecretKey: params.SecretKey || this.options.SecretKey,
-    });
-
-    if (opt.qs) {
-        opt.qs = util.clearKey(opt.qs);
-    }
     if (this.options.Proxy) {
         opt.proxy = this.options.Proxy;
     }
-    opt = util.clearKey(opt);
 
     var sender = REQUEST(opt);
     var retResponse;
     var hasReturned;
     var cb = function (err, data) {
+        TaskId && self.off('inner-kill-task', killTask);
         if (hasReturned) return;
         hasReturned = true;
         if (err) {
@@ -1923,6 +2086,15 @@ function submitRequest(params, callback) {
             });
         }
     });
+
+    // kill task
+    var killTask = function (data) {
+        if (data.TaskId === TaskId) {
+            sender && sender.abort && sender.abort();
+            self.off('inner-kill-task', killTask);
+        }
+    };
+    TaskId && self.on('inner-kill-task', killTask);
 
     // upload progress
     if (params.onProgress && typeof params.onProgress === 'function') {
@@ -1999,9 +2171,9 @@ function submitRequest(params, callback) {
 var API_MAP = {
     // Bucket 相关方法
     getService: getService,
+    putBucket: putBucket,
     getBucket: getBucket,
     headBucket: headBucket,
-    putBucket: putBucket,
     deleteBucket: deleteBucket,
     getBucketAcl: getBucketAcl,
     putBucketAcl: putBucketAcl,
@@ -2017,12 +2189,16 @@ var API_MAP = {
     getBucketLifecycle: getBucketLifecycle,
     putBucketLifecycle: putBucketLifecycle,
     deleteBucketLifecycle: deleteBucketLifecycle,
+    putBucketVersioning: putBucketVersioning,
+    getBucketVersioning: getBucketVersioning,
+    putBucketReplication: putBucketReplication,
+    getBucketReplication: getBucketReplication,
+    deleteBucketReplication: deleteBucketReplication,
 
     // Object 相关方法
     getObject: getObject,
     headObject: headObject,
     putObject: putObject,
-    _putObject: _putObject,
     deleteObject: deleteObject,
     getObjectAcl: getObjectAcl,
     putObjectAcl: putObjectAcl,
@@ -2030,6 +2206,7 @@ var API_MAP = {
     putObjectCopy: putObjectCopy,
 
     // 分块上传相关方法
+    uploadPartCopy: uploadPartCopy,
     multipartInit: multipartInit,
     multipartUpload: multipartUpload,
     multipartComplete: multipartComplete,

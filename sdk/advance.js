@@ -103,7 +103,12 @@ function sliceUploadFile(params, callback) {
     // 获取上传文件大小
     FileSize = params.ContentLength;
     SliceCount = Math.ceil(FileSize / SliceSize);
-    ep.emit('get_file_size_finish');
+
+    if (FileSize === 0) {
+        callback({error: 'cos.sliceUploadFile not support empty file, please use cos.putObject method.'});
+    } else {
+        ep.emit('get_file_size_finish');
+    }
 
 }
 

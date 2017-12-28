@@ -33,8 +33,10 @@ cos.sliceUploadFile({
 });
 ```
 
-## 相关文档 
+## 说明文档 
 
-[更多例子](demo/demo.js)
+[使用例子](demo/demo.js)
 
-[详细文档](https://cloud.tencent.com/document/product/436/8629)
+[快速入门](https://cloud.tencent.com/document/product/436/8629)
+
+[接口文档](https://cloud.tencent.com/document/product/436/12264)

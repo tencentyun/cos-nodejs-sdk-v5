@@ -169,6 +169,8 @@ function putBucket(params, callback) {
     headers['x-cos-acl'] = params['ACL'];
     headers['x-cos-grant-read'] = params['GrantRead'];
     headers['x-cos-grant-write'] = params['GrantWrite'];
+    headers['x-cos-grant-read-acp'] = params['GrantReadAcp'];
+    headers['x-cos-grant-write-acp'] = params['GrantWriteAcp'];
     headers['x-cos-grant-full-control'] = params['GrantFullControl'];
     var appId = params.AppId || this.options.AppId || '';
     submitRequest.call(this, {
@@ -281,6 +283,8 @@ function putBucketAcl(params, callback) {
     headers['x-cos-acl'] = params['ACL'];
     headers['x-cos-grant-read'] = params['GrantRead'];
     headers['x-cos-grant-write'] = params['GrantWrite'];
+    headers['x-cos-grant-read-acp'] = params['GrantReadAcp'];
+    headers['x-cos-grant-write-acp'] = params['GrantWriteAcp'];
     headers['x-cos-grant-full-control'] = params['GrantFullControl'];
 
     var xml = '';
@@ -569,7 +573,7 @@ function getBucketTagging(params, callback) {
         action: '/?tagging',
     }, function (err, data) {
         if (err) {
-            if (err.statusCode === 404 && err.error && (err.error === "Not Found" || err.error.Code === 'NoSuchLifecycleConfiguration')) {
+            if (err.statusCode === 404 && err.error && (err.error === "Not Found" || err.error.Code === 'NoSuchTagSet')) {
                 var result = {
                     Tags: [],
                     statusCode: err.statusCode,
@@ -1830,12 +1834,16 @@ function decodeAcl(AccessControlPolicy) {
         GrantFullControl: [],
         GrantWrite: [],
         GrantRead: [],
+        GrantReadAcp: [],
+        GrantWriteAcp: [],
         ACL: '',
     };
     var GrantMap = {
         'FULL_CONTROL': 'GrantFullControl',
         'WRITE': 'GrantWrite',
         'READ': 'GrantRead',
+        'READ_ACP': 'GrantReadAcp',
+        'WRITE_ACP': 'GrantWriteAcp',
     };
     var Grant = AccessControlPolicy.AccessControlList.Grant;
     if (Grant) {

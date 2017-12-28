@@ -65,19 +65,37 @@ function putBucketAcl() {
         // GrantFullControl: 'id="qcs::cam::uin/1001:uin/1001",id="qcs::cam::uin/1002:uin/1002"',
         // GrantWrite: 'id="qcs::cam::uin/1001:uin/1001",id="qcs::cam::uin/1002:uin/1002"',
         // GrantRead: 'id="qcs::cam::uin/1001:uin/1001",id="qcs::cam::uin/1002:uin/1002"',
+        // GrantReadAcp: 'id="qcs::cam::uin/1001:uin/1001",id="qcs::cam::uin/1002:uin/1002"',
+        // GrantWriteAcp: 'id="qcs::cam::uin/1001:uin/1001",id="qcs::cam::uin/1002:uin/1002"',
         // ACL: 'public-read-write',
         // ACL: 'public-read',
         ACL: 'private',
         // AccessControlPolicy: {
-        //     "Owner": { // AccessControlPolicy 里必须有 owner
-        //         "ID": 'qcs::cam::uin/10001:uin/10001' // 10001 是 Bucket 所属用户的 QQ 号
+        // "Owner": { // AccessControlPolicy 里必须有 owner
+        //     "ID": 'qcs::cam::uin/459452372:uin/459452372' // 10001 是 Bucket 所属用户的 QQ 号
+        // },
+        // "Grants": [{
+        //     "Grantee": {
+        //         "ID": "qcs::cam::uin/1001:uin/1001", // 10002 是 QQ 号
+        //         "DisplayName": "qcs::cam::uin/1001:uin/1001" // 10002 是 QQ 号
         //     },
-        //     "Grants": [{
-        //         "Grantee": {
-        //             "ID": "qcs::cam::uin/10002:uin/10002", // 10002 是 QQ 号
-        //         },
-        //         "Permission": "READ"
-        //     }]
+        //     "Permission": "READ"
+        // }, {
+        //     "Grantee": {
+        //         "ID": "qcs::cam::uin/10002:uin/10002", // 10002 是 QQ 号
+        //     },
+        //     "Permission": "WRITE"
+        // }, {
+        //     "Grantee": {
+        //         "ID": "qcs::cam::uin/10002:uin/10002", // 10002 是 QQ 号
+        //     },
+        //     "Permission": "READ_ACP"
+        // }, {
+        //     "Grantee": {
+        //         "ID": "qcs::cam::uin/10002:uin/10002", // 10002 是 QQ 号
+        //     },
+        //     "Permission": "WRITE_ACP"
+        // }]
         // }
     }, function (err, data) {
         console.log(err || data);
@@ -103,7 +121,7 @@ function putBucketCors() {
                 "AllowedMethod": ["GET", "POST", "PUT", "DELETE", "HEAD"],
                 "AllowedHeader": ["*"],
                 "ExposeHeader": ["ETag"],
-                "MaxAgeSeconds": "600"
+                "MaxAgeSeconds": "5"
             }]
         }
     }, function (err, data) {

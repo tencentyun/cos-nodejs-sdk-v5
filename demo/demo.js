@@ -72,7 +72,7 @@ function putBucketAcl() {
         ACL: 'private',
         // AccessControlPolicy: {
         // "Owner": { // AccessControlPolicy 里必须有 owner
-        //     "ID": 'qcs::cam::uin/459452372:uin/459452372' // 10001 是 Bucket 所属用户的 QQ 号
+        //     "ID": 'qcs::cam::uin/459000000:uin/459000000' // 459000000 是 Bucket 所属用户的 QQ 号
         // },
         // "Grants": [{
         //     "Grantee": {
@@ -299,7 +299,7 @@ function putBucketReplication() {
         Bucket: config.Bucket, // Bucket 格式：test-1250000000
         Region: config.Region,
         ReplicationConfiguration: {
-            Role: "qcs::cam::uin/459452372:uin/459452372",
+            Role: "qcs::cam::uin/459000000:uin/459000000",
             Rules: [{
                 ID: "1",
                 Status: "Enabled",

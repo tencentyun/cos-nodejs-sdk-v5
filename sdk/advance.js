@@ -105,7 +105,8 @@ function sliceUploadFile(params, callback) {
     SliceCount = Math.ceil(FileSize / SliceSize);
 
     if (FileSize === 0) {
-        callback({error: 'cos.sliceUploadFile not support empty file, please use cos.putObject method.'});
+        params.Body = new Buffer('');
+        self.putObject(params, callback);
     } else {
         ep.emit('get_file_size_finish');
     }

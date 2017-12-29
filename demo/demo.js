@@ -31,6 +31,18 @@ function getAuth() {
     console.log('http://' + config.Bucket + '.cos.' + config.Region + '.myqcloud.com' + '/' + key + '?sign=' + encodeURIComponent(auth));
 }
 
+function getObjectUrl() {
+    var url = cos.getObjectUrl({
+        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Region: config.Region,
+        Key: '1mb.zip',
+        Expires: 60,
+    }, function (err, data) {
+        console.log(err || data);
+    });
+    console.log(url);
+}
+
 function putBucket() {
     cos.putBucket({
         Bucket: 'testnew-' + config.Bucket.substr(config.Bucket.indexOf('-') + 1),
@@ -539,6 +551,7 @@ function restartTask() {
 
 getService();
 // getAuth();
+// getObjectUrl();
 // putBucket();
 // getBucket();
 // headBucket();

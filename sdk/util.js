@@ -16,7 +16,6 @@ function camSafeUrlEncode(str) {
 
 //测试用的key后面可以去掉
 var getAuth = function (opt) {
-
     opt = opt || {};
 
     var SecretId = opt.SecretId;
@@ -55,19 +54,20 @@ var getAuth = function (opt) {
 
     // 签名有效起止时间
     var now = parseInt(new Date().getTime() / 1000) - 1;
-    var expired = now;
+    var exp = now;
 
-    if (opt.expires === undefined) {
-        expired += 3600; // 签名过期时间为当前 + 3600s
+    var Expires = opt.Expires || opt.expires;
+    if (Expires === undefined) {
+        exp += 900; // 签名过期时间为当前 + 900s
     } else {
-        expired += (opt.expires * 1) || 0;
+        exp += (Expires * 1) || 0;
     }
 
     // 要用到的 Authorization 参数列表
     var qSignAlgorithm = 'sha1';
     var qAk = SecretId;
-    var qSignTime = now + ';' + expired;
-    var qKeyTime = now + ';' + expired;
+    var qSignTime = now + ';' + exp;
+    var qKeyTime = now + ';' + exp;
     var qHeaderList = getObjectKeys(headers).join(';').toLowerCase();
     var qUrlParamList = getObjectKeys(queryParams).join(';').toLowerCase();
 
@@ -273,7 +273,7 @@ var apiWrapper = function (apiName, apiFn) {
             }
         }
         var res = apiFn.call(this, params, callback);
-        if (apiName === 'getAuth') {
+        if (apiName === 'getAuth' || apiName === 'getObjectUrl') {
             return res;
         }
     }

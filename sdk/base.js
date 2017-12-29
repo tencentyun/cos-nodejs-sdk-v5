@@ -1117,7 +1117,9 @@ function putObject(params, callback) {
             callback({error: 'lack of param ContentLength'});
             return;
         }
-    } else if (Body && typeof Body.pipe === 'string' && util.isBrowser) { // 在浏览器允许传入字符串作为内容 'hello'
+    } else if (Body && typeof Body.pipe === 'string') {
+        headers['Content-Length'] = Body.length;
+    } else if (Body && typeof Body === 'string' && util.isBrowser) { // 在浏览器允许传入字符串作为内容 'hello'
         headers['Content-Length'] = Body.length;
     } else {
         callback({error: 'params body format error, Only allow Buffer, Stream, Blob.'});

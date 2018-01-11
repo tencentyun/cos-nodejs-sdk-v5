@@ -187,7 +187,8 @@ function putBucket(params, callback) {
             domain: self.options.Domain,
             bucket: params.Bucket,
             region: params.Region,
-            appId: appId
+            appId: appId,
+            isLocation: true,
         });
         callback(null, {
             Location: url,
@@ -1143,7 +1144,15 @@ function putObject(params, callback) {
             return callback(err);
         }
         if (data && data.headers && data.headers['etag']) {
+            var url = getUrl({
+                domain: self.options.Domain,
+                bucket: params.Bucket,
+                region: params.Region,
+                appId: params.AppId,
+                object: params.Key,
+            });
             return callback(null, {
+                Location: url,
                 ETag: data.headers['etag'],
                 statusCode: data.statusCode,
                 headers: data.headers,
@@ -1618,6 +1627,7 @@ function multipartUpload(params, callback) {
  *     @return  {Object}  data.CompleteMultipartUpload  完成分块上传后的文件信息，包括Location, Bucket, Key 和 ETag
  */
 function multipartComplete(params, callback) {
+    var self = this;
     var headers = {};
 
     headers['Content-Type'] = 'application/xml';
@@ -1659,7 +1669,16 @@ function multipartComplete(params, callback) {
         if (err) {
             return callback(err);
         }
+        var url = getUrl({
+            domain: self.options.Domain,
+            bucket: params.Bucket,
+            region: params.Region,
+            appId: params.AppId,
+            object: params.Key,
+            isLocation: true,
+        });
         var result = util.extend(data.CompleteMultipartUploadResult, {
+            Location: url,
             statusCode: data.statusCode,
             headers: data.headers,
         });
@@ -1848,6 +1867,10 @@ function getObjectUrl(params, callback) {
         appId: params.AppId || self.options.AppId || '',
         object: params.Key,
     });
+    if (params.Sign !== undefined && !params.Sign) {
+        callback(null, {Url: url});
+        return url;
+    }
     var authorization = getAuthorizationAsync.call(this, {
         Method: params.Method || 'get',
         Key: params.Key,
@@ -1950,6 +1973,9 @@ function getUrl(params) {
 
     if (action) {
         url += action;
+    }
+    if (params.isLocation) {
+        url = url.replace(/^https?:\/\//, '');
     }
     return url;
 }

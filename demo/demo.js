@@ -37,6 +37,7 @@ function getObjectUrl() {
         Region: config.Region,
         Key: '1mb.zip',
         Expires: 60,
+        Sign: true,
     }, function (err, data) {
         console.log(err || data);
     });
@@ -46,7 +47,7 @@ function getObjectUrl() {
 function putBucket() {
     cos.putBucket({
         Bucket: 'testnew-' + config.Bucket.substr(config.Bucket.indexOf('-') + 1),
-        Region: config.Region
+        Region: 'ap-guangzhou'
     }, function (err, data) {
         console.log(err || data);
     });
@@ -346,8 +347,8 @@ function deleteBucketReplication() {
 
 function deleteBucket() {
     cos.deleteBucket({
-        Bucket: 'testnew',
-        Region: config.Region
+        Bucket: 'testnew-' + config.Bucket.substr(config.Bucket.indexOf('-') + 1),
+        Region: 'ap-guangzhou'
     }, function (err, data) {
         console.log(err || data);
     });

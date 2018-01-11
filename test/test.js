@@ -143,7 +143,7 @@ describe('putBucket()', function () {
             Bucket: NewBucket,
             Region: config.Region
         }, function (err, data) {
-            assert.equal('http://' + NewBucket + '.cos.' + config.Region + '.myqcloud.com', data.Location);
+            assert.equal(NewBucket + '.cos.' + config.Region + '.myqcloud.com', data.Location);
             cos.headBucket({
                 Bucket: NewBucket,
                 Region: config.Region

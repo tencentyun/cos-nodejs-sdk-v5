@@ -473,10 +473,7 @@ function uploadSliceItem(params, callback) {
         ContentLength = end - start;
     }
 
-    var Body = fs.createReadStream(FilePath, {
-        start: start,
-        end: end - 1
-    });
+    var Body = fs.createReadStream(FilePath, {start: start, end: end - 1});
     var PartItem = UploadData.PartList[PartNumber - 1];
     var ContentSha1 = PartItem.ETag;
     Async.retry(sliceRetryTimes, function (tryCallback) {

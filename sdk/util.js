@@ -321,16 +321,6 @@ var throttleOnProgress = function (total, onProgress) {
     };
 };
 
-var fileSlice = function (file, start, end) {
-    if (file.slice) {
-        return file.slice(start, end);
-    } else if (file.mozSlice) {
-        return file.mozSlice(start, end);
-    } else if (file.webkitSlice) {
-        return file.webkitSlice(start, end);
-    }
-};
-
 var util = {
     apiWrapper: apiWrapper,
     getAuth: getAuth,

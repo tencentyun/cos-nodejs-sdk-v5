@@ -24,7 +24,7 @@ var defaultOptions = {
 // 对外暴露的类
 var COS = function (options) {
     if (options.AppId) {
-        console.warn('AppId has been deprecated, Please put it at the end of parameter Bucket(E.g: "test-1250000000").');
+        console.warn('warning: AppId has been deprecated, Please put it at the end of parameter Bucket(E.g: "test-1250000000").');
     }
     this.options = util.extend(util.clone(defaultOptions), options || {});
     event.init(this);

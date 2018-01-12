@@ -11,7 +11,6 @@ function sliceUploadFile(params, callback) {
     var Region = params.Region;
     var Key = params.Key;
     var FilePath = params.FilePath;
-    var AppId = params.AppId;
     var SliceSize = params.SliceSize || this.options.ChunkSize;
     var AsyncLimit = params.AsyncLimit;
     var StorageClass = params.StorageClass || 'Standard';
@@ -38,7 +37,6 @@ function sliceUploadFile(params, callback) {
             Bucket: Bucket,
             Region: Region,
             Key: Key,
-            AppId: AppId,
             UploadId: data.UploadId,
             SliceList: data.SliceList
         }, function (err, data) {
@@ -57,7 +55,6 @@ function sliceUploadFile(params, callback) {
             Bucket: Bucket,
             Region: Region,
             Key: Key,
-            AppId: AppId,
             FilePath: FilePath,
             FileSize: FileSize,
             SliceSize: SliceSize,
@@ -82,7 +79,6 @@ function sliceUploadFile(params, callback) {
                 Bucket: Bucket,
                 Region: Region,
                 Key: Key,
-                AppId: AppId,
                 StorageClass: StorageClass,
                 FilePath: FilePath,
                 FileSize: FileSize,
@@ -117,7 +113,6 @@ function getUploadIdAndPartList(params, callback) {
     var Bucket = params.Bucket;
     var Region = params.Region;
     var Key = params.Key;
-    var AppId = params.AppId;
     var StorageClass = params.StorageClass;
     var self = this;
 
@@ -234,7 +229,6 @@ function getUploadIdAndPartList(params, callback) {
             Bucket: Bucket,
             Region: Region,
             Key: Key,
-            AppId: AppId,
             StorageClass: StorageClass,
         });
         self.multipartInit(_params, function (err, data) {
@@ -258,7 +252,6 @@ function getUploadIdAndPartList(params, callback) {
                 Bucket: Bucket,
                 Region: Region,
                 Key: Key,
-                AppId: AppId,
                 UploadId: UploadId,
             }, function (err, PartListData) {
                 if (!self._isRunningTask(TaskId)) return;
@@ -298,7 +291,6 @@ function getUploadIdAndPartList(params, callback) {
         Bucket: Bucket,
         Region: Region,
         Key: Key,
-        AppId: AppId
     }, function (err, data) {
         if (!self._isRunningTask(TaskId)) return;
         if (err) {
@@ -324,7 +316,6 @@ function wholeMultipartList(params, callback) {
     var sendParams = {
         Bucket: params.Bucket,
         Region: params.Region,
-        AppId: params.AppId,
         Prefix: params.Key
     };
     var next = function () {
@@ -351,7 +342,6 @@ function wholeMultipartListPart(params, callback) {
         Bucket: params.Bucket,
         Region: params.Region,
         Key: params.Key,
-        AppId: params.AppId,
         UploadId: params.UploadId
     };
     var next = function () {
@@ -385,7 +375,6 @@ function uploadSliceList(params, cb) {
     var Bucket = params.Bucket;
     var Region = params.Region;
     var Key = params.Key;
-    var AppId = params.AppId;
     var UploadData = params.UploadData;
     var FileSize = params.FileSize;
     var SliceSize = params.SliceSize;
@@ -412,7 +401,6 @@ function uploadSliceList(params, cb) {
             Bucket: Bucket,
             Region: Region,
             Key: Key,
-            AppId: AppId,
             SliceSize: SliceSize,
             FileSize: FileSize,
             PartNumber: PartNumber,
@@ -453,7 +441,6 @@ function uploadSliceItem(params, callback) {
     var Bucket = params.Bucket;
     var Region = params.Region;
     var Key = params.Key;
-    var AppId = params.AppId;
     var FileSize = params.FileSize;
     var FilePath = params.FilePath;
     var PartNumber = params.PartNumber * 1;
@@ -483,7 +470,6 @@ function uploadSliceItem(params, callback) {
             Bucket: Bucket,
             Region: Region,
             Key: Key,
-            AppId: AppId,
             ContentLength: ContentLength,
             ContentSha1: ContentSha1,
             PartNumber: PartNumber,
@@ -511,7 +497,6 @@ function uploadSliceComplete(params, callback) {
     var Bucket = params.Bucket;
     var Region = params.Region;
     var Key = params.Key;
-    var AppId = params.AppId;
     var UploadId = params.UploadId;
     var SliceList = params.SliceList;
     var self = this;
@@ -526,7 +511,6 @@ function uploadSliceComplete(params, callback) {
         Bucket: Bucket,
         Region: Region,
         Key: Key,
-        AppId: AppId,
         UploadId: UploadId,
         Parts: Parts
     }, function (err, data) {
@@ -548,7 +532,6 @@ function abortUploadTask(params, callback) {
     var Bucket = params.Bucket;
     var Region = params.Region;
     var Key = params.Key;
-    var AppId = params.AppId;
     var UploadId = params.UploadId;
     var Level = params.Level || 'task';
     var AsyncLimit = params.AsyncLimit;
@@ -566,7 +549,6 @@ function abortUploadTask(params, callback) {
             Bucket: Bucket,
             Region: Region,
             Key: Key,
-            AppId: AppId,
             AsyncLimit: AsyncLimit,
             AbortArray: AbortArray
         }, function (err, data) {

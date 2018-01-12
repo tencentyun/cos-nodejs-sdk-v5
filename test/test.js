@@ -94,7 +94,7 @@ describe('getService()', function () {
             cos.getService(function (err, data) {
                 var hasBucket = false;
                 data.Buckets && data.Buckets.forEach(function (item) {
-                    if (item.Name === config.Bucket && item.Location === config.Region) {
+                    if (item.Name === BucketLongName && item.Location === config.Region) {
                         hasBucket = true;
                     }
                 });
@@ -174,6 +174,8 @@ describe('getBucket()', function () {
                 done();
             });
         }).catch(function () {
+            assert.equal(false);
+            done();
         });
     });
 });

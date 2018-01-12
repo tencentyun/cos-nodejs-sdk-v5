@@ -25,7 +25,8 @@ function getAuth() {
     var key = '1mb.zip';
     var auth = cos.getAuth({
         Method: 'get',
-        Key: key
+        Key: key,
+        Expires: 60,
     });
     // 注意：这里的 Bucket 格式是 test-1250000000
     console.log('http://' + config.Bucket + '.cos.' + config.Region + '.myqcloud.com' + '/' + key + '?sign=' + encodeURIComponent(auth));

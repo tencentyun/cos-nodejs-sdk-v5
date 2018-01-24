@@ -940,7 +940,7 @@ function getObject(params, callback) {
     var outputStream = params.Output;
     var BodyType;
 
-    if (outputStream && typeof outputStream.pipe === 'string') {
+    if (outputStream && typeof outputStream === 'string') {
         outputStream = fs.createWriteStream(outputStream);
         BodyType = 'stream';
     } else if (outputStream && typeof outputStream.pipe === 'function') {

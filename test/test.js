@@ -11,13 +11,13 @@ if (process.env.AppId) {
         SecretId: process.env.SecretId,
         SecretKey: process.env.SecretKey,
         Bucket: process.env.Bucket, // Bucket 格式：test-1250000000
-        Region: process.env.Region,
+        Region: process.env.Region
     }
 }
 
 var cos = new COS({
     SecretId: config.SecretId,
-    SecretKey: config.SecretKey,
+    SecretKey: config.SecretKey
 });
 
 var AppId = config.AppId;
@@ -222,7 +222,17 @@ describe('putObject()', function () {
             fs.unlinkSync(filepath);
             getObjectContent(function (objectContent) {
                 assert.ok(objectContent === content);
-                done();
+                cos.putObjectCopy({
+                    Bucket: config.Bucket, // Bucket 格式：test-1250000000
+                    Region: config.Region,
+                    //ServiceSideEncryption: 'AES256',
+                    Key: '1.copy.text',
+                    CopySource: config.Bucket + '.cos.' + config.Region + '.myqcloud.com/' + filename, // Bucket 格式：test-1250000000
+                }, function (err, data) {
+                    assert.ok(!err);
+                    assert.ok(data.ETag.length > 0);
+                    done();
+                });
             });
         });
     });
@@ -303,7 +313,14 @@ describe('getObject()', function () {
                     objectContent = objectContent.toString();
                     assert.ok(data.headers['content-length'] === '' + content.length);
                     assert.ok(objectContent === content);
-                    done();
+                    cos.headObject({
+                        Bucket: config.Bucket,
+                        Region: config.Region,
+                        Key: key
+                    }, function (err, data) {
+                        assert.ok(!err);
+                        done();
+                    });
                 });
             }, 2000);
         });

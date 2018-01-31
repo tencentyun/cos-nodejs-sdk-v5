@@ -4,6 +4,7 @@ var COS = require('../index');
 var util = require('./util');
 var config = require('./config');
 
+
 var cos = new COS({
     // 必选参数
     SecretId: config.SecretId,

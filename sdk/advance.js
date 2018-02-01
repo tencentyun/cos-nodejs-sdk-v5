@@ -14,6 +14,7 @@ function sliceUploadFile(params, callback) {
     var ChunkSize = params.ChunkSize || params.SliceSize || this.options.ChunkSize;
     var AsyncLimit = params.AsyncLimit;
     var StorageClass = params.StorageClass || 'Standard';
+    var ServerSideEncryption = params.ServerSideEncryption;
     var FileSize;
     var self = this;
 
@@ -59,6 +60,7 @@ function sliceUploadFile(params, callback) {
             FileSize: FileSize,
             SliceSize: ChunkSize,
             AsyncLimit: AsyncLimit,
+	    ServerSideEncryption: ServerSideEncryption,
             UploadData: UploadData,
             onProgress: onProgress
         }, function (err, data) {
@@ -393,6 +395,7 @@ function uploadSliceList(params, cb) {
     var FilePath = params.FilePath;
     var SliceCount = Math.ceil(FileSize / SliceSize);
     var FinishSize = 0;
+    var ServerSideEncryption = params.ServerSideEncryption;
     var needUploadSlices = util.filter(UploadData.PartList, function (SliceItem) {
         if (SliceItem['Uploaded']) {
             FinishSize += SliceItem['PartNumber'] >= SliceCount ? (FileSize % SliceSize || SliceSize) : SliceSize;
@@ -416,6 +419,7 @@ function uploadSliceList(params, cb) {
             FileSize: FileSize,
             PartNumber: PartNumber,
             FilePath: FilePath,
+	    ServerSideEncryption: ServerSideEncryption,
             UploadData: UploadData,
             onProgress: function (data) {
                 FinishSize += data.loaded - preAddSize;
@@ -456,6 +460,7 @@ function uploadSliceItem(params, callback) {
     var FilePath = params.FilePath;
     var PartNumber = params.PartNumber * 1;
     var SliceSize = params.SliceSize;
+    var ServerSideEncryption = params.ServerSideEncryption;
     var UploadData = params.UploadData;
     var sliceRetryTimes = 3;
     var self = this;
@@ -485,6 +490,7 @@ function uploadSliceItem(params, callback) {
             ContentSha1: ContentSha1,
             PartNumber: PartNumber,
             UploadId: UploadData.UploadId,
+            ServerSideEncryption: ServerSideEncryption,
             Body: Body,
             onProgress: params.onProgress
         }, function (err, data) {

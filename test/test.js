@@ -225,7 +225,7 @@ describe('putObject()', function () {
                 cos.putObjectCopy({
                     Bucket: config.Bucket, // Bucket 格式：test-1250000000
                     Region: config.Region,
-                    //ServiceSideEncryption: 'AES256',
+                    //ServerSideEncryption: 'AES256',
                     Key: '1.copy.text',
                     CopySource: config.Bucket + '.cos.' + config.Region + '.myqcloud.com/' + filename, // Bucket 格式：test-1250000000
                 }, function (err, data) {

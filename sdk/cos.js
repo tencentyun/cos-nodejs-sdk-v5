@@ -18,6 +18,7 @@ var defaultOptions = {
     ProgressInterval: 1000,
     Domain: '',
     ServiceDomain: '',
+    SliceSize: 1024 * 1024 * 20,
     Proxy: '',
 };
 

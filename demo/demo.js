@@ -136,7 +136,7 @@ function putBucketCors() {
                 "AllowedOrigin": ["*"],
                 "AllowedMethod": ["GET", "POST", "PUT", "DELETE", "HEAD"],
                 "AllowedHeader": ["*"],
-                "ExposeHeader": ["ETag"],
+                "ExposeHeader": ["ETag", "x-cos-acl", "x-cos-version-id", "x-cos-delete-marker", "x-cos-server-side-encryption"],
                 "MaxAgeSeconds": "5"
             }]
         }
@@ -255,12 +255,12 @@ function putBucketLifecycle() {
             "Rules": [{
                 'ID': 1,
                 'Filter': {
-                    'Prefix': 'test123',
+                    'Prefix': 'cas',
                 },
                 'Status': 'Enabled',
                 'Transition': {
-                    'Date': '2016-10-31T00:00:00+08:00',
-                    'StorageClass': 'STANDARD_IA'
+                    'Days': 0,
+                    'StorageClass': 'ARCHIVE'
                 }
             }]
         }
@@ -306,6 +306,16 @@ function getBucketVersioning() {
         Region: config.Region
     }, function (err, data) {
         console.log(err || data);
+    });
+}
+
+function listObjectVersions() {
+    cos.listObjectVersions({
+        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Region: config.Region,
+        Prefix: "1mb.zip"
+    }, function (err, data) {
+        console.log(err || JSON.stringify(data, null, '    '));
     });
 }
 
@@ -505,6 +515,22 @@ function deleteMultipleObject() {
     });
 }
 
+function restoreObject() {
+    cos.restoreObject({
+        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Region: config.Region,
+        Key: '1.txt',
+        RestoreRequest: {
+            Days: 1,
+            CASJobParameters: {
+                Tier: 'Expedited'
+            }
+        }
+    }, function (err, data) {
+        console.log(err || data);
+    });
+}
+
 function abortUploadTask() {
     cos.abortUploadTask({
         Bucket: config.Bucket, /* 必须 */ // Bucket 格式：test-1250000000
@@ -534,6 +560,9 @@ function sliceUploadFile() {
             Region: config.Region,
             Key: filename, /* 必须 */
             FilePath: filepath, /* 必须 */
+            Headers: {
+                'test': '123',
+            },
             TaskReady: function (tid) {
                 TaskId = tid;
             },
@@ -565,6 +594,40 @@ function restartTask() {
     console.log('restart');
 }
 
+function uploadFiles() {
+    var filename = 'mb.zip';
+    var blob = util.createFile({size: 1024 * 1024 * 10});
+    cos.uploadFiles({
+        files: [{
+            Bucket: config.Bucket, // Bucket 格式：test-1250000000
+            Region: config.Region,
+            Key: '1' + filename,
+            Body: blob,
+        }, {
+            Bucket: config.Bucket, // Bucket 格式：test-1250000000
+            Region: config.Region,
+            Key: '2' + filename,
+            Body: blob,
+        }, {
+            Bucket: config.Bucket, // Bucket 格式：test-1250000000
+            Region: config.Region,
+            Key: '3' + filename,
+            Body: blob,
+        }],
+        SliceSize: 1024 * 1024,
+        onProgress: function (info) {
+            var percent = parseInt(info.percent * 10000) / 100;
+            var speed = parseInt(info.speed / 1024 / 1024 * 100) / 100;
+            console.log('进度：' + percent + '%; 速度：' + speed + 'Mb/s;');
+        },
+        onFileFinish: function (err, data, options) {
+            console.log(options.Key + ' 上传' + (err ? '失败' : '完成'));
+        },
+    }, function (err, data) {
+        console.log(err || data);
+    });
+}
+
 getService();
 // getAuth();
 // getObjectUrl();
@@ -586,6 +649,7 @@ getService();
 // putBucketLifecycle();
 // deleteBucketLifecycle();
 // getBucketVersioning();
+// listObjectVersions();
 // putBucketVersioning();
 // getBucketReplication();
 // putBucketReplication();
@@ -599,8 +663,10 @@ getService();
 // getObjectAcl();
 // deleteObject();
 // deleteMultipleObject();
+// restoreObject();
 // abortUploadTask();
 // sliceUploadFile();
 // cancelTask();
 // pauseTask();
 // restartTask();
+// uploadFiles();

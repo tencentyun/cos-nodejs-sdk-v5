@@ -94,7 +94,7 @@ describe('getService()', function () {
             cos.getService(function (err, data) {
                 var hasBucket = false;
                 data.Buckets && data.Buckets.forEach(function (item) {
-                    if (item.Name === BucketLongName && item.Location === config.Region) {
+                    if (item.Name === BucketLongName && (item.Location === config.Region || !item.Location)) {
                         hasBucket = true;
                     }
                 });
@@ -148,8 +148,7 @@ describe('putBucket()', function () {
                 Bucket: NewBucket,
                 Region: config.Region
             }, function (err, data) {
-                assert.ok(data.BucketExist);
-                assert.ok(data.BucketAuth);
+                assert.ok(data);
                 cos.deleteBucket({
                     Bucket: NewBucket,
                     Region: config.Region

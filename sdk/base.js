@@ -1847,7 +1847,7 @@ function getUrl(params) {
     var region = params.region;
     var object = params.object;
     var action = params.action;
-    var protocol = util.isBrowser && location.protocol === 'https:' ? 'https:' : 'http:';
+    var protocol = util.isBrowser && location.protocol === 'http:' ? 'http:' : 'https:';
     if (!domain) {
         if (['cn-south', 'cn-south-2', 'cn-north', 'cn-east', 'cn-southwest', 'sg'].indexOf(region) > -1) {
             domain = '{{Bucket}}-{{AppId}}.{{Region}}.myqcloud.com';

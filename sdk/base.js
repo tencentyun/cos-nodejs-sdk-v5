@@ -18,7 +18,7 @@ function getService(params, callback) {
         callback = params;
         params = {};
     }
-    var protocol = util.isBrowser && location && location.protocol === 'https:' ? 'https:' : 'http:';
+    var protocol = this.options.Protocol || (util.isBrowser && location.protocol === 'http:' ? 'http:' : 'https:');
     var domain = this.options.ServiceDomain;
     var appId = params.AppId || this.options.appId;
     if (domain) {
@@ -150,6 +150,7 @@ function putBucket(params, callback) {
             return callback(err);
         }
         var url = getUrl({
+            protocol: self.options.Protocol,
             domain: self.options.Domain,
             bucket: params.Bucket,
             region: params.Region,
@@ -1105,6 +1106,7 @@ function putObject(params, callback) {
         }
         if (data && data.headers && data.headers['etag']) {
             var url = getUrl({
+                protocol: self.options.Protocol,
                 domain: self.options.Domain,
                 bucket: params.Bucket,
                 region: params.Region,
@@ -1571,6 +1573,7 @@ function multipartComplete(params, callback) {
             return callback(err);
         }
         var url = getUrl({
+            protocol: self.options.Protocol,
             domain: self.options.Domain,
             bucket: params.Bucket,
             region: params.Region,
@@ -1761,6 +1764,7 @@ function getAuth(params) {
 function getObjectUrl(params, callback) {
     var self = this;
     var url = getUrl({
+        protocol: self.options.Protocol,
         domain: self.options.Domain,
         bucket: params.Bucket,
         region: params.Region,
@@ -1847,7 +1851,7 @@ function getUrl(params) {
     var region = params.region;
     var object = params.object;
     var action = params.action;
-    var protocol = util.isBrowser && location.protocol === 'http:' ? 'http:' : 'https:';
+    var protocol = params.protocol || (util.isBrowser && location.protocol === 'http:' ? 'http:' : 'https:');
     if (!domain) {
         if (['cn-south', 'cn-south-2', 'cn-north', 'cn-east', 'cn-southwest', 'sg'].indexOf(region) > -1) {
             domain = '{{Bucket}}-{{AppId}}.{{Region}}.myqcloud.com';
@@ -1972,6 +1976,7 @@ function _submitRequest(params, callback) {
 
     var opt = {
         url: url || getUrl({
+            protocol: self.options.Protocol,
             domain: self.options.Domain,
             bucket: bucket,
             region: region,

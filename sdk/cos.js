@@ -19,6 +19,7 @@ var defaultOptions = {
     Domain: '',
     ServiceDomain: '',
     SliceSize: 1024 * 1024 * 20,
+    Protocol: '',
     Proxy: '',
 };
 

@@ -226,12 +226,6 @@ var checkParams = function (apiName, params) {
 };
 
 var apiWrapper = function (apiName, apiFn) {
-    var regionMap = {
-        'gz': 'ap-guangzhou',
-        'tj': 'ap-beijing-2',
-        'sh': 'ap-shanghai',
-        'cd': 'ap-chengdu'
-    };
     return function (params, callback) {
 
         // 处理参数
@@ -303,8 +297,8 @@ var apiWrapper = function (apiName, apiFn) {
                 return;
             }
             // 判断 region 格式
-            if (params.Region && regionMap[params.Region]) {
-                _callback({error: 'Region should be ' + regionMap[params.Region]});
+            if (params.Region && params.Region.indexOf('-') === -1) {
+                _callback({error: 'Region format error, find help here: https://cloud.tencent.com/document/product/436/6224'});
                 return;
             }
             // 判断 region 格式

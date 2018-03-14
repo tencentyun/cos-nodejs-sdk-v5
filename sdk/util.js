@@ -300,7 +300,7 @@ var apiWrapper = function (apiName, apiFn) {
                 return;
             }
             // 判断 region 格式
-            if (params.Region && params.Region.indexOf('-') === -1) {
+            if (params.Region && params.Region.indexOf('-') === -1 && params.Region === 'yfb') {
                 _callback({error: 'Region format error, find help here: https://cloud.tencent.com/document/product/436/6224'});
                 return;
             }

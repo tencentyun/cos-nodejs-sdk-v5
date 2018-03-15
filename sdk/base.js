@@ -106,15 +106,16 @@ function getBucket(params, callback) {
         if (err) {
             return callback(err);
         }
-        var contents = data.ListBucketResult.Contents || [];
-        var CommonPrefixes = data.ListBucketResult.CommonPrefixes || [];
+        var ListBucketResult = data.ListBucketResult || {};
+        var Contents = ListBucketResult.Contents || [];
+        var CommonPrefixes = ListBucketResult.CommonPrefixes || [];
 
-        contents = util.isArray(contents) ? contents : [contents];
+        Contents = util.isArray(Contents) ? Contents : [Contents];
         CommonPrefixes = util.isArray(CommonPrefixes) ? CommonPrefixes : [CommonPrefixes];
 
-        var result = util.clone(data.ListBucketResult);
+        var result = util.clone(ListBucketResult);
         util.extend(result, {
-            Contents: contents,
+            Contents: Contents,
             CommonPrefixes: CommonPrefixes,
             statusCode: data.statusCode,
             headers: data.headers,
@@ -214,10 +215,11 @@ function getBucketAcl(params, callback) {
         if (err) {
             return callback(err);
         }
-        var Owner = data.AccessControlPolicy.Owner || {};
-        var Grant = data.AccessControlPolicy.AccessControlList.Grant || [];
+        var AccessControlPolicy = data.AccessControlPolicy || {};
+        var Owner = AccessControlPolicy.Owner || {};
+        var Grant = AccessControlPolicy.AccessControlList.Grant || [];
         Grant = util.isArray(Grant) ? Grant : [Grant];
-        var result = decodeAcl(data.AccessControlPolicy);
+        var result = decodeAcl(AccessControlPolicy);
         if (data.headers && data.headers['x-cos-acl']) {
             result.ACL = data.headers['x-cos-acl'];
         }
@@ -895,12 +897,13 @@ function listObjectVersions(params, callback) {
         if (err) {
             return callback(err);
         }
-        var DeleteMarkers = data.ListVersionsResult.DeleteMarker || [];
+        var ListVersionsResult = data.ListVersionsResult || {};
+        var DeleteMarkers = ListVersionsResult.DeleteMarker || [];
         DeleteMarkers = util.isArray(DeleteMarkers) ? DeleteMarkers : [DeleteMarkers];
-        var Versions = data.ListVersionsResult.Version || [];
+        var Versions = ListVersionsResult.Version || [];
         Versions = util.isArray(Versions) ? Versions : [Versions];
 
-        var result = util.clone(data.ListVersionsResult);
+        var result = util.clone(ListVersionsResult);
         delete result.DeleteMarker;
         delete result.Version;
         util.extend(result, {
@@ -1183,10 +1186,11 @@ function getObjectAcl(params, callback) {
         if (err) {
             return callback(err);
         }
-        var Owner = data.AccessControlPolicy.Owner || {};
-        var Grant = data.AccessControlPolicy.AccessControlList.Grant || [];
+        var AccessControlPolicy = data.AccessControlPolicy || {};
+        var Owner = AccessControlPolicy.Owner || {};
+        var Grant = AccessControlPolicy.AccessControlList && AccessControlPolicy.AccessControlList.Grant || [];
         Grant = util.isArray(Grant) ? Grant : [Grant];
-        var result = decodeAcl(data.AccessControlPolicy);
+        var result = decodeAcl(AccessControlPolicy);
         if (data.headers && data.headers['x-cos-acl']) {
             result.ACL = data.headers['x-cos-acl'];
         }
@@ -1271,7 +1275,7 @@ function optionsObject(params, callback) {
         headers: headers,
     }, function (err, data) {
         if (err) {
-            if (err.statusCode && err.statusCode == 403) {
+            if (err.statusCode && err.statusCode === 403) {
                 return callback(null, {
                     OptionsForbidden: true,
                     statusCode: err.statusCode
@@ -1332,7 +1336,7 @@ function putObjectCopy(params, callback) {
         if (err) {
             return callback(err);
         }
-        var result = util.clone(data.CopyObjectResult);
+        var result = util.clone(data.CopyObjectResult || {});
         util.extend(result, {
             statusCode: data.statusCode,
             headers: data.headers,
@@ -1355,7 +1359,7 @@ function uploadPartCopy(params, callback) {
         if (err) {
             return callback(err);
         }
-        var result = util.clone(data.CopyObjectResult);
+        var result = util.clone(data.CopyObjectResult || {});
         util.extend(result, {
             statusCode: data.statusCode,
             headers: data.headers,
@@ -1385,13 +1389,14 @@ function deleteMultipleObject(params, callback) {
         if (err) {
             return callback(err);
         }
-        var Deleted = data.DeleteResult.Deleted || [];
-        var Errors = data.DeleteResult.Error || [];
+        var DeleteResult = data.DeleteResult || {};
+        var Deleted = DeleteResult.Deleted || [];
+        var Errors = DeleteResult.Error || [];
 
         Deleted = util.isArray(Deleted) ? Deleted : [Deleted];
         Errors = util.isArray(Errors) ? Errors : [Errors];
 
-        var result = util.clone(data.DeleteResult);
+        var result = util.clone(DeleteResult);
         util.extend(result, {
             Error: Errors,
             Deleted: Deleted,
@@ -1580,7 +1585,8 @@ function multipartComplete(params, callback) {
             object: params.Key,
             isLocation: true,
         });
-        var result = util.extend(data.CompleteMultipartUploadResult, {
+        var CompleteMultipartUploadResult = data.CompleteMultipartUploadResult || {};
+        var result = util.extend(CompleteMultipartUploadResult, {
             Location: url,
             statusCode: data.statusCode,
             headers: data.headers,
@@ -1641,7 +1647,7 @@ function multipartList(params, callback) {
             data.ListMultipartUploadsResult.Upload = Upload;
             data.ListMultipartUploadsResult.CommonPrefixes = CommonPrefixes;
         }
-        var result = util.clone(data.ListMultipartUploadsResult);
+        var result = util.clone(data.ListMultipartUploadsResult || {});
         util.extend(result, {
             statusCode: data.statusCode,
             headers: data.headers,
@@ -1685,11 +1691,12 @@ function multipartListPart(params, callback) {
         if (err) {
             return callback(err);
         }
-        var Part = data.ListPartsResult.Part || [];
+        var ListPartsResult = data.ListPartsResult || {};
+        var Part = ListPartsResult.Part || [];
         Part = util.isArray(Part) ? Part : [Part];
 
-        data.ListPartsResult.Part = Part;
-        var result = util.clone(data.ListPartsResult);
+        ListPartsResult.Part = Part;
+        var result = util.clone(ListPartsResult);
         util.extend(result, {
             statusCode: data.statusCode,
             headers: data.headers,
@@ -2217,20 +2224,6 @@ var API_MAP = {
     getAuth: getAuth,
 };
 
-function warnOldApi(apiName, fn) {
-    util.each(['Cors', 'Acl'], function (suffix) {
-        if (apiName.slice(-suffix.length) === suffix) {
-            var oldName = apiName.slice(0, -suffix.length) + suffix.toUpperCase();
-            var apiFn = util.apiWrapper(apiName, fn);
-            exports[oldName] = function () {
-                console.warn('warning: cos.' + oldName + ' has been deprecated. Please Use cos.' + apiName + ' instead.');
-                apiFn.apply(this, arguments);
-            };
-        }
-    });
-}
-
 util.each(API_MAP, function (fn, apiName) {
     exports[apiName] = util.apiWrapper(apiName, fn);
-    warnOldApi(apiName, fn);
 });

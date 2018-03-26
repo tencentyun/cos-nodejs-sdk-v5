@@ -595,36 +595,39 @@ function restartTask() {
 }
 
 function uploadFiles() {
-    var filename = 'mb.zip';
-    var blob = util.createFile({size: 1024 * 1024 * 10});
-    cos.uploadFiles({
-        files: [{
-            Bucket: config.Bucket, // Bucket 格式：test-1250000000
-            Region: config.Region,
-            Key: '1' + filename,
-            Body: blob,
-        }, {
-            Bucket: config.Bucket, // Bucket 格式：test-1250000000
-            Region: config.Region,
-            Key: '2' + filename,
-            Body: blob,
-        }, {
-            Bucket: config.Bucket, // Bucket 格式：test-1250000000
-            Region: config.Region,
-            Key: '3' + filename,
-            Body: blob,
-        }],
-        SliceSize: 1024 * 1024,
-        onProgress: function (info) {
-            var percent = parseInt(info.percent * 10000) / 100;
-            var speed = parseInt(info.speed / 1024 / 1024 * 100) / 100;
-            console.log('进度：' + percent + '%; 速度：' + speed + 'Mb/s;');
-        },
-        onFileFinish: function (err, data, options) {
-            console.log(options.Key + ' 上传' + (err ? '失败' : '完成'));
-        },
-    }, function (err, data) {
-        console.log(err || data);
+    var filepath = path.resolve(__dirname, '1mb.zip');
+    util.createFile(filepath, 1024 * 1024 * 10, function (err) {
+        var filename = 'mb.zip';
+        cos.uploadFiles({
+            files: [{
+                Bucket: config.Bucket, // Bucket 格式：test-1250000000
+                Region: config.Region,
+                Key: '1' + filename,
+                FilePath: filepath,
+            }, {
+                Bucket: config.Bucket, // Bucket 格式：test-1250000000
+                Region: config.Region,
+                Key: '2' + filename,
+                FilePath: filepath,
+            // }, {
+            //     Bucket: config.Bucket, // Bucket 格式：test-1250000000
+            //     Region: config.Region,
+            //     Key: '3' + filename,
+            //     FilePath: filepath,
+            }],
+            SliceSize: 1024 * 1024,
+            onProgress: function (info) {
+                var percent = parseInt(info.percent * 10000) / 100;
+                var speed = parseInt(info.speed / 1024 / 1024 * 100) / 100;
+                console.log('进度：' + percent + '%; 速度：' + speed + 'Mb/s;');
+            },
+            onFileFinish: function (err, data, options) {
+                console.log(options.Key + ' 上传' + (err ? '失败' : '完成'));
+            },
+        }, function (err, data) {
+            console.log(err || data);
+            fs.unlinkSync(filepath);
+        });
     });
 }
 

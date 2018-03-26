@@ -135,6 +135,22 @@ describe('getAuth()', function () {
     });
 });
 
+describe('auth check', function () {
+    this.timeout(60000);
+    it('auth check', function (done) {
+        cos.getBucketCors({
+            Bucket: config.Bucket,
+            Region: config.Region,
+            Headers: {
+                'x-cos-test': 'aksjhdlash sajlhj!@#$%^&*()_+=-[]{}\';:\"/.<>?.,??sadasd#/.,/~`',
+            },
+        }, function (err, data) {
+            assert.ok(!err);
+            done();
+        });
+    });
+});
+
 describe('putBucket()', function () {
     this.timeout(60000);
     var NewBucket = 'test' + Date.now().toString(36) + '-' + AppId;

@@ -7,7 +7,6 @@ var base = require('./base');
 var advance = require('./advance');
 var pkg = require('../package.json');
 
-
 var defaultOptions = {
     AppId: '', // AppId 已废弃，请拼接到 Bucket 后传入，例如：test-1250000000
     SecretId: '',

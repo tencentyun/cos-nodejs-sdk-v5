@@ -210,7 +210,7 @@ function getBucketAcl(params, callback) {
         Bucket: params.Bucket,
         Region: params.Region,
         headers: params.Headers,
-        action: '/?acl',
+        action: 'acl',
     }, function (err, data) {
         if (err) {
             return callback(err);
@@ -263,12 +263,19 @@ function putBucketAcl(params, callback) {
         headers['Content-MD5'] = util.binaryBase64(util.md5(xml));
     }
 
+    // Grant Header 去重
+    util.each(headers, function (val, key) {
+        if (key.indexOf('x-cos-grant-') === 0) {
+            headers[key] = uniqGrant(headers[key]);
+        }
+    });
+
     submitRequest.call(this, {
         method: 'PUT',
         Bucket: params.Bucket,
         Region: params.Region,
         headers: headers,
-        action: '/?acl',
+        action: 'acl',
         body: xml,
     }, function (err, data) {
         if (err) {
@@ -297,7 +304,7 @@ function getBucketCors(params, callback) {
         Bucket: params.Bucket,
         Region: params.Region,
         headers: params.Headers,
-        action: '/?cors',
+        action: 'cors',
     }, function (err, data) {
         if (err) {
             if (err.statusCode === 404 && err.error && err.error.Code === 'NoSuchCORSConfiguration') {
@@ -369,7 +376,7 @@ function putBucketCors(params, callback) {
         Bucket: params.Bucket,
         Region: params.Region,
         body: xml,
-        action: '/?cors',
+        action: 'cors',
         headers: headers,
     }, function (err, data) {
         if (err) {
@@ -397,7 +404,7 @@ function deleteBucketCors(params, callback) {
         Bucket: params.Bucket,
         Region: params.Region,
         headers: params.Headers,
-        action: '/?cors',
+        action: 'cors',
     }, function (err, data) {
         if (err && err.statusCode === 204) {
             return callback(null, {statusCode: err.statusCode});
@@ -432,7 +439,7 @@ function putBucketPolicy(params, callback) {
         method: 'PUT',
         Bucket: params.Bucket,
         Region: params.Region,
-        action: '/?policy',
+        action: 'policy',
         body: util.isBrowser ? PolicyStr : Policy,
         headers: headers,
         json: true,
@@ -464,7 +471,7 @@ function getBucketLocation(params, callback) {
         Bucket: params.Bucket,
         Region: params.Region,
         headers: params.Headers,
-        action: '/?location',
+        action: 'location',
     }, function (err, data) {
         if (err) {
             return callback(err);
@@ -488,7 +495,7 @@ function getBucketPolicy(params, callback) {
         Bucket: params.Bucket,
         Region: params.Region,
         headers: params.Headers,
-        action: '/?policy',
+        action: 'policy',
         rawBody: true,
     }, function (err, data) {
         if (err) {
@@ -531,7 +538,7 @@ function getBucketTagging(params, callback) {
         Bucket: params.Bucket,
         Region: params.Region,
         headers: params.Headers,
-        action: '/?tagging',
+        action: 'tagging',
     }, function (err, data) {
         if (err) {
             if (err.statusCode === 404 && err.error && (err.error === "Not Found" || err.error.Code === 'NoSuchTagSet')) {
@@ -586,7 +593,7 @@ function putBucketTagging(params, callback) {
         Bucket: params.Bucket,
         Region: params.Region,
         body: xml,
-        action: '/?tagging',
+        action: 'tagging',
         headers: headers,
     }, function (err, data) {
         if (err && err.statusCode === 204) {
@@ -617,7 +624,7 @@ function deleteBucketTagging(params, callback) {
         Bucket: params.Bucket,
         Region: params.Region,
         headers: params.Headers,
-        action: '/?tagging',
+        action: 'tagging',
     }, function (err, data) {
         if (err && err.statusCode === 204) {
             return callback(null, {statusCode: err.statusCode});
@@ -647,7 +654,7 @@ function putBucketLifecycle(params, callback) {
         Bucket: params.Bucket,
         Region: params.Region,
         body: xml,
-        action: '/?lifecycle',
+        action: 'lifecycle',
         headers: headers,
     }, function (err, data) {
         if (err && err.statusCode === 204) {
@@ -668,7 +675,7 @@ function getBucketLifecycle(params, callback) {
         Bucket: params.Bucket,
         Region: params.Region,
         headers: params.Headers,
-        action: '/?lifecycle',
+        action: 'lifecycle',
     }, function (err, data) {
         if (err) {
             if (err.statusCode === 404 && err.error && err.error.Code === 'NoSuchLifecycleConfiguration') {
@@ -703,7 +710,7 @@ function deleteBucketLifecycle(params, callback) {
         Bucket: params.Bucket,
         Region: params.Region,
         headers: params.Headers,
-        action: '/?lifecycle',
+        action: 'lifecycle',
     }, function (err, data) {
         if (err && err.statusCode === 204) {
             return callback(null, {statusCode: err.statusCode});
@@ -735,7 +742,7 @@ function putBucketVersioning(params, callback) {
         Bucket: params.Bucket,
         Region: params.Region,
         body: xml,
-        action: '/?versioning',
+        action: 'versioning',
         headers: headers,
     }, function (err, data) {
         if (err && err.statusCode === 204) {
@@ -756,7 +763,7 @@ function getBucketVersioning(params, callback) {
         Bucket: params.Bucket,
         Region: params.Region,
         headers: params.Headers,
-        action: '/?versioning',
+        action: 'versioning',
     }, function (err, data) {
         if (!err) {
             !data.VersioningConfiguration && (data.VersioningConfiguration = {});
@@ -782,7 +789,7 @@ function putBucketReplication(params, callback) {
         Bucket: params.Bucket,
         Region: params.Region,
         body: xml,
-        action: '/?replication',
+        action: 'replication',
         headers: headers,
     }, function (err, data) {
         if (err && err.statusCode === 204) {
@@ -803,7 +810,7 @@ function getBucketReplication(params, callback) {
         Bucket: params.Bucket,
         Region: params.Region,
         headers: params.Headers,
-        action: '/?replication',
+        action: 'replication',
     }, function (err, data) {
         if (err) {
             if (err.statusCode === 404 && err.error && (err.error === 'Not Found' || err.error.Code === 'ReplicationConfigurationnotFoundError')) {
@@ -831,7 +838,7 @@ function deleteBucketReplication(params, callback) {
         Bucket: params.Bucket,
         Region: params.Region,
         headers: params.Headers,
-        action: '/?replication',
+        action: 'replication',
     }, function (err, data) {
         if (err && err.statusCode === 204) {
             return callback(null, {statusCode: err.statusCode});
@@ -892,7 +899,7 @@ function listObjectVersions(params, callback) {
         qs: {
             prefix: params.Prefix
         },
-        action: '?versions',
+        action: 'versions',
     }, function (err, data) {
         if (err) {
             return callback(err);
@@ -1067,6 +1074,7 @@ function getObject(params, callback) {
  *     @return  {String}  data.ETag                                 为对应上传文件的 ETag 值
  */
 function putObject(params, callback) {
+
     var self = this;
     var headers = params.Headers;
 
@@ -1181,7 +1189,7 @@ function getObjectAcl(params, callback) {
         Region: params.Region,
         Key: params.Key,
         headers: params.Headers,
-        action: '?acl',
+        action: 'acl',
     }, function (err, data) {
         if (err) {
             return callback(err);
@@ -1231,12 +1239,19 @@ function putObjectAcl(params, callback) {
         headers['Content-MD5'] = util.binaryBase64(util.md5(xml));
     }
 
+    // Grant Header 去重
+    util.each(headers, function (val, key) {
+        if (key.indexOf('x-cos-grant-') === 0) {
+            headers[key] = uniqGrant(headers[key]);
+        }
+    });
+
     submitRequest.call(this, {
         method: 'PUT',
         Bucket: params.Bucket,
         Region: params.Region,
         Key: params.Key,
-        action: '?acl',
+        action: 'acl',
         headers: headers,
         body: xml,
     }, function (err, data) {
@@ -1346,14 +1361,16 @@ function putObjectCopy(params, callback) {
 }
 
 function uploadPartCopy(params, callback) {
-    var action = '?partNumber=' + params['PartNumber'] + '&uploadId=' + params['UploadId'];
     submitRequest.call(this, {
         method: 'PUT',
         Bucket: params.Bucket,
         Region: params.Region,
         Key: params.Key,
         VersionId: params.VersionId,
-        action: action,
+        qs: {
+            partNumber: params['PartNumber'],
+            uploadId: params['UploadId'],
+        },
         headers: params.Headers,
     }, function (err, data) {
         if (err) {
@@ -1383,7 +1400,7 @@ function deleteMultipleObject(params, callback) {
         Bucket: params.Bucket,
         Region: params.Region,
         body: xml,
-        action: '/?delete',
+        action: 'delete',
         headers: headers,
     }, function (err, data) {
         if (err) {
@@ -1427,7 +1444,7 @@ function restoreObject(params, callback) {
         Key: params.Key,
         VersionId: params.VersionId,
         body: xml,
-        action: '?restore',
+        action: 'restore',
         headers: headers,
     }, function (err, data) {
         callback(err, data);
@@ -1466,7 +1483,7 @@ function multipartInit(params, callback) {
         Bucket: params.Bucket,
         Region: params.Region,
         Key: params.Key,
-        action: '?uploads',
+        action: 'uploads',
         headers: params.Headers,
     }, function (err, data) {
         if (err) {
@@ -1499,19 +1516,16 @@ function multipartInit(params, callback) {
  *     @return  {Object}  data.ETag                     返回的文件分块 sha1 值
  */
 function multipartUpload(params, callback) {
-
-    var PartNumber = params['PartNumber'];
-    var UploadId = params['UploadId'];
-
-    var action = '?partNumber=' + PartNumber + '&uploadId=' + UploadId;
-
     submitRequest.call(this, {
         TaskId: params.TaskId,
         method: 'PUT',
         Bucket: params.Bucket,
         Region: params.Region,
         Key: params.Key,
-        action: action,
+        qs: {
+            partNumber: params['PartNumber'],
+            uploadId: params['UploadId'],
+        },
         headers: params.Headers,
         onProgress: params.onProgress,
         inputStream: params.Body || null
@@ -1548,8 +1562,6 @@ function multipartComplete(params, callback) {
 
     var UploadId = params.UploadId;
 
-    var action = '?uploadId=' + UploadId;
-
     var Parts = params['Parts'];
 
     for (var i = 0, len = Parts.length; i < len; i++) {
@@ -1570,7 +1582,9 @@ function multipartComplete(params, callback) {
         Bucket: params.Bucket,
         Region: params.Region,
         Key: params.Key,
-        action: action,
+        qs: {
+            uploadId: UploadId
+        },
         body: xml,
         headers: headers,
     }, function (err, data) {
@@ -1630,7 +1644,8 @@ function multipartList(params, callback) {
         Bucket: params.Bucket,
         Region: params.Region,
         headers: params.Headers,
-        action: '/?uploads&' + queryString.stringify(reqParams),
+        qs: reqParams,
+        action: 'uploads',
     }, function (err, data) {
         if (err) {
             return callback(err);
@@ -1678,7 +1693,6 @@ function multipartListPart(params, callback) {
     reqParams['encoding-type'] = params['EncodingType'];
     reqParams['max-parts'] = params['MaxParts'];
     reqParams['part-number-marker'] = params['PartNumberMarker'];
-
 
     submitRequest.call(this, {
         method: 'GET',
@@ -1748,11 +1762,13 @@ function multipartAbort(params, callback) {
  */
 function getAuth(params) {
     return util.getAuth({
+        SecretId: params.SecretId || this.options.SecretId || '',
+        SecretKey: params.SecretKey || this.options.SecretKey || '',
         Method: params.Method,
         Key: params.Key,
+        Query: params.Query,
+        Headers: params.Headers,
         Expires: params.Expires,
-        SecretId: params.SecretId || this.options.SecretId || '',
-        SecretKey: params.SecretKey || this.options.SecretKey || ''
     });
 }
 
@@ -1844,9 +1860,27 @@ function decodeAcl(AccessControlPolicy) {
         result.ACL = 'private';
     }
     util.each(GrantMap, function (item) {
-        result[item] = result[item].join(',');
+        result[item] = uniqGrant(result[item].join(','));
     });
     return result;
+}
+
+// Grant 去重
+function uniqGrant(str) {
+    var arr = str.split(',');
+    var exist = {};
+    var i, item;
+    for (i = 0; i < arr.length; ) {
+        item = arr[i].trim();
+        if (exist[item]) {
+            arr.splice(i, 1);
+        } else {
+            exist[item] = true;
+            arr[i] = item;
+            i++;
+        }
+    }
+    return arr.join(',');
 }
 
 // 生成操作 url
@@ -1857,7 +1891,6 @@ function getUrl(params) {
     var domain = params.domain;
     var region = params.region;
     var object = params.object;
-    var action = params.action;
     var protocol = params.protocol || (util.isBrowser && location.protocol === 'http:' ? 'http:' : 'https:');
     if (!domain) {
         if (['cn-south', 'cn-south-2', 'cn-north', 'cn-east', 'cn-southwest', 'sg'].indexOf(region) > -1) {
@@ -1882,9 +1915,6 @@ function getUrl(params) {
         url += '/' + encodeURIComponent(object).replace(/%2F/g, '/');
     }
 
-    if (action) {
-        url += action;
-    }
     if (params.isLocation) {
         url = url.replace(/^https?:\/\//, '');
     }
@@ -1898,6 +1928,8 @@ function getAuthorizationAsync(params, callback) {
         self.options.getAuthorization.call(self, {
             Method: params.Method,
             Key: params.Key,
+            Query: params.Query,
+            Headers: params.Headers,
         }, function (AuthData) {
             if (typeof AuthData === 'string') {
                 AuthData = {Authorization: AuthData};
@@ -1914,6 +1946,8 @@ function getAuthorizationAsync(params, callback) {
                 SecretKey: StsData.SecretKey,
                 Method: params.Method,
                 Key: params.Key,
+                Query: params.Query,
+                Headers: params.Headers,
             });
             var AuthData = {
                 Authorization: Authorization,
@@ -1940,7 +1974,8 @@ function getAuthorizationAsync(params, callback) {
             SecretKey: params.SecretKey || self.options.SecretKey,
             Method: params.Method,
             Key: params.Key,
-            // headers: opt.headers,
+            Query: params.Query,
+            Headers: params.Headers,
         });
         callback && callback({Authorization: Authorization});
         return Authorization;
@@ -1951,10 +1986,57 @@ function getAuthorizationAsync(params, callback) {
 // 获取签名并发起请求
 function submitRequest(params, callback) {
     var self = this;
+
+    // 处理 headers
+    !params.headers && (params.headers = {});
+    params.headers['User-Agent'] = 'cos-nodejs-sdk-v5-' + pkg.version;
+
+    // 处理 query
+    !params.qs && (params.qs = {});
+    params.VersionId && (params.qs.versionId = params.VersionId);
+    params.qs = util.clearKey(params.qs);
+
+    // 清理 undefined 和 null 字段
+    params.headers && (params.headers = util.clearKey(params.headers));
+    params.qs && (params.qs = util.clearKey(params.qs));
+
+    var Query = util.clone(params.qs);
+    params.action && (Query[params.action] = '');
     getAuthorizationAsync.call(self, {
         Method: params.method,
         Key: params.Key,
+        Query: Query,
+        Headers: params.headers,
     }, function (AuthData) {
+
+        // 检查签名格式
+        var auth = AuthData.Authorization;
+        var formatAllow = false;
+        if (auth) {
+            if (auth.indexOf('q-sign-algorithm=') > -1 &&
+                auth.indexOf('q-ak=') > -1 &&
+                auth.indexOf('q-sign-time=') > -1 &&
+                auth.indexOf('q-key-time=') > -1 &&
+                auth.indexOf('q-url-param-list=') > -1) {
+                formatAllow = true;
+            } else {
+                try {
+                    auth = atob(auth);
+                    if (auth.indexOf('a=') > -1 &&
+                        auth.indexOf('k=') > -1 &&
+                        auth.indexOf('t=') > -1 &&
+                        auth.indexOf('r=') > -1 &&
+                        auth.indexOf('b=') > -1) {
+                        formatAllow = true;
+                    }
+                } catch (e) {}
+            }
+        }
+        if (!formatAllow) {
+            callback('authorization format error');
+            return;
+        }
+
         params.AuthData = AuthData;
         _submitRequest.call(self, params, callback);
     });
@@ -1969,30 +2051,29 @@ function _submitRequest(params, callback) {
     var bucket = params.Bucket;
     var region = params.Region;
     var object = params.Key;
-    var action = params.action;
     var method = params.method || 'GET';
-    var headers = params.headers || {};
     var url = params.url;
     var body = params.body;
     var json = params.json;
     var rawBody = params.rawBody;
-    var qs = params.qs;
 
-    !qs && (qs = {});
-    qs.versionId = params.VersionId;
+    // url
+    url = url || getUrl({
+        protocol: self.options.Protocol,
+        domain: self.options.Domain,
+        bucket: bucket,
+        region: region,
+        object: object,
+    });
+    if (params.action) {
+        url  = url + (object ? '' : '/') + '?' + params.action;
+    }
 
     var opt = {
-        url: url || getUrl({
-            protocol: self.options.Protocol,
-            domain: self.options.Domain,
-            bucket: bucket,
-            region: region,
-            object: object,
-            action: action,
-        }),
         method: method,
-        headers: headers || {},
-        qs: qs,
+        url: url,
+        headers: params.headers,
+        qs: params.qs,
         body: body,
         json: json,
     };
@@ -2004,12 +2085,10 @@ function _submitRequest(params, callback) {
     params.AuthData.ClientUA && (opt.headers['clientUA'] = params.AuthData.ClientUA);
     params.AuthData.XCosSecurityToken && (opt.headers['x-cos-security-token'] = params.AuthData.XCosSecurityToken);
 
-    // 预先处理 undefined 和 null 的属性
+    // 清理 undefined 和 null 字段
     opt.headers && (opt.headers = util.clearKey(opt.headers));
-    opt.qs && (opt.qs = util.clearKey(opt.qs));
     opt = util.clearKey(opt);
 
-    opt.headers['User-Agent'] = 'cos-nodejs-sdk-v5-' + pkg.version;
     if (this.options.Proxy) {
         opt.proxy = this.options.Proxy;
     }

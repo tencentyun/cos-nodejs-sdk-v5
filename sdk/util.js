@@ -22,8 +22,8 @@ var getAuth = function (opt) {
     var SecretKey = opt.SecretKey;
     var method = (opt.method || opt.Method || 'get').toLowerCase();
     var pathname = opt.pathname || opt.Key || '/';
-    var queryParams = opt.params || '';
-    var headers = opt.headers || '';
+    var queryParams = clone(opt.Query || opt.params || {});
+    var headers = clone(opt.Headers || opt.headers || {});
     pathname.indexOf('/') !== 0 && (pathname = '/' + pathname);
 
     if (!SecretId) return console.error('lack of param SecretId');
@@ -47,7 +47,9 @@ var getAuth = function (opt) {
             key = keyList[i];
             val = obj[key] || '';
             key = key.toLowerCase();
-            list.push(camSafeUrlEncode(key) + '=' + camSafeUrlEncode(val));
+            key = camSafeUrlEncode(key);
+            val = camSafeUrlEncode(val) || '';
+            list.push(key + '=' +  val)
         }
         return list.join('&');
     };
@@ -216,7 +218,7 @@ var checkParams = function (apiName, params) {
     var bucket = params.Bucket;
     var region = params.Region;
     var object = params.Key;
-    if (apiName.indexOf('Bucket') > -1 || apiName === 'deleteMultipleObject' || apiName === 'multipartList' || apiName === 'listObjectVersions' || apiName === 'request') {
+    if (apiName.indexOf('Bucket') > -1 || apiName === 'deleteMultipleObject' || apiName === 'multipartList' || apiName === 'listObjectVersions') {
         return bucket && region;
     }
     if (apiName.indexOf('Object') > -1 || apiName.indexOf('multipart') > -1 || apiName === 'sliceUploadFile' || apiName === 'abortUploadTask') {
@@ -398,6 +400,5 @@ var util = {
     throttleOnProgress: throttleOnProgress,
     isBrowser: !!global.document,
 };
-
 
 module.exports = util;

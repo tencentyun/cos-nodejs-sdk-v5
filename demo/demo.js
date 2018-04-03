@@ -598,9 +598,6 @@ function sliceUploadFile() {
             Region: config.Region,
             Key: filename, /* 必须 */
             FilePath: filepath, /* 必须 */
-            Headers: {
-                'test': '123',
-            },
             TaskReady: function (tid) {
                 TaskId = tid;
             },
@@ -616,6 +613,7 @@ function sliceUploadFile() {
         });
     });
 }
+return sliceUploadFile();
 
 function cancelTask() {
     cos.cancelTask(TaskId);

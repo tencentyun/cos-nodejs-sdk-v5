@@ -12,7 +12,7 @@ var defaultOptions = {
     SecretId: '',
     SecretKey: '',
     FileParallelLimit: 3,
-    ChunkParallelLimit: 3,
+    ChunkParallelLimit: 8,
     ChunkSize: 1024 * 1024,
     ProgressInterval: 1000,
     Domain: '',

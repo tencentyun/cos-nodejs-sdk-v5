@@ -613,7 +613,6 @@ function sliceUploadFile() {
         });
     });
 }
-return sliceUploadFile();
 
 function cancelTask() {
     cos.cancelTask(TaskId);

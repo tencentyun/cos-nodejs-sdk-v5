@@ -2013,7 +2013,9 @@ function submitRequest(params, callback) {
         var auth = AuthData.Authorization;
         var formatAllow = false;
         if (auth) {
-            if (auth.indexOf('q-sign-algorithm=') > -1 &&
+            if (auth.indexOf(' ') > -1) {
+                formatAllow = false;
+            } else if (auth.indexOf('q-sign-algorithm=') > -1 &&
                 auth.indexOf('q-ak=') > -1 &&
                 auth.indexOf('q-sign-time=') > -1 &&
                 auth.indexOf('q-key-time=') > -1 &&
@@ -2033,7 +2035,7 @@ function submitRequest(params, callback) {
             }
         }
         if (!formatAllow) {
-            callback('authorization format error');
+            callback('authorization error');
             return;
         }
 

@@ -1927,7 +1927,7 @@ function getAuthorizationAsync(params, callback) {
     if (self.options.getAuthorization) { // 外部计算签名
         self.options.getAuthorization.call(self, {
             Method: params.Method,
-            Key: params.Key,
+            Key: params.Key || '',
             Query: params.Query,
             Headers: params.Headers,
         }, function (AuthData) {
@@ -1945,7 +1945,7 @@ function getAuthorizationAsync(params, callback) {
                 SecretId: StsData.SecretId,
                 SecretKey: StsData.SecretKey,
                 Method: params.Method,
-                Key: params.Key,
+                Key: params.Key || '',
                 Query: params.Query,
                 Headers: params.Headers,
             });
@@ -1973,7 +1973,7 @@ function getAuthorizationAsync(params, callback) {
             SecretId: params.SecretId || self.options.SecretId,
             SecretKey: params.SecretKey || self.options.SecretKey,
             Method: params.Method,
-            Key: params.Key,
+            Key: params.Key || '',
             Query: params.Query,
             Headers: params.Headers,
         });

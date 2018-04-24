@@ -1800,6 +1800,7 @@ function getObjectUrl(params, callback) {
     var authorization = getAuthorizationAsync.call(this, {
         Method: params.Method || 'get',
         Key: params.Key,
+        Expires: params.Expires,
     }, function (AuthData) {
         if (!callback) return;
         var result = {
@@ -1930,6 +1931,7 @@ function getAuthorizationAsync(params, callback) {
             Key: params.Key || '',
             Query: params.Query,
             Headers: params.Headers,
+            Expires: params.Expires,
         }, function (AuthData) {
             if (typeof AuthData === 'string') {
                 AuthData = {Authorization: AuthData};
@@ -1948,6 +1950,7 @@ function getAuthorizationAsync(params, callback) {
                 Key: params.Key || '',
                 Query: params.Query,
                 Headers: params.Headers,
+                Expires: params.Expires,
             });
             var AuthData = {
                 Authorization: Authorization,
@@ -1976,6 +1979,7 @@ function getAuthorizationAsync(params, callback) {
             Key: params.Key || '',
             Query: params.Query,
             Headers: params.Headers,
+            Expires: params.Expires,
         });
         callback && callback({Authorization: Authorization});
         return Authorization;

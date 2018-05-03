@@ -1,8 +1,7 @@
-var queryString = require('querystring');
 var pkg = require('../package.json');
+var fs = require('fs');
 var REQUEST = require('request');
 var util = require('./util');
-var fs = require('fs');
 
 
 // Bucket 相关
@@ -727,7 +726,7 @@ function deleteBucketLifecycle(params, callback) {
 function putBucketVersioning(params, callback) {
 
     if (!params['VersioningConfiguration']) {
-        callback({error: 'lack of param VersioningConfiguration'});
+        callback({error: 'missing param VersioningConfiguration'});
         return;
     }
     var VersioningConfiguration = params['VersioningConfiguration'] || {};
@@ -885,6 +884,9 @@ function headObject(params, callback) {
             }
             return callback(err);
         }
+        if (data.headers && data.headers.etag) {
+            data.ETag = data.headers && data.headers.etag;
+        }
         callback(null, data);
     });
 }
@@ -946,7 +948,6 @@ function listObjectVersions(params, callback) {
  * @param  {Object}  data                                   为对应的 object 数据，包括 body 和 headers
  */
 function getObject(params, callback) {
-    var self = this;
     var reqParams = {};
 
     reqParams['response-content-type'] = params['ResponseContentType'];
@@ -956,16 +957,17 @@ function getObject(params, callback) {
     reqParams['response-content-disposition'] = params['ResponseContentDisposition'];
     reqParams['response-content-encoding'] = params['ResponseContentEncoding'];
 
-    var outputStream = params.Output;
     var BodyType;
 
+    var self = this;
+    var outputStream = params.Output;
     if (outputStream && typeof outputStream === 'string') {
         outputStream = fs.createWriteStream(outputStream);
         BodyType = 'stream';
     } else if (outputStream && typeof outputStream.pipe === 'function') {
         BodyType = 'stream';
     } else {
-        BodyType = util.isBrowser ? 'string' : 'buffer';
+        BodyType = 'buffer';
     }
 
     var onProgress = params.onProgress;
@@ -1038,6 +1040,9 @@ function getObject(params, callback) {
         } else if (BodyType === 'string') {
             result.Body = data.body;
         }
+        if (data.headers && data.headers.etag) {
+            result.ETag = data.headers && data.headers.etag;
+        }
         util.extend(result, {
             statusCode: data.statusCode,
             headers: data.headers,
@@ -1053,7 +1058,7 @@ function getObject(params, callback) {
  *     @param  {String}  params.Bucket                              Bucket名称，必须
  *     @param  {String}  params.Region                              地域名称，必须
  *     @param  {String}  params.Key                                 文件名称，必须
- *     @param  {Buffer || ReadStream}  params.Body                  上传文件的内容或者流
+ *     @param  {Buffer || ReadStream || String}  params.Body        上传文件的内容或流或字符串
  *     @param  {String}  params.CacheControl                        RFC 2616 中定义的缓存策略，将作为 Object 元数据保存，非必须
  *     @param  {String}  params.ContentDisposition                  RFC 2616 中定义的文件名称，将作为 Object 元数据保存，非必须
  *     @param  {String}  params.ContentEncoding                     RFC 2616 中定义的编码格式，将作为 Object 元数据保存，非必须
@@ -1076,29 +1081,8 @@ function getObject(params, callback) {
 function putObject(params, callback) {
 
     var self = this;
-    var headers = params.Headers;
-
-    var Body = params.Body;
-    var readStream;
-
-    if (util.isBrowser && Body && (Body instanceof global.Blob || Body instanceof global.File)) { // 在浏览器允许传入 Blob 或者 File 文件内容
-        headers['Content-Length'] = Body.size;
-    } else if (util.isBrowser && Body && typeof Body === 'string') { // 在浏览器允许传入字符串作为内容 'hello'
-        headers['Content-Length'] = Body.length;
-    } else if (Body && Body instanceof Buffer) { // 传入 fs.readFileSync(filepath) 或者 文件内容
-        headers['Content-Length'] = Body.length;
-    } else if (Body && typeof Body.pipe === 'function') { // fs.createReadStream(filepath)
-        readStream = Body;
-        Body = null;
-        if (headers['Content-Length'] === undefined) {
-            callback({error: 'lack of param ContentLength'});
-            return;
-        }
-    } else {
-        callback({error: 'params body format error, Only allow Buffer, Stream, Blob.'});
-        return;
-    }
-    var onProgress = util.throttleOnProgress.call(self, headers['Content-Length'], params.onProgress);
+    var FileSize = params.ContentLength;
+    var onProgress = util.throttleOnProgress.call(self, FileSize, params.onProgress);
 
     submitRequest.call(this, {
         TaskId: params.TaskId,
@@ -1106,15 +1090,15 @@ function putObject(params, callback) {
         Bucket: params.Bucket,
         Region: params.Region,
         Key: params.Key,
-        headers: headers,
-        body: Body,
+        headers: params.Headers,
+        body: params.Body,
         onProgress: onProgress,
-        inputStream: readStream
     }, function (err, data) {
-        onProgress(null, true);
         if (err) {
+            onProgress(null, true);
             return callback(err);
         }
+        onProgress({loaded: FileSize, total: FileSize}, true);
         if (data && data.headers && data.headers['etag']) {
             var url = getUrl({
                 protocol: self.options.Protocol,
@@ -1427,7 +1411,7 @@ function deleteMultipleObject(params, callback) {
 function restoreObject(params, callback) {
     var headers = params.Headers;
     if (!params['RestoreRequest']) {
-        callback({error: 'lack of param RestoreRequest'});
+        callback({error: 'missing param RestoreRequest'});
         return;
     }
 
@@ -1502,42 +1486,47 @@ function multipartInit(params, callback) {
 
 /**
  * 分块上传
- * @param  {Object}  params                             参数对象，必须
- *     @param  {String}  params.Bucket                  Bucket名称，必须
- *     @param  {String}  params.Region                  地域名称，必须
- *     @param  {String}  params.Key                     object名称，必须
- * @param  {String}      params.ContentLength           RFC 2616 中定义的 HTTP 请求内容长度（字节），非必须
- * @param  {String}      params.Expect                  当使用 Expect: 100-continue 时，在收到服务端确认后，才会发送请求内容，非必须
- * @param  {String}      params.ServerSideEncryption    支持按照指定的加密算法进行服务端数据加密，格式 x-cos-server-side-encryption: "AES256"，非必须
- * @param  {String}      params.ContentSha1             RFC 3174 中定义的 160-bit 内容 SHA-1 算法校验值，非必须
- * @param  {Function}  callback                         回调函数，必须
- * @return  {Object}  err                               请求失败的错误，如果请求成功，则为空。
- * @return  {Object}  data                              返回的数据
- *     @return  {Object}  data.ETag                     返回的文件分块 sha1 值
+ * @param  {Object}  params                                 参数对象，必须
+ *     @param  {String}  params.Bucket                      Bucket名称，必须
+ *     @param  {String}  params.Region                      地域名称，必须
+ *     @param  {String}  params.Key                         object名称，必须
+ *     @param  {Buffer || Stream || String}  params.Body    上传文件对象或字符串
+ *     @param  {String} params.ContentLength                RFC 2616 中定义的 HTTP 请求内容长度（字节），非必须
+ *     @param  {String} params.Expect                       当使用 Expect: 100-continue 时，在收到服务端确认后，才会发送请求内容，非必须
+ *     @param  {String} params.ServerSideEncryption         支持按照指定的加密算法进行服务端数据加密，格式 x-cos-server-side-encryption: "AES256"，非必须
+ *     @param  {String} params.ContentSha1                  RFC 3174 中定义的 160-bit 内容 SHA-1 算法校验值，非必须
+ * @param  {Function}  callback                             回调函数，必须
+ *     @return  {Object}  err                               请求失败的错误，如果请求成功，则为空。
+ *     @return  {Object}  data                              返回的数据
+ *     @return  {Object}  data.ETag                         返回的文件分块 sha1 值
  */
 function multipartUpload(params, callback) {
-    submitRequest.call(this, {
-        TaskId: params.TaskId,
-        method: 'PUT',
-        Bucket: params.Bucket,
-        Region: params.Region,
-        Key: params.Key,
-        qs: {
-            partNumber: params['PartNumber'],
-            uploadId: params['UploadId'],
-        },
-        headers: params.Headers,
-        onProgress: params.onProgress,
-        inputStream: params.Body || null
-    }, function (err, data) {
-        if (err) {
-            return callback(err);
-        }
-        data['headers'] = data['headers'] || {};
-        callback(null, {
-            ETag: data['headers']['etag'] || '',
-            statusCode: data.statusCode,
-            headers: data.headers,
+
+    var self = this;
+    util.getFileSize('multipartUpload', params, function () {
+        submitRequest.call(self, {
+            TaskId: params.TaskId,
+            method: 'PUT',
+            Bucket: params.Bucket,
+            Region: params.Region,
+            Key: params.Key,
+            qs: {
+                partNumber: params['PartNumber'],
+                uploadId: params['UploadId'],
+            },
+            headers: params.Headers,
+            onProgress: params.onProgress,
+            body: params.Body || null
+        }, function (err, data) {
+            if (err) {
+                return callback(err);
+            }
+            data['headers'] = data['headers'] || {};
+            callback(null, {
+                ETag: data['headers']['etag'] || '',
+                statusCode: data.statusCode,
+                headers: data.headers,
+            });
         });
     });
 
@@ -1798,6 +1787,8 @@ function getObjectUrl(params, callback) {
         return url;
     }
     var authorization = getAuthorizationAsync.call(this, {
+        Bucket: params.Bucket || '',
+        Region: params.Region || '',
         Method: params.Method || 'get',
         Key: params.Key,
         Expires: params.Expires,
@@ -1925,52 +1916,65 @@ function getUrl(params) {
 // 异步获取签名
 function getAuthorizationAsync(params, callback) {
     var self = this;
-    if (self.options.getAuthorization) { // 外部计算签名
-        self.options.getAuthorization.call(self, {
+    var Bucket = params.Bucket || '';
+    var Region = params.Region || '';
+    self._StsMap = self._StsMap || {};
+    var StsData = self._StsMap[Bucket + '.' + Region] || {};
+
+    var calcAuthByTmpKey = function () {
+        var Authorization = util.getAuth({
+            SecretId: StsData.TmpSecretId,
+            SecretKey: StsData.TmpSecretKey,
             Method: params.Method,
             Key: params.Key || '',
             Query: params.Query,
             Headers: params.Headers,
-            Expires: params.Expires,
+        });
+        var AuthData = {
+            Authorization: Authorization,
+            XCosSecurityToken: StsData.XCosSecurityToken || '',
+            Token: StsData.Token || '',
+            ClientIP: StsData.ClientIP || '',
+            ClientUA: StsData.ClientUA || '',
+        };
+        callback && callback(AuthData);
+    };
+
+    // 先判断是否有临时密钥
+    if (StsData.ExpiredTime && StsData.ExpiredTime - (Date.now() / 1000 > 60)) { // 如果缓存的临时密钥有效，并还有超过60秒有效期就直接使用
+        calcAuthByTmpKey();
+    } else if (self.options.getAuthorization) { // 外部计算签名或获取临时密钥
+        self.options.getAuthorization.call(self, {
+            Bucket: Bucket,
+            Region: Region,
+            Method: params.Method,
+            Key: params.Key || '',
+            Query: params.Query,
+            Headers: params.Headers,
         }, function (AuthData) {
             if (typeof AuthData === 'string') {
                 AuthData = {Authorization: AuthData};
             }
-            callback && callback(AuthData);
+            if (AuthData.TmpSecretId &&
+                AuthData.TmpSecretKey &&
+                AuthData.XCosSecurityToken &&
+                AuthData.ExpiredTime) {
+                StsData = self._StsMap[Bucket + '.' + Region] = AuthData;
+                calcAuthByTmpKey();
+            } else {
+                callback && callback(AuthData);
+            }
         });
     } else if (self.options.getSTS) { // 外部获取临时密钥
-        var Bucket = params.Bucket || '';
-        self._StsMap = self._StsMap || {};
-        var StsData = self._StsMap[Bucket] || {};
-        var runTemp = function () {
-            var Authorization = util.getAuth({
-                SecretId: StsData.SecretId,
-                SecretKey: StsData.SecretKey,
-                Method: params.Method,
-                Key: params.Key || '',
-                Query: params.Query,
-                Headers: params.Headers,
-                Expires: params.Expires,
-            });
-            var AuthData = {
-                Authorization: Authorization,
-                XCosSecurityToken: StsData.XCosSecurityToken || '',
-                Token: StsData.Token || '',
-                ClientIP: StsData.ClientIP || '',
-                ClientUA: StsData.ClientUA || '',
-            };
-            callback && callback(AuthData);
-        };
-        if (StsData.ExpiredTime && StsData.ExpiredTime - (Date.now() / 1000 > 60)) { // 如果缓存的临时密钥有效，并还有超过60秒有效期就直接使用
-            runTemp();
-        } else { // 如果有效时间小于 60 秒就重新获取临时密钥
-            self.options.getSTS.call(self, {
-                Bucket: Bucket
-            }, function (data) {
-                StsData = self._StsMap[Bucket] = data || {};
-                runTemp();
-            });
-        }
+        self.options.getSTS.call(self, {
+            Bucket: Bucket,
+            Region: Region,
+        }, function (data) {
+            StsData = self._StsMap[Bucket + '.' + Region] = data || {};
+            StsData.TmpSecretId = StsData.SecretId;
+            StsData.TmpSecretKey = StsData.SecretKey;
+            calcAuthByTmpKey();
+        });
     } else { // 内部计算获取签名
         var Authorization = util.getAuth({
             SecretId: params.SecretId || self.options.SecretId,
@@ -1993,7 +1997,7 @@ function submitRequest(params, callback) {
 
     // 处理 headers
     !params.headers && (params.headers = {});
-    params.headers['User-Agent'] = 'cos-nodejs-sdk-v5-' + pkg.version;
+    params.headers['User-Agent'] = self.options.UserAgent || ('cos-nodejs-sdk-v5-' + pkg.version);
 
     // 处理 query
     !params.qs && (params.qs = {});
@@ -2007,6 +2011,8 @@ function submitRequest(params, callback) {
     var Query = util.clone(params.qs);
     params.action && (Query[params.action] = '');
     getAuthorizationAsync.call(self, {
+        Bucket: params.Bucket || '',
+        Region: params.Region || '',
         Method: params.method,
         Key: params.Key,
         Query: Query,
@@ -2062,6 +2068,13 @@ function _submitRequest(params, callback) {
     var body = params.body;
     var json = params.json;
     var rawBody = params.rawBody;
+
+    // 处理 readStream and body
+    var readStream;
+    if (body && typeof body.pipe === 'function') {
+        readStream = body;
+        body = null;
+    }
 
     // url
     url = url || getUrl({
@@ -2234,12 +2247,12 @@ function _submitRequest(params, callback) {
     }
 
     // pipe 输入
-    if (params.inputStream) {
-        params.inputStream.on('error', function (err) {
+    if (readStream) {
+        readStream.on('error', function (err) {
             sender.abort();
             callback(err);
         });
-        params.inputStream.pipe(sender);
+        readStream.pipe(sender);
     }
     // pipe 输出
     if (params.outputStream) {

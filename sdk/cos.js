@@ -15,11 +15,13 @@ var defaultOptions = {
     ChunkParallelLimit: 8,
     ChunkSize: 1024 * 1024,
     ProgressInterval: 1000,
+    UploadIdCacheLimit: 500,
     Domain: '',
     ServiceDomain: '',
     SliceSize: 1024 * 1024 * 20,
     Protocol: '',
     Proxy: '',
+    UserAgent: '',
 };
 
 // 对外暴露的类

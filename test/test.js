@@ -298,6 +298,86 @@ describe('putObject()', function () {
             util.createFile(filepath, 5 << 20, put);
         }
     });
+    it('putObject(),buffer', function (done) {
+        var content = new Buffer('中文_' + Date.now());
+        cos.putObject({
+            Bucket: config.Bucket, // Bucket 格式：test-1250000000
+            Region: config.Region,
+            Key: '1.txt',
+            Body: content,
+        }, function (err, data) {
+            var ETag = data.ETag;
+            assert.ok(!err && ETag);
+            cos.getObject({
+                Bucket: config.Bucket, // Bucket 格式：test-1250000000
+                Region: config.Region,
+                Key: filename
+            }, function (err, data) {
+                assert.ok(data.Body && data.Body.toString() === content.toString() && (data.headers && data.headers.etag) === ETag);
+                done();
+            });
+        });
+    });
+    it('putObject(),buffer,empty', function (done) {
+        var content = new Buffer('');
+        cos.putObject({
+            Bucket: config.Bucket, // Bucket 格式：test-1250000000
+            Region: config.Region,
+            Key: '1.txt',
+            Body: content,
+        }, function (err, data) {
+            var ETag = data.ETag;
+            assert.ok(!err && ETag);
+            cos.getObject({
+                Bucket: config.Bucket, // Bucket 格式：test-1250000000
+                Region: config.Region,
+                Key: filename
+            }, function (err, data) {
+                assert.ok(data.Body && data.Body.toString() === content.toString() && (data.headers && data.headers.etag) === ETag);
+                done();
+            });
+        });
+    });
+    it('putObject(),string', function (done) {
+        var content = '中文_' + Date.now();
+        cos.putObject({
+            Bucket: config.Bucket, // Bucket 格式：test-1250000000
+            Region: config.Region,
+            Key: '1.txt',
+            Body: content,
+        }, function (err, data) {
+            var ETag = data.ETag;
+            assert.ok(!err && ETag);
+            cos.getObject({
+                Bucket: config.Bucket, // Bucket 格式：test-1250000000
+                Region: config.Region,
+                Key: filename
+            }, function (err, data) {
+                assert.ok(data.Body && data.Body.toString() === content.toString() && (data.headers && data.headers.etag) === ETag);
+                done();
+            });
+        });
+    });
+    it('putObject(),string,empty', function (done) {
+        var content = '';
+        cos.putObject({
+            Bucket: config.Bucket, // Bucket 格式：test-1250000000
+            Region: config.Region,
+            Key: '1.txt',
+            Body: content,
+        }, function (err, data) {
+            var ETag = data.ETag;
+            assert.ok(!err && ETag);
+            cos.getObject({
+                Bucket: config.Bucket, // Bucket 格式：test-1250000000
+                Region: config.Region,
+                Key: filename
+            }, function (err, data) {
+                assert.ok(data.Body && data.Body.toString() === content && (data.headers && data.headers.etag) === ETag);
+                done();
+            });
+        });
+    });
 });
 
 describe('getObject()', function () {
@@ -1183,7 +1263,7 @@ describe('params check', function () {
             Bucket: config.Bucket, // Bucket 格式：test-1250000000
             Region: 'gz'
         }, function (err, data) {
-            assert.ok(err.error.indexOf('Region format error') === 0);
+            assert.ok(err.error.indexOf('param Region format error') === 0);
             done();
         });
     });
@@ -1195,7 +1275,7 @@ describe('params check', function () {
             Bucket: config.Bucket, // Bucket 格式：test-1250000000
             Region: 'cos.ap-guangzhou'
         }, function (err, data) {
-            assert.ok(err.error === 'Region should not be start with "cos."');
+            assert.ok(err.error === 'param Region should not be start with "cos."');
             done();
         });
     });

@@ -1,9 +1,12 @@
 'use strict';
 
+var fs = require('fs');
 var crypto = require('crypto');
+var ConfigStore = require('configstore');
 var xml2js = require('xml2js');
 var xmlParser = new xml2js.Parser({explicitArray: false, ignoreAttrs: true});
 var xmlBuilder = new xml2js.Builder();
+var configStore;
 
 function camSafeUrlEncode(str) {
     return encodeURIComponent(str)
@@ -26,8 +29,8 @@ var getAuth = function (opt) {
     var headers = clone(opt.Headers || opt.headers || {});
     pathname.indexOf('/') !== 0 && (pathname = '/' + pathname);
 
-    if (!SecretId) return console.error('lack of param SecretId');
-    if (!SecretKey) return console.error('lack of param SecretKey');
+    if (!SecretId) return console.error('missing param SecretId');
+    if (!SecretKey) return console.error('missing param SecretKey');
 
     var getObjectKeys = function (obj) {
         var list = [];
@@ -79,7 +82,6 @@ var getAuth = function (opt) {
 
     // 步骤二：构成 FormatString
     var formatString = [method, pathname, obj2str(queryParams), obj2str(headers), ''].join('\n');
-
     formatString = new Buffer(formatString, 'utf8');
 
     // 步骤三：计算 StringToSign
@@ -106,6 +108,21 @@ var getAuth = function (opt) {
 
 };
 
+var noop = function () {
+
+};
+
+// 清除对象里值为的 undefined 或 null 的属性
+var clearKey = function (obj) {
+    var retObj = {};
+    for (var key in obj) {
+        if (obj[key] !== undefined && obj[key] !== null) {
+            retObj[key] = obj[key];
+        }
+    }
+    return retObj;
+};
+
 // XML 对象转 JSON 对象
 var xml2json = function (bodyStr) {
     var d = {};
@@ -125,18 +142,6 @@ var json2xml = function (json) {
 // 计算 MD5
 var md5 = function (str, encoding) {
     return crypto.createHash('md5').update(str).digest(encoding || 'hex');
-};
-
-
-// 清除对象里值为的 undefined 或 null 的属性
-var clearKey = function (obj) {
-    var retObj = {};
-    for (var key in obj) {
-        if (obj[key] !== undefined && obj[key] !== null) {
-            retObj[key] = obj[key];
-        }
-    }
-    return retObj;
 };
 
 // 获取文件 md5 值
@@ -166,6 +171,16 @@ function extend(target, source) {
 }
 function isArray(arr) {
     return arr instanceof Array;
+}
+function isInArray(arr, item) {
+    var flag = false;
+    for (var i = 0; i < arr.length; i++) {
+        if (item === arr[i]) {
+            flag = true;
+            break;
+        }
+    }
+    return flag;
 }
 function each(obj, fn) {
     for (var i in obj) {
@@ -214,17 +229,19 @@ var uuid = function () {
     return (S4() + S4() + "-" + S4() + "-" + S4() + "-" + S4() + "-" + S4() + S4() + S4());
 };
 
-var checkParams = function (apiName, params) {
-    var bucket = params.Bucket;
-    var region = params.Region;
-    var object = params.Key;
+var hasMissingParams = function (apiName, params) {
+    var Bucket = params.Bucket;
+    var Region = params.Region;
+    var Key = params.Key;
     if (apiName.indexOf('Bucket') > -1 || apiName === 'deleteMultipleObject' || apiName === 'multipartList' || apiName === 'listObjectVersions') {
-        return bucket && region;
+        if (!Bucket) return 'Bucket';
+        if (!Region) return 'Region';
+    } else if (apiName.indexOf('Object') > -1 || apiName.indexOf('multipart') > -1 || apiName === 'sliceUploadFile' || apiName === 'abortUploadTask') {
+        if (!Bucket) return 'Bucket';
+        if (!Region) return 'Region';
+        if (!Key) return 'Key';
     }
-    if (apiName.indexOf('Object') > -1 || apiName.indexOf('multipart') > -1 || apiName === 'sliceUploadFile' || apiName === 'abortUploadTask') {
-        return bucket && region && object;
-    }
-    return true;
+    return false;
 };
 
 var apiWrapper = function (apiName, apiFn) {
@@ -299,18 +316,19 @@ var apiWrapper = function (apiName, apiFn) {
 
         if (apiName !== 'getService' && apiName !== 'abortUploadTask') {
             // 判断参数是否完整
-            if (!checkParams(apiName, params)) {
-                _callback({error: 'lack of required params'});
+            var missingResult;
+            if (missingResult = hasMissingParams(apiName, params)) {
+                _callback({error: 'missing param ' + missingResult});
                 return;
             }
             // 判断 region 格式
             if (params.Region && params.Region.indexOf('-') === -1 && params.Region !== 'yfb') {
-                _callback({error: 'Region format error, find help here: https://cloud.tencent.com/document/product/436/6224'});
+                _callback({error: 'param Region format error, find help here: https://cloud.tencent.com/document/product/436/6224'});
                 return;
             }
             // 判断 region 格式
             if (params.Region && params.Region.indexOf('cos.') > -1) {
-                _callback({error: 'Region should not be start with "cos."'});
+                _callback({error: 'param Region should not be start with "cos."'});
                 return;
             }
             // 兼容不带 AppId 的 Bucket
@@ -383,7 +401,72 @@ var throttleOnProgress = function (total, onProgress) {
     };
 };
 
+var getFileSize = function (api, params, callback) {
+    var size;
+    if (util.isBrowser) {
+        if (typeof params.Body === 'string') {
+            params.Body = new global.Blob([params.Body]);
+        }
+        if (params.Body instanceof global.File || params.Body instanceof global.Blob) {
+            size = params.Body.size;
+        } else {
+            callback({error: 'params body format error, Only allow File|Blob|String.'});
+            return;
+        }
+    } else {
+        if (api === 'sliceUploadFile') {
+            if (params.FilePath) {
+                fs.stat(params.FilePath, function (err, fileStats) {
+                    if (err) {
+                        if (params.ContentLength !== undefined) {
+                            size = params.ContentLength;
+                        } else {
+                            callback(err);
+                            return;
+                        }
+                    } else {
+                        params.FileStat = fileStats;
+                        params.FileStat.FilePath = params.FilePath;
+                        size = fileStats.size;
+                    }
+                    params.ContentLength = size = size || 0;
+                    callback(null, size);
+                });
+                return;
+            } else {
+                callback({error: 'missing param FilePath'});
+                return;
+            }
+        } else {
+            if (params.Body !== undefined) {
+                if (typeof params.Body === 'string') {
+                    params.Body = global.Buffer(params.Body);
+                }
+                if (params.Body instanceof global.Buffer) {
+                    size = params.Body.length;
+                } else if (typeof params.Body.pipe === 'function') {
+                    if (params.ContentLength === undefined) {
+                        callback({error: 'missing param ContentLength'});
+                        return;
+                    } else {
+                        size = params.ContentLength;
+                    }
+                } else {
+                    callback({error: 'params Body format error, Only allow Buffer|Stream|String.'});
+                    return;
+                }
+            } else {
+                callback({error: 'missing param Body'});
+                return;
+            }
+        }
+    }
+    params.ContentLength = size = size || 0;
+    callback(null, size);
+};
+
 var util = {
+    noop: noop,
     apiWrapper: apiWrapper,
     getAuth: getAuth,
     xml2json: xml2json,
@@ -394,13 +477,58 @@ var util = {
     binaryBase64: binaryBase64,
     extend: extend,
     isArray: isArray,
+    isInArray: isInArray,
     each: each,
     map: map,
     filter: filter,
     clone: clone,
     uuid: uuid,
     throttleOnProgress: throttleOnProgress,
+    getFileSize: getFileSize,
     isBrowser: !!global.document,
+};
+
+(function () {
+    try {
+        configStore = new ConfigStore('cos-nodejs-sdk-v5-storage');
+    } catch (e) {}
+    var map = {};
+    var update = function (key, val) {
+        if (map.hasOwnProperty(key)) {
+            map[key] = val;
+        } else {
+            map[key] = val;
+            setTimeout(function () {
+                if (!configStore) return;
+                if (map[key] === undefined) {
+                    configStore.delete(key);
+                } else {
+                    configStore.set(key, map[key]);
+                }
+                delete map[key];
+            }, 300);
+        }
+    };
+    util.localStorage = {
+        getItem: function (key) {
+            return configStore && configStore.get(key);
+        },
+        setItem: update,
+        removeItem: update,
+    };
+})();
+util.fileSlice = function (FilePath, start, end) {
+    if (FilePath) {
+        return fs.createReadStream(FilePath, {start: start, end: end - 1});
+    }
+    return null;
+};
+util.getFileUUID = function (FileStat, ChunkSize) {
+    if (FileStat.FilePath && FileStat.size && FileStat.ctime && FileStat.mtime && ChunkSize) {
+        return util.md5([FileStat.FilePath].join('::')) + '-' + util.md5([FileStat.size, FileStat.ctime, FileStat.mtime, ChunkSize].join('::'));
+    } else {
+        return null;
+    }
 };
 
 module.exports = util;

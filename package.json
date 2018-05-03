@@ -1,6 +1,6 @@
 {
   "name": "cos-nodejs-sdk-v5",
-  "version": "2.3.10",
+  "version": "2.4.0",
   "description": "cos nodejs sdk v5",
   "main": "index.js",
   "scripts": {
@@ -26,6 +26,7 @@
   },
   "homepage": "https://github.com/tencentyun/cos-nodejs-sdk-v5#readme",
   "dependencies": {
+    "configstore": "^3.1.2",
     "request": "^2.81.0",
     "xml2js": "^0.4.17"
   },

@@ -89,7 +89,7 @@ var initTask = function (cos) {
                 return;
             }
             task.state = switchToState;
-            cos.emit('inner-kill-task', {TaskId: id});
+            cos.emit('inner-kill-task', {TaskId: id, toState: switchToState});
             emitListUpdate();
             if (running) {
                 uploadingFileCount--;
@@ -104,37 +104,21 @@ var initTask = function (cos) {
 
     cos._addTasks = function (taskList) {
         util.each(taskList, function (task) {
-            task.params.IgnoreAddEvent = true;
-            cos._addTask(task.api, task.params, task.callback);
+            cos._addTask(task.api, task.params, task.callback, true);
         });
         emitListUpdate();
     };
 
-    cos._addTask = function (api, params, callback) {
+    cos._addTask = function (api, params, callback, ignoreAddEvent) {
+
+        // 复制参数对象
+        params = util.extend({}, params);
+        ignoreAddEvent && (params.ignoreAddEvent = true);
 
         // 生成 id
         var id = util.uuid();
-        params.TaskReady && params.TaskReady(id);
-
-        var size;
-        if (params.Body && params.Body.size !== undefined) {
-            size = params.Body.size;
-        } else if (params.Body && params.Body.length !== undefined) {
-            size = params.Body.length;
-        } else if (params.ContentLength !== undefined) {
-            size = params.ContentLength;
-        } else if (params.FilePath) {
-            try {
-                size = fs.statSync(params.FilePath).size;
-            } catch (err) {
-                callback(err);
-                return;
-            }
-        }
-
-        if (params.ContentLength === undefined) params.ContentLength = size;
-        size = size || 0;
         params.TaskId = id;
+        params.TaskReady && params.TaskReady(id);
 
         var task = {
             // env
@@ -150,7 +134,7 @@ var initTask = function (cos) {
             FilePath: params.FilePath || '',
             state: 'waiting',
             loaded: 0,
-            size: size,
+            size: 0,
             speed: 0,
             percent: 0,
             hashPercent: 0,
@@ -175,8 +159,17 @@ var initTask = function (cos) {
         };
         queue.push(task);
         tasks[id] = task;
-        !params.IgnoreAddEvent && emitListUpdate();
-        startNextTask(cos);
+
+        // 异步获取 filesize
+        util.getFileSize(api, params, function (err, size) {
+            if (err) {
+                callback(err);
+                return;
+            }
+            task.size = size;
+            !params.IgnoreAddEvent && emitListUpdate();
+            startNextTask(cos);
+        });
         return id;
     };
     cos._isRunningTask = function (id) {

@@ -119,7 +119,7 @@ var getV4Auth = function (opt) {
     var AppId = longBucket.substr(longBucket.lastIndexOf('-') + 1);
     var random = Math.round(Math.random() * Math.pow(2, 32));
     var now = Math.round(Date.now() / 1000);
-    var e = now + (opt.Expires === undefined ? 600 : opt.Expires);
+    var e = now + (opt.Expires === undefined ? 900 : opt.Expires);
     var path = '/' + AppId + '/' + ShortBucket + '/' + encodeURIComponent((opt.Key || '').replace(/(^\/*)/g, '')).replace(/%2F/g, '/');
     var plainText = 'a=' + AppId + '&b=' + ShortBucket + '&k=' + opt.SecretId + '&t=' + now + '&e=' + e + '&r=' + random + '&f=' + path;
     var signKey = crypto.createHmac("sha1", opt.SecretKey).update(plainText).digest();
@@ -488,6 +488,7 @@ var util = {
     noop: noop,
     apiWrapper: apiWrapper,
     getAuth: getAuth,
+    getV4Auth: getV4Auth,
     xml2json: xml2json,
     json2xml: json2xml,
     md5: md5,
@@ -504,7 +505,6 @@ var util = {
     uuid: uuid,
     throttleOnProgress: throttleOnProgress,
     getFileSize: getFileSize,
-    getV4Auth: getV4Auth,
     isBrowser: !!global.document,
 };
 

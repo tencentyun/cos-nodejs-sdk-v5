@@ -1761,6 +1761,16 @@ function getAuth(params) {
     });
 }
 
+function getV4Auth(params) {
+    return util.getV4Auth({
+        SecretId: params.SecretId || this.options.SecretId || '',
+        SecretKey: params.SecretKey || this.options.SecretKey || '',
+        Bucket: params.Bucket,
+        Key: params.Key,
+        Expires: params.Expires,
+    });
+}
+
 /**
  * 获取文件下载链接
  * @param  {Object}  params                 参数对象，必须
@@ -2320,6 +2330,7 @@ var API_MAP = {
     // 工具方法
     getObjectUrl: getObjectUrl,
     getAuth: getAuth,
+    getV4Auth: getV4Auth,
 };
 
 util.each(API_MAP, function (fn, apiName) {

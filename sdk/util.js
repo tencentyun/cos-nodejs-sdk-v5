@@ -108,6 +108,25 @@ var getAuth = function (opt) {
 
 };
 
+var getV4Auth = function (opt) {
+
+    if (!opt.SecretId) return console.error('missing param SecretId');
+    if (!opt.SecretKey) return console.error('missing param SecretKey');
+    if (!opt.Bucket) return console.error('missing param Bucket');
+
+    var longBucket = opt.Bucket;
+    var ShortBucket = longBucket.substr(0, longBucket.lastIndexOf('-'));
+    var AppId = longBucket.substr(longBucket.lastIndexOf('-') + 1);
+    var random = Math.round(Math.random() * Math.pow(2, 32));
+    var now = Math.round(Date.now() / 1000);
+    var e = now + (opt.Expires === undefined ? 600 : opt.Expires);
+    var path = '/' + AppId + '/' + ShortBucket + '/' + encodeURIComponent((opt.Key || '').replace(/(^\/*)/g, '')).replace(/%2F/g, '/');
+    var plainText = 'a=' + AppId + '&b=' + ShortBucket + '&k=' + opt.SecretId + '&t=' + now + '&e=' + e + '&r=' + random + '&f=' + path;
+    var signKey = crypto.createHmac("sha1", opt.SecretKey).update(plainText).digest();
+    var sign = Buffer.concat([signKey, new Buffer(plainText)]).toString("base64");
+    return sign;
+};
+
 var noop = function () {
 
 };
@@ -257,7 +276,7 @@ var apiWrapper = function (apiName, apiFn) {
         params = extend({}, params);
 
         // 统一处理 Headers
-        if (apiName !== 'getAuth' && apiName !== 'getObjectUrl') {
+        if (apiName !== 'getAuth' && apiName !== 'getV4Auth' && apiName !== 'getObjectUrl') {
             var Headers = params.Headers || {};
             if (params && typeof params === 'object') {
                 (function () {
@@ -354,7 +373,7 @@ var apiWrapper = function (apiName, apiFn) {
             }
         }
         var res = apiFn.call(this, params, _callback);
-        if (apiName === 'getAuth' || apiName === 'getObjectUrl') {
+        if (apiName === 'getAuth' || apiName === 'getV4Auth' || apiName === 'getObjectUrl') {
             return res;
         }
     }
@@ -485,6 +504,7 @@ var util = {
     uuid: uuid,
     throttleOnProgress: throttleOnProgress,
     getFileSize: getFileSize,
+    getV4Auth: getV4Auth,
     isBrowser: !!global.document,
 };
 

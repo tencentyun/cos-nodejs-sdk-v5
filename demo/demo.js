@@ -31,7 +31,19 @@ function getAuth() {
         Expires: 60,
     });
     // 注意：这里的 Bucket 格式是 test-1250000000
-    console.log('http://' + config.Bucket + '.cos.' + config.Region + '.myqcloud.com' + '/' + key + '?sign=' + encodeURIComponent(auth));
+    console.log('http://' + config.Bucket + '.cos.' + config.Region + '.myqcloud.com' + '/' + encodeURIComponent(key) + '?sign=' + encodeURIComponent(auth));
+}
+
+function getV4Auth() {
+    console.log();
+    var key = '中文.txt';
+    var auth = cos.getV4Auth({
+        Bucket: config.Bucket,
+        Key: key,
+        Expires: 60,
+    });
+    // 注意：这里的 Bucket 格式是 test-1250000000
+    console.log('http://' + config.Bucket + '.cos.' + config.Region + '.myqcloud.com' + '/' + encodeURIComponent(key) + '?sign=' + encodeURIComponent(auth));
 }
 
 function getObjectUrl() {
@@ -668,6 +680,7 @@ function uploadFiles() {
 
 getService();
 // getAuth();
+// getV4Auth();
 // getObjectUrl();
 // putBucket();
 // getBucket();

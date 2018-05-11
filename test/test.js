@@ -135,6 +135,35 @@ describe('getAuth()', function () {
     });
 });
 
+describe('getV4Auth()', function () {
+    this.timeout(60000);
+    it('通过获取签名能正常获取文件', function (done) {
+        var content = Date.now().toString();
+        var key = '1.txt';
+        prepareBucket().then(function () {
+            cos.putObject({
+                Bucket: config.Bucket, // Bucket 格式：test-1250000000
+                Region: config.Region,
+                Key: key,
+                Body: new Buffer(content)
+            }, function (err, data) {
+                var auth = cos.getV4Auth({
+                    Bucket: config.Bucket,
+                    Key: key,
+                });
+                var link = 'http://' + BucketLongName + '.cos.' + config.Region + '.myqcloud.com/' + key +
+                    '?sign=' + encodeURIComponent(auth);
+                request(link, function (err, response, body) {
+                    assert.ok(response.statusCode === 200);
+                    assert.ok(body === content);
+                    done();
+                });
+            });
+        }).catch(function () {
+        });
+    });
+});
+
 describe('auth check', function () {
     this.timeout(60000);
     it('auth check', function (done) {

@@ -465,8 +465,7 @@ var getFileSize = function (api, params, callback) {
                     size = params.Body.length;
                 } else if (typeof params.Body.pipe === 'function') {
                     if (params.ContentLength === undefined) {
-                        callback({error: 'missing param ContentLength'});
-                        return;
+                        size = undefined;
                     } else {
                         size = params.ContentLength;
                     }
@@ -480,7 +479,7 @@ var getFileSize = function (api, params, callback) {
             }
         }
     }
-    params.ContentLength = size = size || 0;
+    params.ContentLength = size;
     callback(null, size);
 };
 

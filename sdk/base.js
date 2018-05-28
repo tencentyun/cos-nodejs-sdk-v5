@@ -1356,11 +1356,12 @@ function uploadPartCopy(params, callback) {
             uploadId: params['UploadId'],
         },
         headers: params.Headers,
+        // onProgress: params.onProgress, // add by wonderswang
     }, function (err, data) {
         if (err) {
             return callback(err);
         }
-        var result = util.clone(data.CopyObjectResult || {});
+        var result = util.clone(data.CopyPartResult || {});
         util.extend(result, {
             statusCode: data.statusCode,
             headers: data.headers,
@@ -2122,6 +2123,7 @@ function _submitRequest(params, callback) {
         opt.proxy = this.options.Proxy;
     }
 
+
     var sender = REQUEST(opt);
     var retResponse;
     var hasReturned;
@@ -2161,7 +2163,7 @@ function _submitRequest(params, callback) {
             sender.on('end', function () {
                 cb(null, {});
             });
-        } else if (responseContentLength >= process.binding('buffer').kMaxLength) {
+        } else if (responseContentLength >= process.binding('buffer').kMaxLength && opt.method !== 'HEAD') {
             cb({error: 'file size large than ' + process.binding('buffer').kMaxLength + ', please use "Output" Stream to getObject.'});
         } else {
             sender.on('data', function (chunk) {

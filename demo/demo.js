@@ -450,7 +450,7 @@ function putObjectCopy() {
         Bucket: config.Bucket, // Bucket 格式：test-1250000000
         Region: config.Region,
         Key: '1mb.copy.zip',
-        CopySource: config.Bucket + '.cos.' + config.Region + '.myqcloud.com/1mb.zip', // Bucket 格式：test-1250000000
+        CopySource: config.Bucket + '.cos.' + config.Region + '.myqcloud.com/1mb.zip',
     }, function (err, data) {
         console.log(err || data);
     });
@@ -678,6 +678,33 @@ function uploadFiles() {
     });
 }
 
+function sliceCopyFile() {
+    // 创建测试文件
+    var sourceName = '3mb.zip';
+    var Key = '3mb.copy.zip';
+
+    var sourcePath = config.Bucket + '.cos.' + config.Region + '.myqcloud.com/'+ sourceName;
+
+    cos.sliceCopyFile({
+        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Region: config.Region,
+        Key: Key,
+        CopySource: sourcePath,
+        SliceSize: 2 * 1024 * 1024, // 大于2M的文件用分片复制，小于则用单片复制
+        onProgress:function (info) {
+            var percent = parseInt(info.percent * 10000) / 100;
+            var speed = parseInt(info.speed / 1024 / 1024 * 100) / 100;
+            console.log('进度：' + percent + '%; 速度：' + speed + 'Mb/s;');
+        }
+    },function (err,data) {
+        if(err){
+            console.log(err);
+        }else{
+            console.log(data);
+        }
+    });
+}
+
 getService();
 // getAuth();
 // getV4Auth();
@@ -721,3 +748,4 @@ getService();
 // pauseTask();
 // restartTask();
 // uploadFiles();
+// sliceCopyFile();

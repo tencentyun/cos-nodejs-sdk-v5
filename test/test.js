@@ -49,7 +49,7 @@ function prepareBucket() {
 function prepareBigObject() {
     return new Promise(function (resolve, reject) {
         // 创建测试文件
-        var filename = 'big.zip';
+        var filename = 'bigger.zip';
         var filepath = path.resolve(__dirname, filename);
         var put = function () {
             // 调用方法
@@ -266,17 +266,18 @@ describe('putObject()', function () {
             fs.unlinkSync(filepath);
             getObjectContent(function (objectContent) {
                 assert.ok(objectContent === content);
-                cos.putObjectCopy({
-                    Bucket: config.Bucket, // Bucket 格式：test-1250000000
-                    Region: config.Region,
-                    //ServerSideEncryption: 'AES256',
-                    Key: '1.copy.text',
-                    CopySource: config.Bucket + '.cos.' + config.Region + '.myqcloud.com/' + filename, // Bucket 格式：test-1250000000
-                }, function (err, data) {
-                    assert.ok(!err);
-                    assert.ok(data.ETag.length > 0);
-                    done();
-                });
+                done();
+                // cos.putObjectCopy({
+                //     Bucket: config.Bucket, // Bucket 格式：test-1250000000
+                //     Region: config.Region,
+                //     //ServerSideEncryption: 'AES256',
+                //     Key: '1.copy.text',
+                //     CopySource: config.Bucket + '.cos.' + config.Region + '.myqcloud.com/' + filename, // Bucket 格式：test-1250000000
+                // }, function (err, data) {
+                //     assert.ok(!err);
+                //     assert.ok(data.ETag.length > 0);
+                //     done();
+                // });
             });
         });
     });
@@ -475,8 +476,90 @@ describe('getObject()', function () {
     });
 });
 
+describe('putObjectCopy()', function () {
+    this.timeout(60000);
+    var fileName = '1.txt';
+    it('正常复制 object', function (done) {
+        cos.putObjectCopy({
+            Bucket: config.Bucket, // Bucket 格式：test-1250000000
+            Region: config.Region,
+            Key: '1.copy.txt',
+            CopySource: config.Bucket + '.cos.' + config.Region + '.myqcloud.com/' + fileName,
+        }, function (err, data) {
+            assert.ok(!err);
+            assert.ok(data.ETag.length > 0);
+            done();
+        });
+    });
+    it('捕获 object 异常', function (done) {
+        var errFileName = '2.txt';
+        cos.putObjectCopy({
+            Bucket: config.Bucket, // Bucket 格式：test-1250000000
+            Region: config.Region,
+            Key: '1.copy.txt',
+            CopySource: config.Bucket + '.cos.' + config.Region + '.myqcloud.com/' + errFileName,
+        }, function (err, data) {
+            assert.equal(true,err.statusCode === 404);
+            assert.equal(true,err.error.Code === 'NoSuchKey')
+            done();
+        });
+    });
+});
+
+describe('sliceCopyFile()', function () {
+    this.timeout(60000);
+    var fileName = 'bigger.zip';
+    var filepath = path.resolve(__dirname, fileName);
+    var Key = 'bigger.copy.zip';
+    it('正常分片复制 object', function (done) {
+        prepareBigObject().then(function () {
+            cos.sliceCopyFile({
+                Bucket: config.Bucket, // Bucket 格式：test-1250000000
+                Region: config.Region,
+                Key: Key,
+                CopySource: config.Bucket + '.cos.' + config.Region + '.myqcloud.com/'+ fileName,
+                SliceSize: 5 * 1024 * 1024,
+                onProgress:function (processData) {
+                    lastPercent = processData.percent;
+                }
+            },function (err,data) {
+                if (err) throw err;
+                assert.ok(data.ETag.length > 0);
+                fs.unlinkSync(filepath);
+                done();
+            });
+        }).catch(function () {
+            assert.equal(false);
+            done();
+        });
+    });
+    it('单片复制 object', function (done) {
+        prepareBigObject().then(function () {
+            cos.sliceCopyFile({
+                Bucket: config.Bucket, // Bucket 格式：test-1250000000
+                Region: config.Region,
+                Key: Key,
+                CopySource: config.Bucket + '.cos.' + config.Region + '.myqcloud.com/'+ fileName,
+                SliceSize: 10 * 1024 * 1024,
+                onProgress:function (processData) {
+                    lastPercent = processData.percent;
+                }
+            },function (err,data) {
+                if (err) throw err;
+                assert.ok(data.ETag.length > 0);
+                fs.unlinkSync(filepath);
+                done();
+            });
+        }).catch(function () {
+            assert.equal(false);
+            done();
+        });
+    });
+});
+
 describe('sliceUploadFile()', function () {
     this.timeout(120000);
+
     it('正常分片上传 object', function (done) {
         var filename = '3mb.zip';
         var filepath = path.resolve(__dirname, filename);

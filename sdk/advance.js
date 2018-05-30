@@ -627,6 +627,7 @@ function uploadSliceList(params, cb) {
 
 // 上传指定分片
 function uploadSliceItem(params, callback) {
+    var self = this;
     var TaskId = params.TaskId;
     var Bucket = params.Bucket;
     var Region = params.Region;
@@ -637,8 +638,7 @@ function uploadSliceItem(params, callback) {
     var SliceSize = params.SliceSize;
     var ServerSideEncryption = params.ServerSideEncryption;
     var UploadData = params.UploadData;
-    var sliceRetryTimes = this.options.ChunkRetryTimes;
-    var self = this;
+    var ChunkRetryTimes = self.options.ChunkRetryTimes + 1;
 
     var start = SliceSize * (PartNumber - 1);
 
@@ -651,18 +651,16 @@ function uploadSliceItem(params, callback) {
         ContentLength = end - start;
     }
 
-    var Body = util.fileSlice(FilePath, start, end);
     var PartItem = UploadData.PartList[PartNumber - 1];
-    var ContentSha1 = PartItem.ETag;
-    Async.retry(sliceRetryTimes, function (tryCallback) {
+    Async.retry(ChunkRetryTimes, function (tryCallback) {
         if (!self._isRunningTask(TaskId)) return;
+        var Body = util.fileSlice(FilePath, start, end);
         self.multipartUpload({
             TaskId: TaskId,
             Bucket: Bucket,
             Region: Region,
             Key: Key,
             ContentLength: ContentLength,
-            ContentSha1: ContentSha1,
             PartNumber: PartNumber,
             UploadId: UploadData.UploadId,
             ServerSideEncryption: ServerSideEncryption,
@@ -692,24 +690,24 @@ function uploadSliceComplete(params, callback) {
     var UploadId = params.UploadId;
     var SliceList = params.SliceList;
     var self = this;
+    var ChunkRetryTimes = this.options.ChunkRetryTimes + 1;
     var Parts = SliceList.map(function (item) {
         return {
             PartNumber: item.PartNumber,
             ETag: item.ETag
         };
     });
-
-    self.multipartComplete({
-        Bucket: Bucket,
-        Region: Region,
-        Key: Key,
-        UploadId: UploadId,
-        Parts: Parts
+    // 完成上传的请求也做重试
+    Async.retry(ChunkRetryTimes, function (tryCallback) {
+        self.multipartComplete({
+            Bucket: Bucket,
+            Region: Region,
+            Key: Key,
+            UploadId: UploadId,
+            Parts: Parts
+        }, tryCallback);
     }, function (err, data) {
-        if (err) {
-            return callback(err);
-        }
-        callback(null, data);
+        callback(err, data);
     });
 }
 
@@ -1100,10 +1098,10 @@ function copySliceItem(params,callback) {
     var PartNumber = params.PartNumber * 1;
     var CopySourceRange = params.CopySourceRange;
 
-    var sliceRetryTimes = this.options.ChunkRetryTimes;
+    var ChunkRetryTimes = this.options.ChunkRetryTimes + 1;
     var self = this;
 
-    Async.retry(sliceRetryTimes, function (tryCallback) {
+    Async.retry(ChunkRetryTimes, function (tryCallback) {
         self.uploadPartCopy({
             TaskId: TaskId,
             Bucket: Bucket,

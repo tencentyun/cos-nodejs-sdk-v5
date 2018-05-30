@@ -543,7 +543,7 @@ util.fileSlice = function (FilePath, start, end) {
     return null;
 };
 util.getFileUUID = function (FileStat, ChunkSize) {
-    if (FileStat.FilePath && FileStat.size && FileStat.ctime && FileStat.mtime && ChunkSize) {
+    if (FileStat && FileStat.FilePath && FileStat.size && FileStat.ctime && FileStat.mtime && ChunkSize) {
         return util.md5([FileStat.FilePath].join('::')) + '-' + util.md5([FileStat.size, FileStat.ctime, FileStat.mtime, ChunkSize].join('::'));
     } else {
         return null;

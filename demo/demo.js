@@ -148,7 +148,7 @@ function putBucketCors() {
                 "AllowedOrigin": ["*"],
                 "AllowedMethod": ["GET", "POST", "PUT", "DELETE", "HEAD"],
                 "AllowedHeader": ["*"],
-                "ExposeHeader": ["ETag", "x-cos-acl", "x-cos-version-id", "x-cos-delete-marker", "x-cos-server-side-encryption"],
+                "ExposeHeader": ["ETag", "Content-Length", "x-cos-acl", "x-cos-version-id", "x-cos-request-id", "x-cos-delete-marker", "x-cos-server-side-encryption"],
                 "MaxAgeSeconds": "5"
             }]
         }
@@ -156,6 +156,7 @@ function putBucketCors() {
         console.log(err || data);
     });
 }
+return putBucketCors();
 
 function getBucketCors() {
     cos.getBucketCors({
@@ -705,7 +706,7 @@ function sliceCopyFile() {
     });
 }
 
-getService();
+// getService();
 // getAuth();
 // getV4Auth();
 // getObjectUrl();
@@ -714,7 +715,7 @@ getService();
 // headBucket();
 // putBucketAcl();
 // getBucketAcl();
-// putBucketCors();
+putBucketCors();
 // getBucketCors();
 // deleteBucketCors();
 // putBucketTagging();

@@ -1036,7 +1036,7 @@ function getObject(params, callback) {
         }
         var result = {};
         if (BodyType === 'buffer') {
-            result.Body = new Buffer(data.body);
+            result.Body = Buffer.from(data.body);
         } else if (BodyType === 'string') {
             result.Body = data.body;
         }

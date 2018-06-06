@@ -82,7 +82,7 @@ var getAuth = function (opt) {
 
     // 步骤二：构成 FormatString
     var formatString = [method, pathname, obj2str(queryParams), obj2str(headers), ''].join('\n');
-    formatString = new Buffer(formatString, 'utf8');
+    formatString = Buffer.from(formatString, 'utf8');
 
     // 步骤三：计算 StringToSign
     var sha1Algo = crypto.createHash('sha1');
@@ -123,7 +123,7 @@ var getV4Auth = function (opt) {
     var path = '/' + AppId + '/' + ShortBucket + '/' + encodeURIComponent((opt.Key || '').replace(/(^\/*)/g, '')).replace(/%2F/g, '/');
     var plainText = 'a=' + AppId + '&b=' + ShortBucket + '&k=' + opt.SecretId + '&t=' + now + '&e=' + e + '&r=' + random + '&f=' + path;
     var signKey = crypto.createHmac("sha1", opt.SecretKey).update(plainText).digest();
-    var sign = Buffer.concat([signKey, new Buffer(plainText)]).toString("base64");
+    var sign = Buffer.concat([signKey, Buffer.from(plainText)]).toString("base64");
     return sign;
 };
 
@@ -239,7 +239,7 @@ var binaryBase64 = function (str) {
         char = parseInt(str[i * 2] + str[i * 2 + 1], 16);
         arr.push(char);
     }
-    return new Buffer(arr).toString('base64');
+    return Buffer.from(arr).toString('base64');
 };
 var uuid = function () {
     var S4 = function () {
@@ -459,7 +459,7 @@ var getFileSize = function (api, params, callback) {
         } else {
             if (params.Body !== undefined) {
                 if (typeof params.Body === 'string') {
-                    params.Body = global.Buffer(params.Body);
+                    params.Body = global.Buffer.from(params.Body);
                 }
                 if (params.Body instanceof global.Buffer) {
                     size = params.Body.length;

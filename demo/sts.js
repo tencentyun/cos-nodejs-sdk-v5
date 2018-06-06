@@ -29,7 +29,7 @@ var util = {
     getSignature: function (opt, key, method) {
         var formatString = method + Domain + '/v2/index.php?' + util.json2str(opt, 1);
         var hmac = crypto.createHmac('sha1', key);
-        var sign = hmac.update(new Buffer(formatString, 'utf8')).digest('base64');
+        var sign = hmac.update(Buffer.from(formatString, 'utf8')).digest('base64');
         return sign;
     },
 };

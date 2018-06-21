@@ -156,7 +156,6 @@ function putBucketCors() {
         console.log(err || data);
     });
 }
-return putBucketCors();
 
 function getBucketCors() {
     cos.getBucketCors({
@@ -706,7 +705,7 @@ function sliceCopyFile() {
     });
 }
 
-// getService();
+getService();
 // getAuth();
 // getV4Auth();
 // getObjectUrl();
@@ -715,7 +714,7 @@ function sliceCopyFile() {
 // headBucket();
 // putBucketAcl();
 // getBucketAcl();
-putBucketCors();
+// putBucketCors();
 // getBucketCors();
 // deleteBucketCors();
 // putBucketTagging();

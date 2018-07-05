@@ -950,7 +950,15 @@ function sliceCopyFile(params, callback) {
     var Region = params.Region;
     var Key = params.Key;
     var CopySource = params.CopySource;
-    var CopyFileName = CopySource.slice(CopySource.indexOf('/') + 1, CopySource.length);
+    var m = CopySource.match(/^([^.]+-\d+)\.cos\.([^.]+)\.myqcloud\.com\/(.+)$/);
+    if (!m) {
+        callback({error: 'CopySource format error'});
+        return;
+    }
+
+    var SourceBucket = m[1];
+    var SourceRegion = m[2];
+    var SourceKey = m[3];
     var SliceSize = Math.min(params.SliceSize, 5 * 1024 * 1024 * 1024);
 
     var ChunkSize = params.ChunkSize || this.options.ChunkSize;
@@ -1014,6 +1022,7 @@ function sliceCopyFile(params, callback) {
                 onProgress(null, true);
                 return callback(err);
             }
+
             ep.emit('copy_slice_complete',UploadData);
         });
     });
@@ -1039,7 +1048,7 @@ function sliceCopyFile(params, callback) {
                     PartNumber: partNumber,
                     start: start,
                     end: end,
-                    CopySourceRange: `bytes=${start}-${end}`,
+                    CopySourceRange: "bytes=" + start + "-" + end,
                 };
                 list.push(item);
             }
@@ -1063,13 +1072,13 @@ function sliceCopyFile(params, callback) {
 
     // 获取远端复制源文件的大小
     self.headObject({
-        Bucket: Bucket,
-        Region: Region,
-        Key: CopyFileName,
+        Bucket: SourceBucket,
+        Region: SourceRegion,
+        Key: SourceKey,
     },function(err, data) {
         if (err) {
           if (err.statusCode && err.statusCode === 404) {
-            return callback({ ErrorStatus: CopyFileName + ' Not Exist' });
+            return callback({ ErrorStatus: SourceKey + ' Not Exist' });
           } else {
             callback(err);
           }
@@ -1120,11 +1129,12 @@ function copySliceItem(params,callback) {
     });
 }
 
+
 var API_MAP = {
     sliceUploadFile: sliceUploadFile,
     abortUploadTask: abortUploadTask,
     uploadFiles: uploadFiles,
-    sliceCopyFile:sliceCopyFile,
+    sliceCopyFile: sliceCopyFile,
 };
 
 util.each(API_MAP, function (fn, apiName) {

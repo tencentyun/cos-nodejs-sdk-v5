@@ -288,7 +288,6 @@ var apiWrapper = function (apiName, apiFn) {
                 })();
 
                 // params headers
-                Headers['x-cos-mfa'] = params['MFA'];
                 Headers['Content-MD5'] = params['ContentMD5'];
                 Headers['Content-Length'] = params['ContentLength'];
                 Headers['Content-Type'] = params['ContentType'];
@@ -317,6 +316,8 @@ var apiWrapper = function (apiName, apiFn) {
                 Headers['x-cos-grant-read-acp'] = params['GrantReadAcp'];
                 Headers['x-cos-grant-write-acp'] = params['GrantWriteAcp'];
                 Headers['x-cos-storage-class'] = params['StorageClass'];
+                Headers['x-cos-version-id'] = params['VersionId'];
+                Headers['x-cos-mfa'] = params['MFA'];
                 params.Headers = clearKey(Headers);
             }
         }

@@ -766,8 +766,6 @@ function getBucketVersioning(params, callback) {
     }, function (err, data) {
         if (!err) {
             !data.VersioningConfiguration && (data.VersioningConfiguration = {});
-            !data.VersioningConfiguration.MFADelete && (data.VersioningConfiguration.MFADelete = 'Disabled');
-            !data.VersioningConfiguration.Status && (data.VersioningConfiguration.Status = 'Disabled');
         }
         callback(err, data);
     });
@@ -1806,15 +1804,13 @@ function getObjectUrl(params, callback) {
         Expires: params.Expires,
     }, function (AuthData) {
         if (!callback) return;
-        var result = {
-            Url: url + '?sign=' + encodeURIComponent(AuthData.Authorization),
-        };
-        AuthData.XCosSecurityToken && (result.XCosSecurityToken = AuthData.XCosSecurityToken);
-        AuthData.ClientIP && (result.ClientIP = AuthData.ClientIP);
-        AuthData.ClientUA && (result.ClientUA = AuthData.ClientUA);
-        AuthData.Token && (result.Token = AuthData.Token);
+        url += '?sign=' + encodeURIComponent(AuthData.Authorization);
+        AuthData.XCosSecurityToken && (url += '&x-cos-security-token=' + AuthData.XCosSecurityToken);
+        AuthData.ClientIP && (url += '&clientIP=' + AuthData.ClientIP);
+        AuthData.ClientUA && (url += '&clientUA=' + AuthData.ClientUA);
+        AuthData.Token && (url += '&token=' + AuthData.Token);
         setTimeout(function () {
-            callback(null, result);
+            callback(null, {Url: url});
         });
     });
     if (authorization) {

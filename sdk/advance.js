@@ -614,7 +614,6 @@ function uploadSliceList(params, cb) {
             }
             asyncCallback(err || null, data);
         });
-
     }, function (err) {
         if (!self._isRunningTask(TaskId)) return;
         if (err)  return cb(err);

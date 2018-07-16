@@ -493,15 +493,15 @@ describe('putObjectCopy()', function () {
         });
     });
     it('捕获 object 异常', function (done) {
-        var errFileName = '2.txt';
+        var errFileName = '12345.txt';
         cos.putObjectCopy({
             Bucket: config.Bucket, // Bucket 格式：test-1250000000
             Region: config.Region,
             Key: '1.copy.txt',
             CopySource: config.Bucket + '.cos.' + config.Region + '.myqcloud.com/' + errFileName,
         }, function (err, data) {
-            assert.equal(true,err.statusCode === 404);
-            assert.equal(true,err.error.Code === 'NoSuchKey')
+            assert.equal(true, err.statusCode === 404);
+            assert.equal(true, err.error.Code === 'NoSuchKey')
             done();
         });
     });
@@ -1368,7 +1368,7 @@ describe('params check', function () {
             Bucket: config.Bucket, // Bucket 格式：test-1250000000
             Region: 'gz'
         }, function (err, data) {
-            assert.ok(err.error.indexOf('param Region format error') === 0);
+            assert.ok(err);
             done();
         });
     });

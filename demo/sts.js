@@ -91,8 +91,8 @@ var getSTS = function (options, callback) {
             callback(null);
         } else {
             callback({
-                SecretId: data.credentials && data.credentials.tmpSecretId,
-                SecretKey: data.credentials && data.credentials.tmpSecretKey,
+                TmpSecretId: data.credentials && data.credentials.tmpSecretId,
+                TmpSecretKey: data.credentials && data.credentials.tmpSecretKey,
                 XCosSecurityToken: data.credentials && data.credentials.sessionToken,
                 ExpiredTime: data.expiredTime,
             });

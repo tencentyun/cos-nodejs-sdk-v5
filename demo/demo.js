@@ -450,7 +450,7 @@ function putObjectCopy() {
         Bucket: config.Bucket, // Bucket 格式：test-1250000000
         Region: config.Region,
         Key: '1mb.copy.zip',
-        CopySource: config.Bucket + '.cos.' + config.Region + '.myqcloud.com/1mb.zip',
+        CopySource: config.Bucket + '.cos.' + config.Region + '.myqcloud.com/' + encodeURIComponent('1mb.zip'),
     }, function (err, data) {
         console.log(err || data);
     });
@@ -683,7 +683,7 @@ function sliceCopyFile() {
     var sourceName = '3mb.zip';
     var Key = '3mb.copy.zip';
 
-    var sourcePath = config.Bucket + '.cos.' + config.Region + '.myqcloud.com/'+ sourceName;
+    var sourcePath = config.Bucket + '.cos.' + config.Region + '.myqcloud.com/'+ encodeURIComponent(sourceName);
 
     cos.sliceCopyFile({
         Bucket: config.Bucket, // Bucket 格式：test-1250000000

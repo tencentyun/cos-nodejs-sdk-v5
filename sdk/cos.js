@@ -25,6 +25,7 @@ var defaultOptions = {
     UploadIdCacheLimit: 500,
     Proxy: '',
     UserAgent: '',
+    CopySliceSize: 1024 * 1024 * 1024 * 50,
 };
 
 // 对外暴露的类
@@ -34,6 +35,7 @@ var COS = function (options) {
     this.options.ChunkParallelLimit = Math.max(1, this.options.ChunkParallelLimit);
     this.options.ChunkRetryTimes = Math.max(0, this.options.ChunkRetryTimes);
     this.options.ChunkSize = Math.max(1024 * 1024, this.options.ChunkSize);
+    this.options.CopySliceSize = Math.max(0, this.options.CopySliceSize);
     if (this.options.AppId) {
         console.warn('warning: AppId has been deprecated, Please put it at the end of parameter Bucket(E.g: "test-1250000000").');
     }

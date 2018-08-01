@@ -520,7 +520,7 @@ describe('sliceCopyFile()', function () {
                 Key: Key,
                 CopySource: config.Bucket + '.cos.' + config.Region + '.myqcloud.com/'+ fileName,
                 SliceSize: 5 * 1024 * 1024,
-            },function (err,data) {
+            },function (err, data) {
                 if (err) throw err;
                 assert.ok(data.ETag.length > 0);
                 fs.unlinkSync(filepath);

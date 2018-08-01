@@ -2120,7 +2120,7 @@ function _submitRequest(params, callback) {
         opt.proxy = this.options.Proxy;
     }
 
-
+    self.emit('before-send', opt);
     var sender = REQUEST(opt);
     var retResponse;
     var hasReturned;

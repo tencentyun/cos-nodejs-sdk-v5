@@ -446,7 +446,7 @@ var getFileSize = function (api, params, callback) {
                     } else {
                         params.FileStat = fileStats;
                         params.FileStat.FilePath = params.FilePath;
-                        size = fileStats.size;
+                        size = fileStats.isDirectory() ? 0 : fileStats.size;
                     }
                     params.ContentLength = size = size || 0;
                     callback(null, size);

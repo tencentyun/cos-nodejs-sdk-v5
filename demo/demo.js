@@ -31,7 +31,7 @@ function getAuth() {
         Expires: 60,
     });
     // 注意：这里的 Bucket 格式是 test-1250000000
-    console.log('http://' + config.Bucket + '.cos.' + config.Region + '.myqcloud.com' + '/' + encodeURIComponent(key) + '?sign=' + encodeURIComponent(auth));
+    console.log('http://' + config.Bucket + '.cos.' + config.Region + '.myqcloud.com' + '/' + encodeURIComponent(key).replace(/%2F/g, '/') + '?sign=' + encodeURIComponent(auth));
 }
 
 function getV4Auth() {
@@ -43,7 +43,7 @@ function getV4Auth() {
         Expires: 60,
     });
     // 注意：这里的 Bucket 格式是 test-1250000000
-    console.log('http://' + config.Bucket + '.cos.' + config.Region + '.myqcloud.com' + '/' + encodeURIComponent(key) + '?sign=' + encodeURIComponent(auth));
+    console.log('http://' + config.Bucket + '.cos.' + config.Region + '.myqcloud.com' + '/' + encodeURIComponent(key).replace(/%2F/g, '/') + '?sign=' + encodeURIComponent(auth));
 }
 
 function getObjectUrl() {
@@ -450,7 +450,7 @@ function putObjectCopy() {
         Bucket: config.Bucket, // Bucket 格式：test-1250000000
         Region: config.Region,
         Key: '1mb.copy.zip',
-        CopySource: config.Bucket + '.cos.' + config.Region + '.myqcloud.com/' + encodeURIComponent('1mb.zip'),
+        CopySource: config.Bucket + '.cos.' + config.Region + '.myqcloud.com/' + encodeURIComponent('1mb.zip').replace(/%2F/g, '/'),
     }, function (err, data) {
         console.log(err || data);
     });
@@ -557,8 +557,8 @@ function deleteMultipleObject() {
         Bucket: config.Bucket, // Bucket 格式：test-1250000000
         Region: config.Region,
         Objects: [
-            {Key: '1mb.zip'},
-            {Key: '3mb.zip'},
+            {Key: '中文/中文.txt'},
+            {Key: '中文/中文.zip'},
         ]
     }, function (err, data) {
         console.log(err || data);
@@ -683,7 +683,7 @@ function sliceCopyFile() {
     var sourceName = '3mb.zip';
     var Key = '3mb.copy.zip';
 
-    var sourcePath = config.Bucket + '.cos.' + config.Region + '.myqcloud.com/'+ encodeURIComponent(sourceName);
+    var sourcePath = config.Bucket + '.cos.' + config.Region + '.myqcloud.com/'+ encodeURIComponent(sourceName).replace(/%2F/g, '/');
 
     cos.sliceCopyFile({
         Bucket: config.Bucket, // Bucket 格式：test-1250000000

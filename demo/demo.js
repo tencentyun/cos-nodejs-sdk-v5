@@ -213,64 +213,62 @@ function putBucketPolicy() {
     cos.putBucketPolicy({
         Policy: {
             "version": "2.0",
-            "principal": {"qcs": ["qcs::cam::uin/10001:uin/10001"]}, // 这里的 10001 是 QQ 号
-            "statement": [
-                {
-                    "effect": "allow",
-                    "action": [
-                        // 这里可以从临时密钥的权限上控制前端允许的操作
-                        // 'name/cos:*', // 这样写可以包含下面所有权限
+            "statement": [{
+                "principal": {"qcs": ["qcs::cam::uin/10001:uin/10001"]}, // 这里的 10001 是 QQ 号
+                "effect": "allow",
+                "action": [
+                    // 这里可以从临时密钥的权限上控制前端允许的操作
+                    // 'name/cos:*', // 这样写可以包含下面所有权限
 
-                        // // 列出所有允许的操作
-                        // // ACL 读写
-                        // 'name/cos:GetBucketACL',
-                        // 'name/cos:PutBucketACL',
-                        // 'name/cos:GetObjectACL',
-                        // 'name/cos:PutObjectACL',
-                        // // 简单 Bucket 操作
-                        // 'name/cos:PutBucket',
-                        // 'name/cos:HeadBucket',
-                        // 'name/cos:GetBucket',
-                        // 'name/cos:DeleteBucket',
-                        // 'name/cos:GetBucketLocation',
-                        // // Versioning
-                        // 'name/cos:PutBucketVersioning',
-                        // 'name/cos:GetBucketVersioning',
-                        // // CORS
-                        // 'name/cos:PutBucketCORS',
-                        // 'name/cos:GetBucketCORS',
-                        // 'name/cos:DeleteBucketCORS',
-                        // // Lifecycle
-                        // 'name/cos:PutBucketLifecycle',
-                        // 'name/cos:GetBucketLifecycle',
-                        // 'name/cos:DeleteBucketLifecycle',
-                        // // Replication
-                        // 'name/cos:PutBucketReplication',
-                        // 'name/cos:GetBucketReplication',
-                        // 'name/cos:DeleteBucketReplication',
-                        // // 删除文件
-                        // 'name/cos:DeleteMultipleObject',
-                        // 'name/cos:DeleteObject',
-                        // 简单文件操作
-                        'name/cos:PutObject',
-                        'name/cos:AppendObject',
-                        'name/cos:GetObject',
-                        'name/cos:HeadObject',
-                        'name/cos:OptionsObject',
-                        'name/cos:PutObjectCopy',
-                        'name/cos:PostObjectRestore',
-                        // 分片上传操作
-                        'name/cos:InitiateMultipartUpload',
-                        'name/cos:ListMultipartUploads',
-                        'name/cos:ListParts',
-                        'name/cos:UploadPart',
-                        'name/cos:CompleteMultipartUpload',
-                        'name/cos:AbortMultipartUpload',
-                    ],
-                    // "resource": ["qcs::cos:ap-guangzhou:uid/1250000000:test-1250000000/*"] // 1250000000 是 appid
-                    "resource": ["qcs::cos:" + config.Region + ":uid/" + AppId + ":" + config.Bucket + "/*"] // 1250000000 是 appid
-                }
-            ]
+                    // // 列出所有允许的操作
+                    // // ACL 读写
+                    // 'name/cos:GetBucketACL',
+                    // 'name/cos:PutBucketACL',
+                    // 'name/cos:GetObjectACL',
+                    // 'name/cos:PutObjectACL',
+                    // // 简单 Bucket 操作
+                    // 'name/cos:PutBucket',
+                    // 'name/cos:HeadBucket',
+                    // 'name/cos:GetBucket',
+                    // 'name/cos:DeleteBucket',
+                    // 'name/cos:GetBucketLocation',
+                    // // Versioning
+                    // 'name/cos:PutBucketVersioning',
+                    // 'name/cos:GetBucketVersioning',
+                    // // CORS
+                    // 'name/cos:PutBucketCORS',
+                    // 'name/cos:GetBucketCORS',
+                    // 'name/cos:DeleteBucketCORS',
+                    // // Lifecycle
+                    // 'name/cos:PutBucketLifecycle',
+                    // 'name/cos:GetBucketLifecycle',
+                    // 'name/cos:DeleteBucketLifecycle',
+                    // // Replication
+                    // 'name/cos:PutBucketReplication',
+                    // 'name/cos:GetBucketReplication',
+                    // 'name/cos:DeleteBucketReplication',
+                    // // 删除文件
+                    // 'name/cos:DeleteMultipleObject',
+                    // 'name/cos:DeleteObject',
+                    // 简单文件操作
+                    'name/cos:PutObject',
+                    'name/cos:AppendObject',
+                    'name/cos:GetObject',
+                    'name/cos:HeadObject',
+                    'name/cos:OptionsObject',
+                    'name/cos:PutObjectCopy',
+                    'name/cos:PostObjectRestore',
+                    // 分片上传操作
+                    'name/cos:InitiateMultipartUpload',
+                    'name/cos:ListMultipartUploads',
+                    'name/cos:ListParts',
+                    'name/cos:UploadPart',
+                    'name/cos:CompleteMultipartUpload',
+                    'name/cos:AbortMultipartUpload',
+                ],
+                // "resource": ["qcs::cos:ap-guangzhou:uid/1250000000:test-1250000000/*"] // 1250000000 是 appid
+                "resource": ["qcs::cos:" + config.Region + ":uid/" + AppId + ":" + config.Bucket + "/*"] // 1250000000 是 appid
+            }]
         },
         Bucket: config.Bucket, // Bucket 格式：test-1250000000
         Region: config.Region

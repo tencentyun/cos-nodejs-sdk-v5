@@ -214,8 +214,8 @@ function putBucketPolicy() {
         Policy: {
             "version": "2.0",
             "statement": [{
-                "principal": {"qcs": ["qcs::cam::uin/10001:uin/10001"]}, // 这里的 10001 是 QQ 号
                 "effect": "allow",
+                "principal": {"qcs": ["qcs::cam::uin/10001:uin/10001"]}, // 这里的 10001 是 QQ 号
                 "action": [
                     // 这里可以从临时密钥的权限上控制前端允许的操作
                     // 'name/cos:*', // 这样写可以包含下面所有权限

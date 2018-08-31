@@ -891,14 +891,20 @@ function headObject(params, callback) {
 
 
 function listObjectVersions(params, callback) {
+    var reqParams = {};
+    reqParams['prefix'] = params['Prefix'];
+    reqParams['delimiter'] = params['Delimiter'];
+    reqParams['key-marker'] = params['KeyMarker'];
+    reqParams['version-id-marker'] = params['VersionIdMarker'];
+    reqParams['max-keys'] = params['MaxKeys'];
+    reqParams['encoding-type'] = params['EncodingType'];
+
     submitRequest.call(this, {
         method: 'GET',
         Bucket: params.Bucket,
         Region: params.Region,
         headers: params.Headers,
-        qs: {
-            prefix: params.Prefix
-        },
+        qs: reqParams,
         action: 'versions',
     }, function (err, data) {
         if (err) {
@@ -1082,7 +1088,7 @@ function putObject(params, callback) {
     var FileSize = params.ContentLength;
     var onProgress = util.throttleOnProgress.call(self, FileSize, params.onProgress);
 
-    submitRequest.call(this, {
+    submitRequest.call(self, {
         TaskId: params.TaskId,
         method: 'PUT',
         Bucket: params.Bucket,
@@ -1355,7 +1361,6 @@ function uploadPartCopy(params, callback) {
             uploadId: params['UploadId'],
         },
         headers: params.Headers,
-        // onProgress: params.onProgress, // add by wonderswang
     }, function (err, data) {
         if (err) {
             return callback(err);
@@ -1786,7 +1791,7 @@ function getV4Auth(params) {
 function getObjectUrl(params, callback) {
     var self = this;
     var url = getUrl({
-        protocol: self.options.Protocol,
+        protocol: params.Protocol || self.options.Protocol,
         domain: self.options.Domain,
         bucket: params.Bucket,
         region: params.Region,

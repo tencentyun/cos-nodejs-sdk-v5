@@ -16,18 +16,17 @@ var util = {
         return Math.round(Math.random() * (max - min) + min);
     },
     // json 转 query string
-    json2str: function (obj, notEncode) {
+    json2str: function (obj) {
         var arr = [];
         Object.keys(obj).sort().forEach(function (item) {
             var val = obj[item] || '';
-            !notEncode && (val = encodeURIComponent(val));
             arr.push(item + '=' + val);
         });
         return arr.join('&');
     },
     // 计算签名
     getSignature: function (opt, key, method) {
-        var formatString = method + Domain + '/v2/index.php?' + util.json2str(opt, 1);
+        var formatString = method + Domain + '/v2/index.php?' + util.json2str(opt);
         formatString = decodeURIComponent(formatString);
         var hmac = crypto.createHmac('sha1', key);
         var sign = hmac.update(Buffer.from(formatString, 'utf8')).digest('base64');
@@ -50,7 +49,6 @@ var getSTS = function (options, callback) {
             'effect': 'allow',
             'principal': {'qcs': ['*']},
             'resource': [
-                'qcs::cos:ap-guangzhou:uid/' + AppId + ':prefix//' + AppId + '/' + ShortBucketName,
                 'qcs::cos:ap-guangzhou:uid/' + AppId + ':prefix//' + AppId + '/' + ShortBucketName + '/*'
             ]
         }]
@@ -76,13 +74,18 @@ var getSTS = function (options, callback) {
 
     var opt = {
         method: Method,
-        url: Url + '?' + util.json2str(params, 1),
+        url: Url + '?' + util.json2str(params),
         rejectUnauthorized: false,
+        proxy: '',
         headers: {
             Host: config.Domain
         },
     };
     request(opt, function (err, response, body) {
+        if (err) {
+            console.log(err);
+            return;
+        }
         body = body && JSON.parse(body);
         var data = body.data;
         var message = body.message;

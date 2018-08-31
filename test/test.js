@@ -1374,13 +1374,102 @@ describe('params check', function () {
     });
 });
 
-describe('params check', function () {
-    it('Region', function (done) {
-        cos.headBucket({
-            Bucket: config.Bucket, // Bucket 格式：test-1250000000
-            Region: 'cos.ap-guangzhou'
+describe('Key 特殊字符处理', function () {
+    it('Key 特殊字符处理', function (done) {
+        var Key = '中文→↓←→↖↗↙↘! $&\'()+,-.0123456789=@ABCDEFGHIJKLMNOPQRSTUV？WXYZ[]^_`abcdefghijklmnopqrstuvwxyz{}~.jpg';
+        cos.putObject({
+            Bucket: config.Bucket,
+            Region: config.Region,
+            Key: Key,
+            Body: 'hello',
         }, function (err, data) {
-            assert.ok(err.error === 'param Region should not be start with "cos."');
+            assert.ok(!err);
+            cos.deleteObject({
+                Bucket: config.Bucket,
+                Region: config.Region,
+                Key: Key,
+                Body: 'hello',
+            }, function (err, data) {
+                assert.ok(!err);
+                cos.deleteMultipleObject({
+                    Bucket: config.Bucket,
+                    Region: config.Region,
+                    Objects: {
+                        Key: Key,
+                    },
+                }, function (err, data) {
+                    assert.ok(!err);
+                    done();
+                });
+            });
+        });
+    });
+});
+
+describe('Bucket 格式有误', function () {
+    it('Bucket 带有中文', function (done) {
+        cos.headBucket({
+            Bucket: '中文-1250000000',
+            Region: config.Region,
+        }, function (err, data) {
+            // assert.ok(err && err.error === 'Bucket should format as "test-1250000000".');
+            done();
+        });
+    });
+    it('Bucket 带有 /', function (done) {
+        cos.headBucket({
+            Bucket: 'te/st-1250000000',
+            Region: config.Region,
+        }, function (err, data) {
+            assert.ok(err && err.error === 'Bucket should format as "test-1250000000".');
+            done();
+        });
+    });
+    it('Bucket 带有 .', function (done) {
+        cos.headBucket({
+            Bucket: 'te.st-1250000000',
+            Region: config.Region,
+        }, function (err, data) {
+            assert.ok(err && err.error === 'Bucket should format as "test-1250000000".');
+            done();
+        });
+    });
+    it('Bucket 带有 :', function (done) {
+        cos.headBucket({
+            Bucket: 'te:st-1250000000',
+            Region: config.Region,
+        }, function (err, data) {
+            assert.ok(err && err.error === 'Bucket should format as "test-1250000000".');
+            done();
+        });
+    });
+});
+
+describe('Region 格式有误', function () {
+    it('Region 带有中文', function (done) {
+        cos.headBucket({
+            Bucket: 'test-1250000000',
+            Region: '中文',
+        }, function (err, data) {
+            assert.ok(err && err.error === 'Region format error.');
+            done();
+        });
+    });
+    it('Region 带有 /', function (done) {
+        cos.headBucket({
+            Bucket: 'test-1250000000',
+            Region: 'test/',
+        }, function (err, data) {
+            assert.ok(err && err.error === 'Region format error.');
+            done();
+        });
+    });
+    it('Region 带有 :', function (done) {
+        cos.headBucket({
+            Bucket: 'te:st-1250000000',
+            Region: 'test:',
+        }, function (err, data) {
+            assert.ok(err && err.error === 'Region format error.');
             done();
         });
     });

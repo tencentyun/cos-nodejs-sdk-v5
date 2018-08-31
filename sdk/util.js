@@ -288,6 +288,7 @@ var apiWrapper = function (apiName, apiFn) {
                 })();
 
                 // params headers
+                Headers['x-cos-mfa'] = params['MFA'];
                 Headers['Content-MD5'] = params['ContentMD5'];
                 Headers['Content-Length'] = params['ContentLength'];
                 Headers['Content-Type'] = params['ContentType'];
@@ -308,7 +309,6 @@ var apiWrapper = function (apiName, apiFn) {
                 Headers['x-cos-copy-source-If-Unmodified-Since'] = params['CopySourceIfUnmodifiedSince'];
                 Headers['x-cos-copy-source-If-Match'] = params['CopySourceIfMatch'];
                 Headers['x-cos-copy-source-If-None-Match'] = params['CopySourceIfNoneMatch'];
-                Headers['x-cos-server-side-encryption'] = params['ServerSideEncryption'];
                 Headers['x-cos-acl'] = params['ACL'];
                 Headers['x-cos-grant-read'] = params['GrantRead'];
                 Headers['x-cos-grant-write'] = params['GrantWrite'];
@@ -316,8 +316,15 @@ var apiWrapper = function (apiName, apiFn) {
                 Headers['x-cos-grant-read-acp'] = params['GrantReadAcp'];
                 Headers['x-cos-grant-write-acp'] = params['GrantWriteAcp'];
                 Headers['x-cos-storage-class'] = params['StorageClass'];
-                Headers['x-cos-version-id'] = params['VersionId'];
-                Headers['x-cos-mfa'] = params['MFA'];
+                // SSE-C
+                Headers['x-cos-server-side-encryption-customer-algorithm'] = params['SSECustomerAlgorithm'];
+                Headers['x-cos-server-side-encryption-customer-key'] = params['SSECustomerKey'];
+                Headers['x-cos-server-side-encryption-customer-key-MD5'] = params['SSECustomerKeyMD5'];
+                // SSE-COS、SSE-KMS
+                Headers['x-cos-server-side-encryption'] = params['ServerSideEncryption'];
+                Headers['x-cos-server-side-encryption-cos-kms-key-id'] = params['SSEKMSKeyId'];
+                Headers['x-cos-server-side-encryption-context'] = params['SSEContext'];
+
                 params.Headers = clearKey(Headers);
             }
         }
@@ -342,17 +349,22 @@ var apiWrapper = function (apiName, apiFn) {
                 return;
             }
             // 判断 region 格式
-            if (!this.options.IgnoreRegionFormat && params.Region && params.Region.indexOf('-') === -1 && params.Region !== 'yfb' && params.Region !== 'default') {
-                console.warn('param Region format error, find help here: https://cloud.tencent.com/document/product/436/6224');
-            }
-            // 判断 region 格式
-            if (params.Region && params.Region.indexOf('cos.') > -1) {
-                _callback({error: 'param Region should not be start with "cos."'});
-                return;
+            if (params.Region) {
+                if (params.Region.indexOf('cos.') > -1) {
+                    _callback({error: 'param Region should not be start with "cos."'});
+                    return;
+                } else if (!/^([a-z\d-]+)$/.test(params.Region)) {
+                    _callback({error: 'Region format error.'});
+                    return;
+                }
+                // 判断 region 格式
+                if (!this.options.IgnoreRegionFormat && params.Region.indexOf('-') === -1 && params.Region !== 'yfb' && params.Region !== 'default') {
+                    console.warn('param Region format error, find help here: https://cloud.tencent.com/document/product/436/6224');
+                }
             }
             // 兼容不带 AppId 的 Bucket
             if (params.Bucket) {
-                if (!/^(.+)-(\d+)$/.test(params.Bucket)) {
+                if (!/^([a-z\d-]+)-(\d+)$/.test(params.Bucket)) {
                     if (params.AppId) {
                         params.Bucket = params.Bucket + '-' + params.AppId;
                     } else if (this.options.AppId) {

@@ -970,8 +970,7 @@ function sliceCopyFile(params, callback) {
     CopySliceSize = Math.max(0, Math.min(CopySliceSize, 5 * 1024 * 1024 * 1024));
 
     var ChunkSize = params.ChunkSize || this.options.ChunkSize;
-
-    var ChunkParallel = this.options.ChunkParallelLimit;
+    var ChunkParallel = this.options.CopyChunkParallelLimit;
 
     var FinishSize = 0;
     var FileSize;

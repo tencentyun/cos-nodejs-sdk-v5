@@ -152,11 +152,10 @@ describe('auth check', function () {
         cos.getBucket({
             Bucket: config.Bucket,
             Region: config.Region,
-            Prefix: '!\'$()*',
+            Prefix: 'aksjhdlash sajlhj!@#$%^&*()_+=-[]{}\';:"/.<>?.,??sadasd#/.,/~`',
             Headers: {
                 // !'$()* // 包含这几个特殊字符就出错
-                // 'x-cos-test': 'jhdlash sajlhj!@#$%^&*()_+=-[]{}\';:\"/.<>?.,??sadasd#/.,/~`',
-                'x-cos-test': '!\'$()*',
+                'x-cos-test': 'aksjhdlash sajlhj!@#$%^&*()_+=-[]{}\';:\"/.<>?.,??sadasd#/.,/~`',
             },
         }, function (err, data) {
             assert.ok(!err);

@@ -168,9 +168,10 @@ describe('getV4Auth()', function () {
 describe('auth check', function () {
     this.timeout(60000);
     it('auth check', function (done) {
-        cos.getBucketCors({
+        cos.getBucket({
             Bucket: config.Bucket,
             Region: config.Region,
+            Prefix: 'aksjhdlash sajlhj!@#$%^&*()_+=-[]{}\';:"/.<>?.,??sadasd#/.,/~`',
             Headers: {
                 'x-cos-test': 'aksjhdlash sajlhj!@#$%^&*()_+=-[]{}\';:\"/.<>?.,??sadasd#/.,/~`',
             },

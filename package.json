@@ -6,7 +6,7 @@
   "scripts": {
     "demo": "node demo/demo.js",
     "test": "mocha test/test.js",
-    "tcb": "mocha test/tcb.js"
+    "csp": "mocha test/csp.js"
   },
   "repository": {
     "type": "git",

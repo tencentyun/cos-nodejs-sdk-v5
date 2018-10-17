@@ -39,7 +39,11 @@ var getAuth = function (opt) {
                 list.push(key);
             }
         }
-        return list.sort();
+        return list.sort(function (a, b) {
+            a = a.toLowerCase();
+            b = b.toLowerCase();
+            return a === b ? 0 : (a > b ? 1 : -1);
+        });
     };
 
     var obj2str = function (obj) {
@@ -135,7 +139,7 @@ var noop = function () {
 var clearKey = function (obj) {
     var retObj = {};
     for (var key in obj) {
-        if (obj[key] !== undefined && obj[key] !== null) {
+        if (obj.hasOwnProperty(key) && obj[key] !== undefined && obj[key] !== null) {
             retObj[key] = obj[key];
         }
     }
@@ -358,7 +362,7 @@ var apiWrapper = function (apiName, apiFn) {
                     return;
                 }
                 // 判断 region 格式
-                if (!this.options.IgnoreRegionFormat && params.Region.indexOf('-') === -1 && params.Region !== 'yfb' && params.Region !== 'default') {
+                if (!this.options.CompatibilityMode && params.Region.indexOf('-') === -1 && params.Region !== 'yfb' && params.Region !== 'default') {
                     console.warn('param Region format error, find help here: https://cloud.tencent.com/document/product/436/6224');
                 }
             }

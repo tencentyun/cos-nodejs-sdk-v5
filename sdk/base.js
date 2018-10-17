@@ -456,6 +456,36 @@ function putBucketPolicy(params, callback) {
 }
 
 /**
+ * 删除 Bucket 的 跨域设置
+ * @param  {Object}  params                 参数对象，必须
+ *     @param  {String}  params.Bucket      Bucket名称，必须
+ *     @param  {String}  params.Region      地域名称，必须
+ * @param  {Function}  callback             回调函数，必须
+ * @return  {Object}  err                   请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
+ * @return  {Object}  data                  返回的数据
+ */
+function deleteBucketPolicy(params, callback) {
+    submitRequest.call(this, {
+        method: 'DELETE',
+        Bucket: params.Bucket,
+        Region: params.Region,
+        headers: params.Headers,
+        action: 'policy',
+    }, function (err, data) {
+        debugger;
+        if (err && err.statusCode === 204) {
+            return callback(null, {statusCode: err.statusCode});
+        } else if (err) {
+            return callback(err);
+        }
+        callback(null, {
+            statusCode: data.statusCode || err.statusCode,
+            headers: data.headers,
+        });
+    });
+}
+
+/**
  * 获取 Bucket 的 地域信息
  * @param  {Object}  params             参数对象，必须
  *     @param  {String}  params.Bucket  Bucket名称，必须
@@ -773,9 +803,9 @@ function getBucketVersioning(params, callback) {
 
 function putBucketReplication(params, callback) {
     var ReplicationConfiguration = util.clone(params.ReplicationConfiguration);
-    ReplicationConfiguration.Rule = ReplicationConfiguration.Rules;
-    delete ReplicationConfiguration.Rules;
     var xml = util.json2xml({ReplicationConfiguration: ReplicationConfiguration});
+    xml = xml.replace(/<(\/?)Rules>/ig, '<$1Rule>');
+    xml = xml.replace(/<(\/?)Tags>/ig, '<$1Tag>');
 
     var headers = params.Headers;
     headers['Content-Type'] = 'application/xml';
@@ -1105,6 +1135,7 @@ function putObject(params, callback) {
         onProgress({loaded: FileSize, total: FileSize}, true);
         if (data && data.headers && data.headers['etag']) {
             var url = getUrl({
+                ForcePathStyle: self.options.ForcePathStyle,
                 protocol: self.options.Protocol,
                 domain: self.options.Domain,
                 bucket: params.Bucket,
@@ -1586,6 +1617,7 @@ function multipartComplete(params, callback) {
             return callback(err);
         }
         var url = getUrl({
+            ForcePathStyle: self.options.ForcePathStyle,
             protocol: self.options.Protocol,
             domain: self.options.Domain,
             bucket: params.Bucket,
@@ -1791,6 +1823,7 @@ function getV4Auth(params) {
 function getObjectUrl(params, callback) {
     var self = this;
     var url = getUrl({
+        ForcePathStyle: self.options.ForcePathStyle,
         protocol: params.Protocol || self.options.Protocol,
         domain: self.options.Domain,
         bucket: params.Bucket,
@@ -1809,13 +1842,14 @@ function getObjectUrl(params, callback) {
         Expires: params.Expires,
     }, function (AuthData) {
         if (!callback) return;
-        url += '?sign=' + encodeURIComponent(AuthData.Authorization);
-        AuthData.XCosSecurityToken && (url += '&x-cos-security-token=' + AuthData.XCosSecurityToken);
-        AuthData.ClientIP && (url += '&clientIP=' + AuthData.ClientIP);
-        AuthData.ClientUA && (url += '&clientUA=' + AuthData.ClientUA);
-        AuthData.Token && (url += '&token=' + AuthData.Token);
+        var signUrl = url;
+        signUrl += '?sign=' + encodeURIComponent(AuthData.Authorization);
+        AuthData.XCosSecurityToken && (signUrl += '&x-cos-security-token=' + AuthData.XCosSecurityToken);
+        AuthData.ClientIP && (signUrl += '&clientIP=' + AuthData.ClientIP);
+        AuthData.ClientUA && (signUrl += '&clientUA=' + AuthData.ClientUA);
+        AuthData.Token && (signUrl += '&token=' + AuthData.Token);
         setTimeout(function () {
-            callback(null, {Url: url});
+            callback(null, {Url: signUrl});
         });
     });
     if (authorization) {
@@ -1899,25 +1933,39 @@ function getUrl(params) {
     var protocol = params.protocol || (util.isBrowser && location.protocol === 'http:' ? 'http:' : 'https:');
     if (!domain) {
         if (['cn-south', 'cn-south-2', 'cn-north', 'cn-east', 'cn-southwest', 'sg'].indexOf(region) > -1) {
-            domain = '{{Bucket}}-{{AppId}}.{{Region}}.myqcloud.com';
+            domain = '{Region}.myqcloud.com';
         } else {
-            domain = '{{Bucket}}-{{AppId}}.cos.{{Region}}.myqcloud.com';
+            domain = 'cos.{Region}.myqcloud.com';
+        }
+        if (!params.ForcePathStyle) {
+            domain = '{Bucket}.' + domain;
         }
     }
     domain = domain.replace(/\{\{AppId\}\}/ig, appId)
         .replace(/\{\{Bucket\}\}/ig, shortBucket)
         .replace(/\{\{Region\}\}/ig, region)
         .replace(/\{\{.*?\}\}/ig, '');
+    domain = domain.replace(/\{AppId\}/ig, appId)
+        .replace(/\{BucketName\}/ig, shortBucket)
+        .replace(/\{Bucket\}/ig, longBucket)
+        .replace(/\{Region\}/ig, region)
+        .replace(/\{.*?\}/ig, '');
     if (!/^[a-zA-Z]+:\/\//.test(domain)) {
         domain = protocol + '//' + domain;
     }
+
+    // 去掉域名最后的斜杆
     if (domain.slice(-1) === '/') {
         domain = domain.slice(0, -1);
     }
     var url = domain;
 
+    if (params.ForcePathStyle) {
+        url += '/' + longBucket;
+    }
+    url += '/';
     if (object) {
-        url += '/' + encodeURIComponent(object).replace(/%2F/g, '/');
+        url += encodeURIComponent(object).replace(/%2F/g, '/');
     }
 
     if (params.isLocation) {
@@ -1934,12 +1982,17 @@ function getAuthorizationAsync(params, callback) {
     self._StsMap = self._StsMap || {};
     var StsData = self._StsMap[Bucket + '.' + Region] || {};
 
+    var PathName = params.Key || '';
+    if (self.options.ForcePathStyle && Bucket) {
+        PathName = Bucket + '/' + PathName;
+    }
+
     var calcAuthByTmpKey = function () {
         var Authorization = util.getAuth({
             SecretId: StsData.TmpSecretId,
             SecretKey: StsData.TmpSecretKey,
             Method: params.Method,
-            Key: params.Key || '',
+            Key: PathName,
             Query: params.Query,
             Headers: params.Headers,
         });
@@ -1961,7 +2014,7 @@ function getAuthorizationAsync(params, callback) {
             Bucket: Bucket,
             Region: Region,
             Method: params.Method,
-            Key: params.Key || '',
+            Key: PathName,
             Query: params.Query,
             Headers: params.Headers,
         }, function (AuthData) {
@@ -1993,7 +2046,7 @@ function getAuthorizationAsync(params, callback) {
             SecretId: params.SecretId || self.options.SecretId,
             SecretKey: params.SecretKey || self.options.SecretKey,
             Method: params.Method,
-            Key: params.Key || '',
+            Key: PathName,
             Query: params.Query,
             Headers: params.Headers,
             Expires: params.Expires,
@@ -2091,6 +2144,7 @@ function _submitRequest(params, callback) {
 
     // url
     url = url || getUrl({
+        ForcePathStyle: self.options.ForcePathStyle,
         protocol: self.options.Protocol,
         domain: self.options.Domain,
         bucket: bucket,
@@ -2098,7 +2152,7 @@ function _submitRequest(params, callback) {
         object: object,
     });
     if (params.action) {
-        url  = url + (object ? '' : '/') + '?' + params.action;
+        url = url + '?' + params.action;
     }
 
     var opt = {
@@ -2300,6 +2354,7 @@ var API_MAP = {
     deleteBucketTagging: deleteBucketTagging,
     getBucketPolicy: getBucketPolicy,
     putBucketPolicy: putBucketPolicy,
+    deleteBucketPolicy: deleteBucketPolicy,
     getBucketLifecycle: getBucketLifecycle,
     putBucketLifecycle: putBucketLifecycle,
     deleteBucketLifecycle: deleteBucketLifecycle,

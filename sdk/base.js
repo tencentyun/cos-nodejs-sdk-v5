@@ -855,6 +855,10 @@ function getBucketReplication(params, callback) {
         if (!err) {
             !data.ReplicationConfiguration && (data.ReplicationConfiguration = {});
         }
+        if (data.ReplicationConfiguration.Rule) {
+            data.ReplicationConfiguration.Rules = data.ReplicationConfiguration.Rule;
+            delete data.ReplicationConfiguration.Rule;
+        }
         callback(err, data);
     });
 }

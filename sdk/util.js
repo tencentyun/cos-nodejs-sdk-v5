@@ -95,7 +95,7 @@ var getAuth = function (opt) {
     var stringToSign = ['sha1', qSignTime, res, ''].join('\n');
 
     // 步骤四：计算 Signature
-    var qSignature = crypto.createHmac('sha1', signKey).update(stringToSign).digest('hex');
+    var qSignature = crypto.createHmac('sha1', signKey).update(stringToSign);
 
     // 步骤五：构造 Authorization
     var authorization = [

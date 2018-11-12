@@ -1580,7 +1580,7 @@ describe('deleteMultipleObject Key 带中文字符', function () {
             Region: config.Region,
             Objects: [
                 {Key: '中文/中文.txt'},
-                {Key: '中文/中文.zip'},
+                {Key: '中文/中文.zip',VersionId: 'MTg0NDY3NDI1MzM4NzM0ODA2MTI'},
             ]
         }, function (err, data) {
             assert.ok(!err, '成功进行批量删除');

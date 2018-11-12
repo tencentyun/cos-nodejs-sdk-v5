@@ -301,17 +301,39 @@ function putBucketLifecycle() {
         Bucket: config.Bucket, // Bucket 格式：test-1250000000
         Region: config.Region,
         LifecycleConfiguration: {
-            "Rules": [{
-                'ID': 1,
-                'Filter': {
-                    'Prefix': 'cas',
-                },
-                'Status': 'Enabled',
-                'Transition': {
-                    'Days': 0,
-                    'StorageClass': 'ARCHIVE'
+            Rules: [{
+                "ID": "1",
+                "Status": "Enabled",
+                "Filter": {},
+                "Transition": {
+                    "Days": "30",
+                    "StorageClass": "STANDARD_IA"
                 }
-            }]
+            }, {
+                "ID": "2",
+                "Status": "Enabled",
+                "Filter": {
+                    "Prefix": "dir/"
+                },
+                "Transition": {
+                    "Days": "90",
+                    "StorageClass": "ARCHIVE"
+                }
+            }, {
+                "ID": "3",
+                "Status": "Enabled",
+                "Filter": {},
+                "Expiration": {
+                    "Days": "180"
+                }
+            }, {
+                "ID": "4",
+                "Status": "Enabled",
+                "Filter": {},
+                "AbortIncompleteMultipartUpload": {
+                    "DaysAfterInitiation": "30"
+                }
+            }],
         }
     }, function (err, data) {
         console.log(err || data);
@@ -362,7 +384,8 @@ function listObjectVersions() {
     cos.listObjectVersions({
         Bucket: config.Bucket, // Bucket 格式：test-1250000000
         Region: config.Region,
-        Prefix: "1mb.zip"
+        // Prefix: "",
+        // Delimiter: '/'
     }, function (err, data) {
         console.log(err || JSON.stringify(data, null, '    '));
     });
@@ -374,14 +397,15 @@ function putBucketReplication() {
         Bucket: config.Bucket, // Bucket 格式：test-1250000000
         Region: config.Region,
         ReplicationConfiguration: {
-            Role: "qcs::cam::uin/459000000:uin/459000000",
+            Role: "qcs::cam::uin/10001:uin/10001",
             Rules: [{
                 ID: "1",
                 Status: "Enabled",
-                Prefix: "img/",
+                Prefix: "sync/",
                 Destination: {
-                    Bucket: "qcs::cos:ap-guangzhou::test-" + AppId
-                },
+                    Bucket: "qcs:id/0:cos:ap-chengdu:appid/" + AppId + ":backup",
+                    // StorageClass: "Standard",
+                }
             }]
         }
     }, function (err, data) {
@@ -557,7 +581,7 @@ function deleteMultipleObject() {
         Region: config.Region,
         Objects: [
             {Key: '中文/中文.txt'},
-            {Key: '中文/中文.zip'},
+            {Key: '中文/中文.zip',VersionId: 'MTg0NDY3NDI1MzM4NzM0ODA2MTI'},
         ]
     }, function (err, data) {
         console.log(err || data);

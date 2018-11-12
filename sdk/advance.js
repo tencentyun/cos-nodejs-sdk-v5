@@ -139,18 +139,16 @@ function sliceUploadFile(params, callback) {
         }
         params.ChunkSize = params.SliceSize = ChunkSize = Math.max(ChunkSize, AutoChunkSize);
     })();
-    onProgress = util.throttleOnProgress.call(self, FileSize, params.onProgress);
 
     // 开始上传
     if (FileSize === 0) {
         params.Body = '';
+        params.ContentLength = 0;
         params._OnlyUploadNotAddTask = true;
         self.putObject(params, function (err, data) {
             if (err) {
-                onProgress(null, true);
                 return callback(err);
             }
-            onProgress({loaded: FileSize, total: FileSize}, true);
             callback(null, data);
         });
     } else {

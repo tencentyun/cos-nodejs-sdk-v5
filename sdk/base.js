@@ -1073,10 +1073,12 @@ function getObject(params, callback) {
             return callback(err);
         }
         var result = {};
-        if (BodyType === 'buffer') {
-            result.Body = Buffer.from(data.body);
-        } else if (BodyType === 'string') {
-            result.Body = data.body;
+        if (data.body) {
+            if (BodyType === 'buffer') {
+                result.Body = Buffer.from(data.body);
+            } else if (BodyType === 'string') {
+                result.Body = data.body;
+            }
         }
         if (data.headers && data.headers.etag) {
             result.ETag = data.headers && data.headers.etag;

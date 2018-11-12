@@ -24,10 +24,17 @@ var getAuth = function (opt) {
     var SecretId = opt.SecretId;
     var SecretKey = opt.SecretKey;
     var method = (opt.method || opt.Method || 'get').toLowerCase();
-    var pathname = opt.pathname || opt.Key || '/';
     var queryParams = clone(opt.Query || opt.params || {});
     var headers = clone(opt.Headers || opt.headers || {});
-    pathname.indexOf('/') !== 0 && (pathname = '/' + pathname);
+
+    var Key = opt.Key || '';
+    var pathname;
+    if (opt.UseRawKey) {
+        pathname = opt.pathname || '/' + Key;
+    } else {
+        pathname = opt.pathname || Key;
+        pathname.indexOf('/') !== 0 && (pathname = '/' + pathname);
+    }
 
     if (!SecretId) return console.error('missing param SecretId');
     if (!SecretKey) return console.error('missing param SecretKey');
@@ -383,8 +390,8 @@ var apiWrapper = function (apiName, apiFn) {
                     delete params.AppId;
                 }
             }
-            // 兼容带有斜杠开头的 Key
-            if (params.Key && params.Key.substr(0, 1) === '/') {
+            // 如果 Key 是 / 开头，强制去掉第一个 /
+            if (!this.options.UseRawKey && params.Key && params.Key.substr(0, 1) === '/') {
                 params.Key = params.Key.substr(1);
             }
         }
@@ -520,7 +527,7 @@ var util = {
     uuid: uuid,
     throttleOnProgress: throttleOnProgress,
     getFileSize: getFileSize,
-    isBrowser: !!global.document,
+    isBrowser: false,
 };
 
 (function () {
@@ -563,6 +570,18 @@ util.getFileUUID = function (FileStat, ChunkSize) {
         return util.md5([FileStat.FilePath].join('::')) + '-' + util.md5([FileStat.size, FileStat.ctime, FileStat.mtime, ChunkSize].join('::'));
     } else {
         return null;
+    }
+};
+util.getBodyMd5 = function (UploadCheckContentMd5, Body, callback) {
+    callback = callback || noop;
+    if (UploadCheckContentMd5) {
+        if (typeof Body.pipe !== 'function') {
+            callback(util.md5(Body, true));
+        } else {
+            callback();
+        }
+    } else {
+        callback();
     }
 };
 

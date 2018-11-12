@@ -158,6 +158,11 @@ var initTask = function (cos) {
 
         // 异步获取 filesize
         util.getFileSize(api, params, function (err, size) {
+            // 开始处理上传
+            if (err) { // 如果获取大小出错，不加入队列
+                callback(err);
+                return;
+            }
             // 获取完文件大小再把任务加入队列
             tasks[id] = task;
             queue.push(task);
@@ -165,11 +170,6 @@ var initTask = function (cos) {
                 var delta = queue.length - cos.options.UploadQueueSize;
                 queue.splice(0, delta);
                 nextUploadIndex -= delta;
-            }
-            // 开始处理上传
-            if (err) {
-                callback(err);
-                return;
             }
             task.size = size;
             !ignoreAddEvent && emitListUpdate();

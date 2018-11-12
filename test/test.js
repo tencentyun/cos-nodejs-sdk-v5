@@ -15,10 +15,12 @@ if (process.env.AppId) {
     }
 }
 
+var proxy = '';
 var cos = new COS({
     SecretId: config.SecretId,
     SecretKey: config.SecretKey,
     ChunkParallelLimit: 10,
+    Proxy: proxy,
 });
 
 var AppId = config.AppId;
@@ -123,9 +125,12 @@ describe('getAuth()', function () {
                     Method: 'get',
                     Key: key
                 });
-                var link = 'http://' + BucketLongName + '.cos.' + config.Region + '.myqcloud.com/' + key +
-                    '?sign=' + encodeURIComponent(auth);
-                request(link, function (err, response, body) {
+                var link = 'http://' + config.Bucket + '.cos.' + config.Region + '.myqcloud.com' + '/' +
+                    encodeURIComponent(key).replace(/%2F/g, '/') + '?' + auth;
+                request({
+                    url: link,
+                    proxy: proxy,
+                }, function (err, response, body) {
                     assert.ok(response.statusCode === 200);
                     assert.ok(body === content);
                     done();
@@ -154,7 +159,10 @@ describe('getV4Auth()', function () {
                 });
                 var link = 'http://' + BucketLongName + '.cos.' + config.Region + '.myqcloud.com/' + key +
                     '?sign=' + encodeURIComponent(auth);
-                request(link, function (err, response, body) {
+                request({
+                    url: link,
+                    proxy: proxy,
+                }, function (err, response, body) {
                     assert.ok(response.statusCode === 200);
                     assert.ok(body === content);
                     done();
@@ -190,7 +198,9 @@ describe('putBucket()', function () {
             Bucket: NewBucket,
             Region: config.Region
         }, function (err, data) {
-            assert.equal(NewBucket + '.cos.' + config.Region + '.myqcloud.com', data.Location);
+            var location1 = NewBucket + '.cos.' + config.Region + '.myqcloud.com';
+            var location2 = NewBucket + '.cos.' + config.Region + '.myqcloud.com/';
+            assert.ok(location1 === data.Location || location2 === data.Location);
             cos.headBucket({
                 Bucket: NewBucket,
                 Region: config.Region
@@ -1471,6 +1481,109 @@ describe('Region 格式有误', function () {
             Region: 'test:',
         }, function (err, data) {
             assert.ok(err && err.error === 'Region format error.');
+            done();
+        });
+    });
+});
+
+describe('params check', function () {
+    it('params check', function (done) {
+        cos.headBucket({
+            Bucket: config.Bucket, // Bucket 格式：test-1250000000
+            Region: 'cos.ap-guangzhou'
+        }, function (err, data) {
+            assert.ok(err.error === 'param Region should not be start with "cos."');
+            done();
+        });
+    });
+});
+
+describe('复制文件', function () {
+    this.timeout(60000);
+    it('sliceCopyFile() 正常分片复制', function (done) {
+        var fileName = '10mb.zip';
+        var Key = '10mb.copy.zip';
+        var blob = util.createFile({size: 1024 * 1024 * 10});
+        cos.putObject({
+            Bucket: config.Bucket, // Bucket 格式：test-1250000000
+            Region: config.Region,
+            Key: fileName,
+            Body: blob,
+        }, function (err, data) {
+            cos.sliceCopyFile({
+                Bucket: config.Bucket, // Bucket 格式：test-1250000000
+                Region: config.Region,
+                Key: Key,
+                CopySource: config.Bucket + '.cos.' + config.Region + '.myqcloud.com/'+ fileName,
+                SliceSize: 5 * 1024 * 1024,
+                onProgress:function (processData) {
+                }
+            }, function (err, data) {
+                assert.ok(data && data.ETag, '成功进行分片复制');
+                done();
+            });
+        });
+    });
+    it('sliceCopyFile() 单片复制', function (done) {
+        var fileName = '10mb.zip';
+        var Key = '10mb.copy.zip';
+        cos.sliceCopyFile({
+            Bucket: config.Bucket, // Bucket 格式：test-1250000000
+            Region: config.Region,
+            Key: Key,
+            CopySource: config.Bucket + '.cos.' + config.Region + '.myqcloud.com/'+ fileName,
+            SliceSize: 10 * 1024 * 1024,
+        }, function (err, data) {
+            if (err) throw err;
+            assert.ok(data && data.ETag, '成功进行单片复制');
+            done();
+        });
+    });
+});
+
+describe('putObject 中文 Content-MD5', function () {
+    function dataURItoBuffer(dataURI) {
+        return Buffer.from(dataURI.split(',')[1], 'base64');
+    }
+    var fileBlob = dataURItoBuffer('data:text/plain;base64,5Lit5paH');
+    // 这里两个用户正式测试的时候需要给 putObject 计算并加上 Content-MD5 字段
+    it('putObject 中文文件内容 带 Content-MD5', function (done) {
+        var Key = '中文.txt';
+        cos.putObject({
+            Bucket: config.Bucket, // Bucket 格式：test-1250000000
+            Region: config.Region,
+            Key: Key,
+            Body: fileBlob,
+        }, function (err, data) {
+            assert.ok(data && data.ETag, '成功进行上传');
+            done();
+        });
+    });
+    it('putObject 中文字符串 带 Content-MD5', function (done) {
+        var Key = '中文.txt';
+        cos.putObject({
+            Bucket: config.Bucket, // Bucket 格式：test-1250000000
+            Region: config.Region,
+            Key: Key,
+            Body: '中文',
+        }, function (err, data) {
+            assert.ok(data && data.ETag, '成功进行上传');
+            done();
+        });
+    });
+});
+
+describe('deleteMultipleObject Key 带中文字符', function () {
+    it('deleteMultipleObject Key 带中文字符', function (done) {
+        cos.deleteMultipleObject({
+            Bucket: config.Bucket, // Bucket 格式：test-1250000000
+            Region: config.Region,
+            Objects: [
+                {Key: '中文/中文.txt'},
+                {Key: '中文/中文.zip'},
+            ]
+        }, function (err, data) {
+            assert.ok(!err, '成功进行批量删除');
             done();
         });
     });

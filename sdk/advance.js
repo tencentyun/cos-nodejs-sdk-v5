@@ -1016,7 +1016,7 @@ function sliceCopyFile(params, callback) {
                 }
             },function (err,data) {
                 if (err) {
-                    return callback(err);
+                    return asyncCallback(err);
                 }
                 onProgress({loaded: FinishSize, total: FileSize});
 
@@ -1030,7 +1030,7 @@ function sliceCopyFile(params, callback) {
                 return callback(err);
             }
 
-            ep.emit('copy_slice_complete',UploadData);
+            ep.emit('copy_slice_complete', UploadData);
         });
     });
 
@@ -1082,12 +1082,12 @@ function sliceCopyFile(params, callback) {
         Key: SourceKey,
     },function(err, data) {
         if (err) {
-          if (err.statusCode && err.statusCode === 404) {
-            return callback({ ErrorStatus: SourceKey + ' Not Exist' });
-          } else {
-            callback(err);
-          }
-          return;
+            if (err.statusCode && err.statusCode === 404) {
+                callback({ErrorStatus: SourceKey + ' Not Exist'});
+            } else {
+                callback(err);
+            }
+            return;
         }
 
         FileSize = params.FileSize = data.headers['content-length'];
@@ -1095,22 +1095,22 @@ function sliceCopyFile(params, callback) {
 
         // 开始上传
         if (FileSize <= CopySliceSize) {
-          self.putObjectCopy(params, function (err, data) {
-              if (err) {
-                  onProgress(null, true);
-                  return callback(err);
-              }
-              onProgress({loaded: FileSize, total: FileSize}, true);
-              callback(err, data);
-          });
+            self.putObjectCopy(params, function (err, data) {
+                if (err) {
+                    onProgress(null, true);
+                    return callback(err);
+                }
+                onProgress({loaded: FileSize, total: FileSize}, true);
+                callback(err, data);
+            });
         } else {
-          ep.emit('get_file_size_finish');
+            ep.emit('get_file_size_finish');
         }
     });
 }
 
 // 复制指定分片
-function copySliceItem(params,callback) {
+function copySliceItem(params, callback) {
     var TaskId = params.TaskId;
     var Bucket = params.Bucket;
     var Region = params.Region;

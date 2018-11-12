@@ -14,6 +14,7 @@ var cos = new COS({
     FileParallelLimit: 3,    // 控制文件上传并发数
     ChunkParallelLimit: 8,   // 控制单个文件下分片上传并发数，在同园区上传可以设置较大的并发数
     ChunkSize: 1024 * 1024,  // 控制分片大小，单位 B，在同园区上传可以设置较大的分片大小
+    Proxy: '',
 });
 var TaskId;
 
@@ -414,7 +415,7 @@ function deleteBucket() {
         console.log(err || data);
     });
 }
-
+putObject();
 function putObject() {
     // 创建测试文件
     var filename = '1mb.zip';
@@ -435,7 +436,7 @@ function putObject() {
             // Body: fs.readFileSync(filepath),
             // 格式2. 传入文件流，必须需要传文件大小
             Body: fs.createReadStream(filepath),
-            ContentLength: fs.statSync(filepath).size
+            // ContentLength: fs.statSync(filepath).size
         }, function (err, data) {
             console.log(err || data);
             fs.unlinkSync(filepath);
@@ -703,7 +704,7 @@ function sliceCopyFile() {
     });
 }
 
-getService();
+// getService();
 // getAuth();
 // getV4Auth();
 // getObjectUrl();

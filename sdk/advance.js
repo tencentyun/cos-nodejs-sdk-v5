@@ -144,6 +144,7 @@ function sliceUploadFile(params, callback) {
     // 开始上传
     if (FileSize === 0) {
         params.Body = '';
+        params._OnlyUploadNotAddTask = true;
         self.putObject(params, function (err, data) {
             if (err) {
                 onProgress(null, true);

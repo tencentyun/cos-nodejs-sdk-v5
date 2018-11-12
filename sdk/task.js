@@ -16,7 +16,11 @@ var initTask = function (cos) {
     ], function (api) {
         originApiMap[api] = cos[api];
         cos[api] = function (params, callback) {
-            cos._addTask(api, params, callback);
+            if (params._OnlyUploadNotAddTask) {
+                originApiMap[api](params, callback);
+            } else {
+                cos._addTask(api, params, callback);
+            }
         };
     });
 

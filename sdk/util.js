@@ -409,7 +409,6 @@ var throttleOnProgress = function (total, onProgress) {
     var time0 = Date.now();
     var time1;
     var timer;
-    var preInfo = {};
     function update() {
         timer = 0;
         if (onProgress && (typeof onProgress === 'function')) {
@@ -424,14 +423,7 @@ var throttleOnProgress = function (total, onProgress) {
             time0 = time1;
             size0 = size1;
             try {
-                var curInfo = {loaded: size1, total: total, speed: speed, percent: percent};
-                if (curInfo.loaded !== preInfo.loaded ||
-                    curInfo.total !== preInfo.total ||
-                    curInfo.speed !== preInfo.speed ||
-                    curInfo.percent !== preInfo.percent) {
-                    onProgress(curInfo);
-                }
-                preInfo = curInfo;
+                onProgress({loaded: size1, total: total, speed: speed, percent: percent});
             } catch (e) {
             }
         }

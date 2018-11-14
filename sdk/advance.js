@@ -1149,6 +1149,9 @@ var API_MAP = {
     sliceCopyFile: sliceCopyFile,
 };
 
-util.each(API_MAP, function (fn, apiName) {
-    exports[apiName] = util.apiWrapper(apiName, fn);
-});
+module.exports.init = function (COS, task) {
+    task.transferToTaskMethod(API_MAP, 'sliceUploadFile');
+    util.each(API_MAP, function (fn, apiName) {
+        COS.prototype[apiName] = util.apiWrapper(apiName, fn);
+    });
+};

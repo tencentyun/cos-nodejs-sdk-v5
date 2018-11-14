@@ -51,8 +51,8 @@ var COS = function (options) {
     task.init(this);
 };
 
-util.extend(COS.prototype, base);
-util.extend(COS.prototype, advance);
+base.init(COS, task);
+advance.init(COS, task);
 
 COS.getAuthorization = util.getAuth;
 COS.version = pkg.version;

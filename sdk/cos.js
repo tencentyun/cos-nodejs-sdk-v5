@@ -19,6 +19,7 @@ var defaultOptions = {
     CopyChunkParallelLimit: 20,
     CopyChunkSize: 1024 * 1024 * 10,
     CopySliceSize: 1024 * 1024 * 10,
+    MaxPartNumber: 10000,
     ProgressInterval: 1000,
     UploadQueueSize: 10000,
     Domain: '',
@@ -44,6 +45,7 @@ var COS = function (options) {
     this.options.CopyChunkParallelLimit = Math.max(1, this.options.CopyChunkParallelLimit);
     this.options.CopyChunkSize = Math.max(1024 * 1024, this.options.CopyChunkSize);
     this.options.CopySliceSize = Math.max(0, this.options.CopySliceSize);
+    this.options.MaxPartNumber = Math.max(1024, Math.min(10000, this.options.MaxPartNumber));
     if (this.options.AppId) {
         console.warn('warning: AppId has been deprecated, Please put it at the end of parameter Bucket(E.g: "test-1250000000").');
     }

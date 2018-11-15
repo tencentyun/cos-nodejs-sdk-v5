@@ -1373,7 +1373,7 @@ group('BucketCors', function () {
     var CORSRules = [{
         "AllowedOrigins": ["*"],
         "AllowedMethods": ["GET", "POST", "PUT", "DELETE", "HEAD"],
-        "AllowedHeaders": ["*"],
+        "AllowedHeaders": ["*", 'test-' + Date.now().toString(36)],
         "ExposeHeaders": ["ETag", "Content-Length", "x-cos-acl", "x-cos-version-id", "x-cos-request-id", "x-cos-delete-marker", "x-cos-server-side-encryption"],
         "MaxAgeSeconds": "5"
     }];
@@ -1408,8 +1408,7 @@ group('BucketCors', function () {
         });
     });
     test('putBucketCors(),getBucketCors()', function (done, assert) {
-        CORSRules[0].AllowedHeaders[CORSRules[0].AllowedHeaders.length - 1] =
-            'test-' + Date.now().toString(36);
+        CORSRules[0].AllowedHeaders[1] = 'test-' + Date.now().toString(36);
         cos.putBucketCors({
             Bucket: config.Bucket,
             Region: config.Region,
@@ -1430,8 +1429,7 @@ group('BucketCors', function () {
         });
     });
     test('putBucketCors() old', function (done, assert) {
-        var testVal = 'test-' + Date.now().toString(36);
-        CORSRules[0].AllowedHeaders.push(testVal);
+        CORSRules[0].AllowedHeaders[1] = 'test-' + Date.now().toString(36);
         cos.putBucketCors({
             Bucket: config.Bucket,
             Region: config.Region,
@@ -1452,8 +1450,7 @@ group('BucketCors', function () {
         });
     });
     test('putBucketCors() old', function (done, assert) {
-        CORSRules[0].AllowedHeaders[CORSRules[0].AllowedHeaders.length - 1] =
-            'test-' + Date.now().toString(36);
+        CORSRules[0].AllowedHeaders[1] = 'test-' + Date.now().toString(36);
         cos.putBucketCors({
             Bucket: config.Bucket,
             Region: config.Region,

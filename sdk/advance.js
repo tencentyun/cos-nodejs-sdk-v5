@@ -5,6 +5,7 @@ var util = require('./util');
 
 // 文件分块上传全过程，暴露的分块上传接口
 function sliceUploadFile(params, callback) {
+    var self = this;
     var ep = new EventProxy();
     var TaskId = params.TaskId;
     var Bucket = params.Bucket;
@@ -16,7 +17,6 @@ function sliceUploadFile(params, callback) {
     var StorageClass = params.StorageClass || 'Standard';
     var ServerSideEncryption = params.ServerSideEncryption;
     var FileSize;
-    var self = this;
 
     var onProgress;
     var onHashProgress = params.onHashProgress;
@@ -135,7 +135,7 @@ function sliceUploadFile(params, callback) {
         var AutoChunkSize = 1024 * 1024;
         for (var i = 0; i < SIZE.length; i++) {
             AutoChunkSize = SIZE[i] * 1024 * 1024;
-            if (FileSize / AutoChunkSize <= 1024) break;
+            if (FileSize / AutoChunkSize <= self.options.MaxPartNumber) break;
         }
         params.ChunkSize = params.SliceSize = ChunkSize = Math.max(ChunkSize, AutoChunkSize);
     })();
@@ -1040,7 +1040,7 @@ function sliceCopyFile(params, callback) {
             var AutoChunkSize = 1024 * 1024;
             for (var i = 0; i < SIZE.length; i++) {
                 AutoChunkSize = SIZE[i] * 1024 * 1024;
-                if (FileSize / AutoChunkSize <= 1024) break;
+                if (FileSize / AutoChunkSize <= self.options.MaxPartNumber) break;
             }
             params.ChunkSize = ChunkSize = Math.max(ChunkSize, AutoChunkSize);
 

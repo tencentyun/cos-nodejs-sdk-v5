@@ -439,7 +439,7 @@ function deleteBucket() {
         console.log(err || data);
     });
 }
-
+return putObject();
 function putObject() {
     // 创建测试文件
     var filename = '1mb.zip';

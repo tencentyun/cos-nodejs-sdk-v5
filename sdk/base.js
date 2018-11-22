@@ -2202,6 +2202,9 @@ function _submitRequest(params, callback) {
     if (this.options.Proxy) {
         opt.proxy = this.options.Proxy;
     }
+    if (this.options.Timeout) {
+        opt.timeout = this.options.Timeout;
+    }
 
     self.emit('before-send', opt);
     var sender = REQUEST(opt);

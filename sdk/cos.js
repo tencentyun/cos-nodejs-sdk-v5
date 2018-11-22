@@ -31,6 +31,7 @@ var defaultOptions = {
     UseRawKey: false,
     UploadCheckContentMd5: false,
     UploadIdCacheLimit: 500,
+    Timeout: 0, // 单位毫秒，0 代表不设置超时时间
     Proxy: '',
     UserAgent: '',
 };
@@ -46,6 +47,7 @@ var COS = function (options) {
     this.options.CopyChunkSize = Math.max(1024 * 1024, this.options.CopyChunkSize);
     this.options.CopySliceSize = Math.max(0, this.options.CopySliceSize);
     this.options.MaxPartNumber = Math.max(1024, Math.min(10000, this.options.MaxPartNumber));
+    this.options.Timeout = Math.max(0, this.options.Timeout);
     if (this.options.AppId) {
         console.warn('warning: AppId has been deprecated, Please put it at the end of parameter Bucket(E.g: "test-1250000000").');
     }

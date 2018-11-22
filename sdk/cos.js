@@ -11,6 +11,7 @@ var defaultOptions = {
     AppId: '', // AppId 已废弃，请拼接到 Bucket 后传入，例如：test-1250000000
     SecretId: '',
     SecretKey: '',
+    XCosSecurityToken: '',
     FileParallelLimit: 3,
     ChunkParallelLimit: 3,
     ChunkRetryTimes: 3,
@@ -27,7 +28,6 @@ var defaultOptions = {
     Protocol: '',
     CompatibilityMode: false,
     ForcePathStyle: false,
-    XCosSecurityToken: '',
     UseRawKey: false,
     UploadCheckContentMd5: false,
     UploadIdCacheLimit: 500,

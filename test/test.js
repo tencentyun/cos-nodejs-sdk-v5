@@ -38,7 +38,7 @@ var group = function (name, fn) {
         fn.apply(this, arguments);
     });
 };
-var proxy = 'http://web-proxy.tencent.com:8080';
+var proxy = '';
 
 var cos = new COS({
     SecretId: config.SecretId,
@@ -207,6 +207,7 @@ group('getObjectUrl()', function () {
             }, function (err, data) {
                 request({
                     url: data.Url,
+                    proxy: proxy,
                 }, function (err, response, body) {
                     assert.ok(!err, '文件获取出错');
                     assert.ok(response.statusCode === 200, '获取文件 200');

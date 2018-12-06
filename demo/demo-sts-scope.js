@@ -31,6 +31,7 @@ var allowScope = function (scope) {
 var cos = new COS({
     getAuthorization: function (options, callback) {
 
+        // TODO 这里根据自己业务需要做好放行判断
         if (!allowScope()) {
             console.log('deny Scope');
             return;

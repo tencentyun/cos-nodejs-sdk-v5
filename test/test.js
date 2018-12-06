@@ -3,6 +3,7 @@ var path = require('path');
 var COS = require('../index');
 var request = require('request');
 var util = require('../demo/util');
+var STS = require('qcloud-cos-sts');
 var config = require('../demo/config');
 var Writable = require('stream').Writable;
 
@@ -118,6 +119,7 @@ group('getService()', function () {
     test('能正常列出 Bucket', function (done, assert) {
         prepareBucket().then(function () {
             cos.getService(function (err, data) {
+                console.log(err, data);
                 var hasBucket = false;
                 data.Buckets && data.Buckets.forEach(function (item) {
                     if (item.Name === BucketLongName && (item.Location === config.Region || !item.Location)) {
@@ -853,7 +855,7 @@ group('putObjectCopy() 1', function () {
                         Region: config.Region,
                         Key: '1.copy.txt',
                     }, function (err, data) {
-                        assert.ok(data.headers.etag === ETag, '成功复制文件');
+                        assert.ok(data.headers && data.headers.etag === ETag, '成功复制文件');
                         done();
                     });
                 });

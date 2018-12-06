@@ -29,9 +29,9 @@ var defaultOptions = {
     CompatibilityMode: false,
     ForcePathStyle: false,
     UseRawKey: false,
+    Timeout: 0, // 单位毫秒，0 代表不设置超时时间
     UploadCheckContentMd5: false,
     UploadIdCacheLimit: 500,
-    Timeout: 0, // 单位毫秒，0 代表不设置超时时间
     Proxy: '',
     UserAgent: '',
 };

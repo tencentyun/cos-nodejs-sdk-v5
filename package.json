@@ -1,10 +1,12 @@
 {
   "name": "cos-nodejs-sdk-v5",
-  "version": "2.4.16",
+  "version": "2.4.17",
   "description": "cos nodejs sdk v5",
   "main": "index.js",
   "scripts": {
     "demo": "node demo/demo.js",
+    "demo-sts": "node demo/demo-sts.js",
+    "demo-sts-scope": "node demo/demo-sts-scope.js",
     "test": "mocha test/test.js",
     "csp": "mocha test/csp.js"
   },
@@ -27,11 +29,11 @@
   "homepage": "https://github.com/tencentyun/cos-nodejs-sdk-v5#readme",
   "dependencies": {
     "configstore": "^3.1.2",
-    "qcloudapi-sdk": "^0.2.0",
     "request": "^2.81.0",
     "xml2js": "^0.4.19"
   },
   "devDependencies": {
-    "mocha": "^4.0.1"
+    "mocha": "^4.0.1",
+    "qcloud-cos-sts": "^2.0.5"
   }
 }

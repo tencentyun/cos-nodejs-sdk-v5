@@ -46,7 +46,7 @@ var group = function (name, fn) {
         fn.apply(this, arguments);
     });
 };
-var proxy = 'http://web-proxy.tencent.com:8080';
+var proxy = '';
 
 var cos = new COS({
     SecretId: config.SecretId,

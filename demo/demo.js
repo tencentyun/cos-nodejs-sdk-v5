@@ -18,6 +18,15 @@ var cos = new COS({
 });
 var TaskId;
 
+function camSafeUrlEncode(str) {
+    return encodeURIComponent(str)
+        .replace(/!/g, '%21')
+        .replace(/'/g, '%27')
+        .replace(/\(/g, '%28')
+        .replace(/\)/g, '%29')
+        .replace(/\*/g, '%2A');
+}
+
 function getService() {
     cos.getService(function (err, data) {
         console.log(err || data);
@@ -32,7 +41,7 @@ function getAuth() {
         Expires: 60,
     });
     // 注意：这里的 Bucket 格式是 test-1250000000
-    console.log('http://' + config.Bucket + '.cos.' + config.Region + '.myqcloud.com' + '/' + encodeURIComponent(key).replace(/%2F/g, '/') + '?sign=' + encodeURIComponent(auth));
+    console.log('http://' + config.Bucket + '.cos.' + config.Region + '.myqcloud.com' + '/' + camSafeUrlEncode(key).replace(/%2F/g, '/') + '?sign=' + encodeURIComponent(auth));
 }
 
 function getV4Auth() {
@@ -44,7 +53,7 @@ function getV4Auth() {
         Expires: 60,
     });
     // 注意：这里的 Bucket 格式是 test-1250000000
-    console.log('http://' + config.Bucket + '.cos.' + config.Region + '.myqcloud.com' + '/' + encodeURIComponent(key).replace(/%2F/g, '/') + '?sign=' + encodeURIComponent(auth));
+    console.log('http://' + config.Bucket + '.cos.' + config.Region + '.myqcloud.com' + '/' + camSafeUrlEncode(key).replace(/%2F/g, '/') + '?sign=' + encodeURIComponent(auth));
 }
 
 function getObjectUrl() {
@@ -473,7 +482,7 @@ function putObjectCopy() {
         Bucket: config.Bucket, // Bucket 格式：test-1250000000
         Region: config.Region,
         Key: '1mb.copy.zip',
-        CopySource: config.Bucket + '.cos.' + config.Region + '.myqcloud.com/' + encodeURIComponent('1mb.zip').replace(/%2F/g, '/'),
+        CopySource: config.Bucket + '.cos.' + config.Region + '.myqcloud.com/' + camSafeUrlEncode('1mb.zip').replace(/%2F/g, '/'),
     }, function (err, data) {
         console.log(err || data);
     });
@@ -706,7 +715,7 @@ function sliceCopyFile() {
     var sourceName = '3mb.zip';
     var Key = '3mb.copy.zip';
 
-    var sourcePath = config.Bucket + '.cos.' + config.Region + '.myqcloud.com/'+ encodeURIComponent(sourceName).replace(/%2F/g, '/');
+    var sourcePath = config.Bucket + '.cos.' + config.Region + '.myqcloud.com/'+ camSafeUrlEncode(sourceName).replace(/%2F/g, '/');
 
     cos.sliceCopyFile({
         Bucket: config.Bucket, // Bucket 格式：test-1250000000

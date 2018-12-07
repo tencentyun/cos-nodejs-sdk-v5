@@ -14,7 +14,7 @@ if (process.env.AppId) {
         Bucket: process.env.Bucket,
         Region: process.env.Region
     }
-};
+}
 var dataURItoUploadBody = function (dataURI) {
     return Buffer.from(dataURI.split(',')[1], 'base64');
 };
@@ -25,7 +25,14 @@ var createFileSync = function (filePath, size) {
     }
     return filePath;
 };
-
+function camSafeUrlEncode(str) {
+    return encodeURIComponent(str)
+        .replace(/!/g, '%21')
+        .replace(/'/g, '%27')
+        .replace(/\(/g, '%28')
+        .replace(/\)/g, '%29')
+        .replace(/\*/g, '%2A');
+}
 var assert = require("assert");
 assert.ok = assert;
 var test = function (name, fn) {
@@ -39,7 +46,7 @@ var group = function (name, fn) {
         fn.apply(this, arguments);
     });
 };
-var proxy = '';
+var proxy = 'http://web-proxy.tencent.com:8080';
 
 var cos = new COS({
     SecretId: config.SecretId,
@@ -119,7 +126,6 @@ group('getService()', function () {
     test('能正常列出 Bucket', function (done, assert) {
         prepareBucket().then(function () {
             cos.getService(function (err, data) {
-                console.log(err, data);
                 var hasBucket = false;
                 data.Buckets && data.Buckets.forEach(function (item) {
                     if (item.Name === BucketLongName && (item.Location === config.Region || !item.Location)) {
@@ -178,7 +184,7 @@ group('getAuth()', function () {
                 AuthData = {Authorization: AuthData};
             }
             var link = 'http://' + config.Bucket + '.cos.' + config.Region + '.myqcloud.com' + '/' +
-                encodeURIComponent(key).replace(/%2F/g, '/') + '?' + AuthData.Authorization +
+                camSafeUrlEncode(key).replace(/%2F/g, '/') + '?' + AuthData.Authorization +
                 (AuthData.XCosSecurityToken ? '&x-cos-security-token=' + AuthData.XCosSecurityToken : '');
             request({
                 url: link,

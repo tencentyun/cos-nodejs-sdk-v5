@@ -34,7 +34,7 @@ var defaultOptions = {
     UploadIdCacheLimit: 500,
     Proxy: '',
     Ip: '',
-    StrictSSL: true,
+    StrictSsl: true,
     UserAgent: '',
 };
 

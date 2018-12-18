@@ -2387,8 +2387,8 @@ function _submitRequest(params, callback) {
             return pre + Ip;
         });
     }
-    if (this.options.StrictSSL !== true) {
-        opt.strictSSL = this.options.StrictSSL;
+    if (this.options.StrictSsl !== true) {
+        opt.strictSSL = this.options.StrictSsl;
     }
     if (this.options.Proxy) {
         opt.proxy = this.options.Proxy;

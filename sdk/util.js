@@ -584,7 +584,7 @@ util.getFileUUID = function (FileStat, ChunkSize) {
 util.getBodyMd5 = function (UploadCheckContentMd5, Body, callback) {
     callback = callback || noop;
     if (UploadCheckContentMd5) {
-        if (Body instanceof Buffer || typeof Body.pipe !== 'function') {
+        if (Body instanceof Buffer || typeof Body === 'string') {
             callback(util.md5(Body));
         } else {
             callback();

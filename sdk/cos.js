@@ -33,6 +33,8 @@ var defaultOptions = {
     UploadCheckContentMd5: false,
     UploadIdCacheLimit: 500,
     Proxy: '',
+    Ip: '',
+    StrictSSL: true,
     UserAgent: '',
 };
 

@@ -2380,6 +2380,16 @@ function _submitRequest(params, callback) {
     opt.headers && (opt.headers = util.clearKey(opt.headers));
     opt = util.clearKey(opt);
 
+    var Ip = this.options.Ip;
+    if (Ip) {
+        opt.url = opt.url.replace(/^(https?:\/\/)([^\/]+)/, function (str, pre, Host) {
+            opt.headers.Host = Host;
+            return pre + Ip;
+        });
+    }
+    if (this.options.StrictSSL !== true) {
+        opt.strictSSL = this.options.StrictSSL;
+    }
     if (this.options.Proxy) {
         opt.proxy = this.options.Proxy;
     }

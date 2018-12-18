@@ -144,7 +144,7 @@ function sliceUploadFile(params, callback) {
     if (FileSize === 0) {
         params.Body = '';
         params.ContentLength = 0;
-        params._OnlyUploadNotAddTask = true;
+        params.SkipTask = true;
         self.putObject(params, function (err, data) {
             if (err) {
                 return callback(err);
@@ -657,33 +657,38 @@ function uploadSliceItem(params, callback) {
         ContentLength = end - start;
     }
 
-    var PartItem = UploadData.PartList[PartNumber - 1];
-    Async.retry(ChunkRetryTimes, function (tryCallback) {
-        if (!self._isRunningTask(TaskId)) return;
-        var Body = util.fileSlice(FilePath, start, end);
-        self.multipartUpload({
-            TaskId: TaskId,
-            Bucket: Bucket,
-            Region: Region,
-            Key: Key,
-            ContentLength: ContentLength,
-            PartNumber: PartNumber,
-            UploadId: UploadData.UploadId,
-            ServerSideEncryption: ServerSideEncryption,
-            Body: Body,
-            onProgress: params.onProgress
+    var md5Body = util.fileSlice(FilePath, start, end);
+    util.getFileMd5(md5Body, function (err, md5) {
+        var contentMd5 = md5 ? util.binaryBase64(md5) : '';
+        var PartItem = UploadData.PartList[PartNumber - 1];
+        Async.retry(ChunkRetryTimes, function (tryCallback) {
+            if (!self._isRunningTask(TaskId)) return;
+            var Body = util.fileSlice(FilePath, start, end);
+            self.multipartUpload({
+                TaskId: TaskId,
+                Bucket: Bucket,
+                Region: Region,
+                Key: Key,
+                ContentLength: ContentLength,
+                PartNumber: PartNumber,
+                UploadId: UploadData.UploadId,
+                ServerSideEncryption: ServerSideEncryption,
+                Body: Body,
+                onProgress: params.onProgress,
+                ContentMD5: contentMd5,
+            }, function (err, data) {
+                if (!self._isRunningTask(TaskId)) return;
+                if (err) {
+                    return tryCallback(err);
+                } else {
+                    PartItem.Uploaded = true;
+                    return tryCallback(null, data);
+                }
+            });
         }, function (err, data) {
             if (!self._isRunningTask(TaskId)) return;
-            if (err) {
-                return tryCallback(err);
-            } else {
-                PartItem.Uploaded = true;
-                return tryCallback(null, data);
-            }
+            return callback(err, data);
         });
-    }, function (err, data) {
-        if (!self._isRunningTask(TaskId)) return;
-        return callback(err, data);
     });
 }
 

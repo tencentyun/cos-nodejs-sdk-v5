@@ -44,6 +44,23 @@ var initTask = function (cos) {
         cos.emit('list-update', {list: util.map(queue, formatTask)});
     };
 
+    var clearQueue = function () {
+        if (queue.length > cos.options.UploadQueueSize) {
+            var i;
+            for (i = 0;
+                 i < queue.length &&
+                 queue.length > cos.options.UploadQueueSize && // 大于队列才处理
+                 i < nextUploadIndex; // 小于当前操作的 index 才处理
+                 i++) {
+                if (!queue[i] || queue[i].state !== 'waiting') {
+                    console.log('splice:', queue.length, i, queue[i] && queue[i].state);
+                    queue.splice(i, 1);
+                    nextUploadIndex--;
+                }
+            }
+        }
+    };
+
     var startNextTask = function () {
         if (nextUploadIndex < queue.length &&
             uploadingFileCount < cos.options.FileParallelLimit) {
@@ -69,6 +86,7 @@ var initTask = function (cos) {
                             delete task.callback;
                         }
                     }
+                    clearQueue();
                 });
                 emitListUpdate();
             }
@@ -170,14 +188,10 @@ var initTask = function (cos) {
             // 获取完文件大小再把任务加入队列
             tasks[id] = task;
             queue.push(task);
-            if (queue.length > cos.options.UploadQueueSize) {
-                var delta = queue.length - cos.options.UploadQueueSize;
-                queue.splice(0, delta);
-                nextUploadIndex -= delta;
-            }
             task.size = size;
             !ignoreAddEvent && emitListUpdate();
             startNextTask(cos);
+            clearQueue();
         });
         return id;
     };

@@ -961,15 +961,15 @@ function sliceCopyFile(params, callback) {
     var Region = params.Region;
     var Key = params.Key;
     var CopySource = params.CopySource;
-    var m = CopySource.match(/^([^.]+-\d+)\.cos\.([^.]+)\.[^/]+\/(.+)$/);
+    var m = CopySource.match(/^([^.]+-\d+)\.cos(v6)?\.([^.]+)\.[^/]+\/(.+)$/);
     if (!m) {
         callback({error: 'CopySource format error'});
         return;
     }
 
     var SourceBucket = m[1];
-    var SourceRegion = m[2];
-    var SourceKey = decodeURIComponent(m[3]);
+    var SourceRegion = m[3];
+    var SourceKey = decodeURIComponent(m[4]);
     var CopySliceSize = params.SliceSize === undefined ? self.options.CopySliceSize : params.SliceSize;
     CopySliceSize = Math.max(0, Math.min(CopySliceSize, 5 * 1024 * 1024 * 1024));
 

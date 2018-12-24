@@ -1406,15 +1406,15 @@ function optionsObject(params, callback) {
  */
 function putObjectCopy(params, callback) {
     var CopySource = params.CopySource || '';
-    var m = CopySource.match(/^([^.]+-\d+)\.cos\.([^.]+)\.[^/]+\/(.+)$/);
+    var m = CopySource.match(/^([^.]+-\d+)\.cos(v6)?\.([^.]+)\.[^/]+\/(.+)$/);
     if (!m) {
         callback({error: 'CopySource format error'});
         return;
     }
 
     var SourceBucket = m[1];
-    var SourceRegion = m[2];
-    var SourceKey = decodeURIComponent(m[3]);
+    var SourceRegion = m[3];
+    var SourceKey = decodeURIComponent(m[4]);
 
     submitRequest.call(this, {
         Scope: [{
@@ -1450,15 +1450,15 @@ function putObjectCopy(params, callback) {
 function uploadPartCopy(params, callback) {
 
     var CopySource = params.CopySource || '';
-    var m = CopySource.match(/^([^.]+-\d+)\.cos\.([^.]+)\.[^/]+\/(.+)$/);
+    var m = CopySource.match(/^([^.]+-\d+)\.cos(v6)?\.([^.]+)\.[^/]+\/(.+)$/);
     if (!m) {
         callback({error: 'CopySource format error'});
         return;
     }
 
     var SourceBucket = m[1];
-    var SourceRegion = m[2];
-    var SourceKey = decodeURIComponent(m[3]);
+    var SourceRegion = m[3];
+    var SourceKey = decodeURIComponent(m[4]);
 
     submitRequest.call(this, {
         Scope: [{
@@ -1909,6 +1909,7 @@ function getAuth(params) {
         Headers: params.Headers,
         Expires: params.Expires,
         UseRawKey: self.options.UseRawKey,
+        SystemClockOffset: self.options.SystemClockOffset,
     });
 }
 
@@ -2163,7 +2164,7 @@ function getAuthorizationAsync(params, callback) {
         var i, AuthData;
         for (i = self._StsCache.length - 1; i >= 0; i--) {
             AuthData = self._StsCache[i];
-            if (AuthData.ExpiredTime < Math.round(Date.now() / 1000) + 10) {
+            if (AuthData.ExpiredTime < Math.round(util.getSkewTime(self.options.SystemClockOffset) / 1000) + 30) {
                 self._StsCache.splice(i, 1);
                 continue;
             }
@@ -2183,6 +2184,7 @@ function getAuthorizationAsync(params, callback) {
             Query: params.Query,
             Headers: params.Headers,
             UseRawKey: self.options.UseRawKey,
+            SystemClockOffset: self.options.SystemClockOffset,
         });
         var AuthData = {
             Authorization: Authorization,
@@ -2195,7 +2197,7 @@ function getAuthorizationAsync(params, callback) {
     };
 
     // 先判断是否有临时密钥
-    if (StsData.ExpiredTime && StsData.ExpiredTime - (Date.now() / 1000) > 60) { // 如果缓存的临时密钥有效，并还有超过60秒有效期就直接使用
+    if (StsData.ExpiredTime && StsData.ExpiredTime - (util.getSkewTime(self.options.SystemClockOffset) / 1000) > 60) { // 如果缓存的临时密钥有效，并还有超过60秒有效期就直接使用
         calcAuthByTmpKey();
     } else if (self.options.getAuthorization) { // 外部计算签名或获取临时密钥
         self.options.getAuthorization.call(self, {
@@ -2247,6 +2249,7 @@ function getAuthorizationAsync(params, callback) {
                 Headers: params.Headers,
                 Expires: params.Expires,
                 UseRawKey: self.options.UseRawKey,
+                SystemClockOffset: self.options.SystemClockOffset,
             });
             var AuthData = {
                 Authorization: Authorization,
@@ -2257,6 +2260,35 @@ function getAuthorizationAsync(params, callback) {
         })();
     }
     return '';
+}
+
+// 调整时间偏差
+function allowRetry(err) {
+    var allowRetry = false;
+    var isTimeError = false;
+    var serverDate = (err.headers && (err.headers.date || err.headers.Date)) || '';
+    try {
+        var errorCode = err.error.Code;
+        var errorMessage = err.error.Message;
+        if (errorCode === 'RequestTimeTooSkewed' ||
+            (errorCode === 'AccessDenied' && errorMessage === 'Request has expired')) {
+            isTimeError = true;
+        }
+    } catch (e) {
+    }
+    if (err) {
+        if (isTimeError && serverDate) {
+            var serverTime = Date.parse(serverDate);
+            if (this.options.CorrectClockSkew && Math.abs(util.getSkewTime(this.options.SystemClockOffset) - serverTime) >= 30000) {
+                console.error('error: Local time is too skewed.');
+                this.options.SystemClockOffset = serverTime - Date.now();
+                allowRetry = true;
+            }
+        } else if (Math.round(err.statusCode / 100) === 5) {
+            allowRetry = true;
+        }
+    }
+    return allowRetry;
 }
 
 // 获取签名并发起请求
@@ -2278,51 +2310,39 @@ function submitRequest(params, callback) {
 
     var Query = util.clone(params.qs);
     params.action && (Query[params.action] = '');
-    getAuthorizationAsync.call(self, {
-        Bucket: params.Bucket || '',
-        Region: params.Region || '',
-        Method: params.method,
-        Key: params.Key,
-        Query: Query,
-        Headers: params.headers,
-        Action: params.Action,
-        ResourceKey: params.ResourceKey,
-        Scope: params.Scope,
-    }, function (err, AuthData) {
 
-        // 检查签名格式
-        var auth = AuthData.Authorization;
-        var formatAllow = false;
-        if (auth) {
-            if (auth.indexOf(' ') > -1) {
-                formatAllow = false;
-            } else if (auth.indexOf('q-sign-algorithm=') > -1 &&
-                auth.indexOf('q-ak=') > -1 &&
-                auth.indexOf('q-sign-time=') > -1 &&
-                auth.indexOf('q-key-time=') > -1 &&
-                auth.indexOf('q-url-param-list=') > -1) {
-                formatAllow = true;
-            } else {
-                try {
-                    auth = atob(auth);
-                    if (auth.indexOf('a=') > -1 &&
-                        auth.indexOf('k=') > -1 &&
-                        auth.indexOf('t=') > -1 &&
-                        auth.indexOf('r=') > -1 &&
-                        auth.indexOf('b=') > -1) {
-                        formatAllow = true;
+    var next = function (tryIndex) {
+        var oldClockOffset = self.options.SystemClockOffset;
+        getAuthorizationAsync.call(self, {
+            Bucket: params.Bucket || '',
+            Region: params.Region || '',
+            Method: params.method,
+            Key: params.Key,
+            Query: Query,
+            Headers: params.headers,
+            Action: params.Action,
+            ResourceKey: params.ResourceKey,
+            Scope: params.Scope,
+        }, function (err, AuthData) {
+            params.AuthData = AuthData;
+            _submitRequest.call(self, params, function (err, data) {
+                if (err && tryIndex < 2 && (oldClockOffset !== self.options.SystemClockOffset || allowRetry.call(self, err))) {
+                    if (params.headers) {
+                        delete params.headers.Authorization;
+                        delete params.headers['token'];
+                        delete params.headers['clientIP'];
+                        delete params.headers['clientUA'];
+                        delete params.headers['x-cos-security-token'];
                     }
-                } catch (e) {}
-            }
-        }
-        if (!formatAllow) {
-            callback('authorization error');
-            return;
-        }
+                    next(tryIndex + 1);
+                } else {
+                    callback(err, data);
+                }
+            });
+        });
+    };
+    next(0);
 
-        params.AuthData = AuthData;
-        _submitRequest.call(self, params, callback);
-    });
 }
 
 // 发起请求
@@ -2415,6 +2435,10 @@ function _submitRequest(params, callback) {
             data = util.extend(data || {}, attrs);
             callback(null, data);
         }
+        if (sender) {
+            sender.removeAllListeners && sender.removeAllListeners();
+            sender = null;
+        }
     };
     var xml2json = function (body) {
         try {
@@ -2440,10 +2464,10 @@ function _submitRequest(params, callback) {
         } else if (responseContentLength >= process.binding('buffer').kMaxLength && opt.method !== 'HEAD') {
             cb({error: 'file size large than ' + process.binding('buffer').kMaxLength + ', please use "Output" Stream to getObject.'});
         } else {
-            sender.on('data', function (chunk) {
+            var dataHandler = function (chunk) {
                 chunkList.push(chunk);
-            });
-            sender.on('end', function () {
+            };
+            var endHandler = function () {
                 var json;
                 try {
                     var body = Buffer.concat(chunkList);
@@ -2469,7 +2493,10 @@ function _submitRequest(params, callback) {
                     bodyStr && (json = xml2json(bodyStr));
                     cb({error: json && json.Error || response.statusMessage || 'statusCode error'});
                 }
-            });
+                chunkList = null;
+            };
+            sender.on('data', dataHandler);
+            sender.on('end', endHandler);
         }
     });
 
@@ -2535,7 +2562,7 @@ function _submitRequest(params, callback) {
     // pipe 输入
     if (readStream) {
         readStream.on('error', function (err) {
-            sender.abort();
+            sender && sender.abort && sender.abort();
             callback(err);
         });
         readStream.pipe(sender);
@@ -2543,7 +2570,7 @@ function _submitRequest(params, callback) {
     // pipe 输出
     if (params.outputStream) {
         params.outputStream.on('error', function (err) {
-            sender.abort();
+            sender && sender.abort && sender.abort();
             callback(err)
         });
         sender.pipe(params.outputStream);

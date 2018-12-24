@@ -23,7 +23,7 @@ var policy = {
         'effect': 'allow',
         'principal': {'qcs': ['*']},
         'resource': [
-            'qcs::cos:ap-guangzhou:uid/' + AppId + ':prefix//' + AppId + '/' + ShortBucketName + '/dir/*'
+            'qcs::cos:' + config.Region + ':uid/' + AppId + ':prefix//' + AppId + '/' + ShortBucketName + '/*'
         ]
     }]
 };
@@ -45,6 +45,7 @@ var cos = new COS({
                     TmpSecretId: credentials.tmpSecretId,
                     TmpSecretKey: credentials.tmpSecretKey,
                     XCosSecurityToken: credentials.sessionToken,
+                    StartTime: data.starteTime,
                     ExpiredTime: data.expiredTime,
                 });
             }

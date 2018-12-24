@@ -30,6 +30,8 @@ var defaultOptions = {
     ForcePathStyle: false,
     UseRawKey: false,
     Timeout: 0, // 单位毫秒，0 代表不设置超时时间
+    CorrectClockSkew: true,
+    SystemClockOffset: 0, // 单位毫秒，ms
     UploadCheckContentMd5: false,
     UploadIdCacheLimit: 500,
     Proxy: '',

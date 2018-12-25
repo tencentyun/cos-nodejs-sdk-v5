@@ -96,9 +96,7 @@ var getAuth = function (opt) {
     formatString = Buffer.from(formatString, 'utf8');
 
     // 步骤三：计算 StringToSign
-    var sha1Algo = crypto.createHash('sha1');
-    sha1Algo.update(formatString);
-    var res = sha1Algo.digest('hex');
+    var res = crypto.createHash('sha1').update(formatString).digest('hex');
     var stringToSign = ['sha1', qSignTime, res, ''].join('\n');
 
     // 步骤四：计算 Signature

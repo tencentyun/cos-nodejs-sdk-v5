@@ -260,19 +260,20 @@ function getUploadIdAndPartList(params, callback) {
                 Size: ChunkSize
             });
         } else {
-            var chunkItem = util.fileSlice(params.FilePath, start, end);
-            util.getFileMd5(chunkItem, function (err, md5) {
-                if (err) return callback(err);
-                var ETag = '"' + md5 + '"';
-                ETagMap[PartNumber] = ETag;
-                FinishSliceCount += 1;
-                FinishSize += ChunkSize;
-                callback(err, {
-                    PartNumber: PartNumber,
-                    ETag: ETag,
-                    Size: ChunkSize
+            util.fileSlice(params.FilePath, start, end, function (chunkItem) {
+                util.getFileMd5(chunkItem, function (err, md5) {
+                    if (err) return callback(err);
+                    var ETag = '"' + md5 + '"';
+                    ETagMap[PartNumber] = ETag;
+                    FinishSliceCount += 1;
+                    FinishSize += ChunkSize;
+                    callback(err, {
+                        PartNumber: PartNumber,
+                        ETag: ETag,
+                        Size: ChunkSize
+                    });
+                    onHashProgress({loaded: FinishSize, total: FileSize});
                 });
-                onHashProgress({loaded: FinishSize, total: FileSize});
             });
         }
     };
@@ -657,37 +658,39 @@ function uploadSliceItem(params, callback) {
         ContentLength = end - start;
     }
 
-    var md5Body = util.fileSlice(FilePath, start, end);
-    util.getFileMd5(md5Body, function (err, md5) {
-        var contentMd5 = md5 ? util.binaryBase64(md5) : '';
-        var PartItem = UploadData.PartList[PartNumber - 1];
-        Async.retry(ChunkRetryTimes, function (tryCallback) {
-            if (!self._isRunningTask(TaskId)) return;
-            var Body = util.fileSlice(FilePath, start, end);
-            self.multipartUpload({
-                TaskId: TaskId,
-                Bucket: Bucket,
-                Region: Region,
-                Key: Key,
-                ContentLength: ContentLength,
-                PartNumber: PartNumber,
-                UploadId: UploadData.UploadId,
-                ServerSideEncryption: ServerSideEncryption,
-                Body: Body,
-                onProgress: params.onProgress,
-                ContentMD5: contentMd5,
+    util.fileSlice(FilePath, start, end, function (md5Body) {
+        util.getFileMd5(md5Body, function (err, md5) {
+            var contentMd5 = md5 ? util.binaryBase64(md5) : '';
+            var PartItem = UploadData.PartList[PartNumber - 1];
+            Async.retry(ChunkRetryTimes, function (tryCallback) {
+                if (!self._isRunningTask(TaskId)) return;
+                util.fileSlice(FilePath, start, end, function (Body) {
+                    self.multipartUpload({
+                        TaskId: TaskId,
+                        Bucket: Bucket,
+                        Region: Region,
+                        Key: Key,
+                        ContentLength: ContentLength,
+                        PartNumber: PartNumber,
+                        UploadId: UploadData.UploadId,
+                        ServerSideEncryption: ServerSideEncryption,
+                        Body: Body,
+                        onProgress: params.onProgress,
+                        ContentMD5: contentMd5,
+                    }, function (err, data) {
+                        if (!self._isRunningTask(TaskId)) return;
+                        if (err) {
+                            return tryCallback(err);
+                        } else {
+                            PartItem.Uploaded = true;
+                            return tryCallback(null, data);
+                        }
+                    });
+                });
             }, function (err, data) {
                 if (!self._isRunningTask(TaskId)) return;
-                if (err) {
-                    return tryCallback(err);
-                } else {
-                    PartItem.Uploaded = true;
-                    return tryCallback(null, data);
-                }
+                return callback(err, data);
             });
-        }, function (err, data) {
-            if (!self._isRunningTask(TaskId)) return;
-            return callback(err, data);
         });
     });
 }
@@ -973,7 +976,7 @@ function sliceCopyFile(params, callback) {
     var CopySliceSize = params.SliceSize === undefined ? self.options.CopySliceSize : params.SliceSize;
     CopySliceSize = Math.max(0, Math.min(CopySliceSize, 5 * 1024 * 1024 * 1024));
 
-    var ChunkSize = params.ChunkSize || this.options.ChunkSize;
+    var ChunkSize = params.ChunkSize || this.options.CopyChunkSize;
     var ChunkParallel = this.options.CopyChunkParallelLimit;
 
     var FinishSize = 0;

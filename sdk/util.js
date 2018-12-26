@@ -30,9 +30,9 @@ var getAuth = function (opt) {
     var Key = opt.Key || '';
     var pathname;
     if (opt.UseRawKey) {
-        pathname = opt.pathname || '/' + Key;
+        pathname = opt.Pathname || opt.pathname || '/' + Key;
     } else {
-        pathname = opt.pathname || Key;
+        pathname = opt.Pathname || opt.pathname || Key;
         pathname.indexOf('/') !== 0 && (pathname = '/' + pathname);
     }
 
@@ -571,11 +571,12 @@ var util = {
         removeItem: update,
     };
 })();
-util.fileSlice = function (FilePath, start, end) {
+util.fileSlice = function (FilePath, start, end, callback) {
     if (FilePath) {
-        return fs.createReadStream(FilePath, {start: start, end: end - 1});
+        callback(fs.createReadStream(FilePath, {start: start, end: end - 1}));
+    } else {
+        callback(null);
     }
-    return null;
 };
 util.getFileUUID = function (FileStat, ChunkSize) {
     if (FileStat && FileStat.FilePath && FileStat.size && FileStat.ctime && FileStat.mtime && ChunkSize) {

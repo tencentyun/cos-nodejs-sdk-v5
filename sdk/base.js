@@ -2138,10 +2138,11 @@ function getAuthorizationAsync(params, callback) {
     var Region = params.Region || '';
 
     // PathName
-    var PathName = params.Key || '';
+    var KeyName = params.Key || '';
     if (self.options.ForcePathStyle && Bucket) {
-        PathName = Bucket + '/' + PathName;
+        KeyName = Bucket + '/' + KeyName;
     }
+    var Pathname = '/' + KeyName;
 
     // Action、ResourceKey
     var StsData = {};
@@ -2164,7 +2165,8 @@ function getAuthorizationAsync(params, callback) {
         var i, AuthData;
         for (i = self._StsCache.length - 1; i >= 0; i--) {
             AuthData = self._StsCache[i];
-            if (AuthData.ExpiredTime < Math.round(util.getSkewTime(self.options.SystemClockOffset) / 1000) + 30) {
+            var compareTime = Math.round(util.getSkewTime(self.options.SystemClockOffset) / 1000) + 30;
+            if (AuthData.StartTime && compareTime < AuthData.StartTime || compareTime >= AuthData.ExpiredTime) {
                 self._StsCache.splice(i, 1);
                 continue;
             }
@@ -2180,7 +2182,7 @@ function getAuthorizationAsync(params, callback) {
             SecretId: StsData.TmpSecretId,
             SecretKey: StsData.TmpSecretKey,
             Method: params.Method,
-            Key: PathName,
+            Pathname: Pathname,
             Query: params.Query,
             Headers: params.Headers,
             UseRawKey: self.options.UseRawKey,
@@ -2204,7 +2206,8 @@ function getAuthorizationAsync(params, callback) {
             Bucket: Bucket,
             Region: Region,
             Method: params.Method,
-            Key: PathName,
+            Key: KeyName,
+            Pathname: Pathname,
             Query: params.Query,
             Headers: params.Headers,
             Scope: Scope,
@@ -2244,7 +2247,7 @@ function getAuthorizationAsync(params, callback) {
                 SecretId: params.SecretId || self.options.SecretId,
                 SecretKey: params.SecretKey || self.options.SecretKey,
                 Method: params.Method,
-                Key: PathName,
+                Pathname: Pathname,
                 Query: params.Query,
                 Headers: params.Headers,
                 Expires: params.Expires,

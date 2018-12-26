@@ -79,9 +79,11 @@ var initTask = function (cos) {
                         startNextTask(cos);
                         task.callback && task.callback(err, data);
                         if (task.state === 'success') {
-                            delete task.params.UploadData;
-                            delete task.params.Body;
-                            delete task.params;
+                            if (task.params) {
+                                delete task.params.UploadData;
+                                delete task.params.Body;
+                                delete task.params;
+                            }
                             delete task.callback;
                         }
                     }
@@ -114,12 +116,15 @@ var initTask = function (cos) {
                 startNextTask(cos);
             }
             if (switchToState === 'canceled') {
-                delete task.params.UploadData;
-                delete task.params.Body;
-                delete task.params;
+                if (task.params) {
+                    delete task.params.UploadData;
+                    delete task.params.Body;
+                    delete task.params;
+                }
                 delete task.callback;
             }
         }
+        clearQueue();
     };
 
     cos._addTasks = function (taskList) {

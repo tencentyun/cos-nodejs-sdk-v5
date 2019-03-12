@@ -22,7 +22,7 @@ var defaultOptions = {
     CopySliceSize: 1024 * 1024 * 10,
     MaxPartNumber: 10000,
     ProgressInterval: 1000,
-    UploadQueueSize: 10000,
+    UploadQueueSize: 1000,
     Domain: '',
     ServiceDomain: '',
     Protocol: '',

@@ -297,43 +297,50 @@ var formatParams = function (apiName, params) {
                 }
             })();
 
-            // params headers
-            Headers['x-cos-mfa'] = params['MFA'];
-            Headers['Content-MD5'] = params['ContentMD5'];
-            Headers['Content-Length'] = params['ContentLength'];
-            Headers['Content-Type'] = params['ContentType'];
-            Headers['Expect'] = params['Expect'];
-            Headers['Expires'] = params['Expires'];
-            Headers['Cache-Control'] = params['CacheControl'];
-            Headers['Content-Disposition'] = params['ContentDisposition'];
-            Headers['Content-Encoding'] = params['ContentEncoding'];
-            Headers['Range'] = params['Range'];
-            Headers['If-Modified-Since'] = params['IfModifiedSince'];
-            Headers['If-Unmodified-Since'] = params['IfUnmodifiedSince'];
-            Headers['If-Match'] = params['IfMatch'];
-            Headers['If-None-Match'] = params['IfNoneMatch'];
-            Headers['x-cos-copy-source'] = params['CopySource'];
-            Headers['x-cos-copy-source-Range'] = params['CopySourceRange'];
-            Headers['x-cos-metadata-directive'] = params['MetadataDirective'];
-            Headers['x-cos-copy-source-If-Modified-Since'] = params['CopySourceIfModifiedSince'];
-            Headers['x-cos-copy-source-If-Unmodified-Since'] = params['CopySourceIfUnmodifiedSince'];
-            Headers['x-cos-copy-source-If-Match'] = params['CopySourceIfMatch'];
-            Headers['x-cos-copy-source-If-None-Match'] = params['CopySourceIfNoneMatch'];
-            Headers['x-cos-acl'] = params['ACL'];
-            Headers['x-cos-grant-read'] = params['GrantRead'];
-            Headers['x-cos-grant-write'] = params['GrantWrite'];
-            Headers['x-cos-grant-full-control'] = params['GrantFullControl'];
-            Headers['x-cos-grant-read-acp'] = params['GrantReadAcp'];
-            Headers['x-cos-grant-write-acp'] = params['GrantWriteAcp'];
-            Headers['x-cos-storage-class'] = params['StorageClass'];
-            // SSE-C
-            Headers['x-cos-server-side-encryption-customer-algorithm'] = params['SSECustomerAlgorithm'];
-            Headers['x-cos-server-side-encryption-customer-key'] = params['SSECustomerKey'];
-            Headers['x-cos-server-side-encryption-customer-key-MD5'] = params['SSECustomerKeyMD5'];
-            // SSE-COS、SSE-KMS
-            Headers['x-cos-server-side-encryption'] = params['ServerSideEncryption'];
-            Headers['x-cos-server-side-encryption-cos-kms-key-id'] = params['SSEKMSKeyId'];
-            Headers['x-cos-server-side-encryption-context'] = params['SSEContext'];
+            var headerMap = {
+                // params headers
+                'x-cos-mfa': 'MFA',
+                'Content-MD5': 'ContentMD5',
+                'Content-Length': 'ContentLength',
+                'Content-Type': 'ContentType',
+                'Expect': 'Expect',
+                'Expires': 'Expires',
+                'Cache-Control': 'CacheControl',
+                'Content-Disposition': 'ContentDisposition',
+                'Content-Encoding': 'ContentEncoding',
+                'Range': 'Range',
+                'If-Modified-Since': 'IfModifiedSince',
+                'If-Unmodified-Since': 'IfUnmodifiedSince',
+                'If-Match': 'IfMatch',
+                'If-None-Match': 'IfNoneMatch',
+                'x-cos-copy-source': 'CopySource',
+                'x-cos-copy-source-Range': 'CopySourceRange',
+                'x-cos-metadata-directive': 'MetadataDirective',
+                'x-cos-copy-source-If-Modified-Since': 'CopySourceIfModifiedSince',
+                'x-cos-copy-source-If-Unmodified-Since': 'CopySourceIfUnmodifiedSince',
+                'x-cos-copy-source-If-Match': 'CopySourceIfMatch',
+                'x-cos-copy-source-If-None-Match': 'CopySourceIfNoneMatch',
+                'x-cos-acl': 'ACL',
+                'x-cos-grant-read': 'GrantRead',
+                'x-cos-grant-write': 'GrantWrite',
+                'x-cos-grant-full-control': 'GrantFullControl',
+                'x-cos-grant-read-acp': 'GrantReadAcp',
+                'x-cos-grant-write-acp': 'GrantWriteAcp',
+                'x-cos-storage-class': 'StorageClass',
+                // SSE-C
+                'x-cos-server-side-encryption-customer-algorithm': 'SSECustomerAlgorithm',
+                'x-cos-server-side-encryption-customer-key': 'SSECustomerKey',
+                'x-cos-server-side-encryption-customer-key-MD5': 'SSECustomerKeyMD5',
+                // SSE-COS、SSE-KMS
+                'x-cos-server-side-encryption': 'ServerSideEncryption',
+                'x-cos-server-side-encryption-cos-kms-key-id': 'SSEKMSKeyId',
+                'x-cos-server-side-encryption-context': 'SSEContext',
+            };
+            util.each(headerMap, function (paramKey, headerKey) {
+                if (params[paramKey] !== undefined) {
+                    Headers[headerKey] = params[paramKey];
+                }
+            });
 
             params.Headers = clearKey(Headers);
         }
@@ -384,7 +391,7 @@ var apiWrapper = function (apiName, apiFn) {
                 }
                 // 判断 region 格式
                 if (!this.options.CompatibilityMode && params.Region.indexOf('-') === -1 && params.Region !== 'yfb' && params.Region !== 'default') {
-                    console.warn('param Region format error, find help here: https://cloud.tencent.com/document/product/436/6224');
+                    console.warn('warning: param Region format error, find help here: https://cloud.tencent.com/document/product/436/6224');
                 }
             }
             // 兼容不带 AppId 的 Bucket

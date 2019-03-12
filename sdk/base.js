@@ -1392,7 +1392,7 @@ function optionsObject(params, callback) {
  *     @param  {String}  CopySourceIfUnmodifiedSince    当Object在指定时间后未被修改，则执行操作，否则返回412。可与x-cos-copy-source-If-Match一起使用，与其他条件联合使用返回冲突。
  *     @param  {String}  CopySourceIfMatch              当Object的Etag和给定一致时，则执行操作，否则返回412。可与x-cos-copy-source-If-Unmodified-Since一起使用，与其他条件联合使用返回冲突。
  *     @param  {String}  CopySourceIfNoneMatch          当Object的Etag和给定不一致时，则执行操作，否则返回412。可与x-cos-copy-source-If-Modified-Since一起使用，与其他条件联合使用返回冲突。
- *     @param  {String}  StorageClass                   存储级别，枚举值：存储级别，枚举值：Standard, Standard_IA，Nearline；默认值：Standard
+ *     @param  {String}  StorageClass                   存储级别，枚举值：存储级别，枚举值：Standard, Standard_IA，Archive；默认值：Standard
  *     @param  {String}  CacheControl                   指定所有缓存机制在整个请求/响应链中必须服从的指令。
  *     @param  {String}  ContentDisposition             MIME 协议的扩展，MIME 协议指示 MIME 用户代理如何显示附加的文件
  *     @param  {String}  ContentEncoding                HTTP 中用来对「采用何种编码格式传输正文」进行协定的一对头部字段
@@ -1593,7 +1593,7 @@ function restoreObject(params, callback) {
  *     @param  {String}  params.GrantRead                       赋予被授权者读的权限 ，非必须
  *     @param  {String}  params.GrantWrite                      赋予被授权者写的权限 ，非必须
  *     @param  {String}  params.GrantFullControl                赋予被授权者读写权限 ，非必须
- *     @param  {String}  params.StorageClass                    设置Object的存储级别，枚举值：Standard，Standard_IA，Nearline，非必须
+ *     @param  {String}  params.StorageClass                    设置Object的存储级别，枚举值：Standard，Standard_IA，Archive，非必须
  *     @param  {String}  params.ServerSideEncryption           支持按照指定的加密算法进行服务端数据加密，格式 x-cos-server-side-encryption: "AES256"，非必须
  * @param  {Function}  callback                                 回调函数，必须
  * @return  {Object}  err                                       请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
@@ -2099,6 +2099,13 @@ function getUrl(params) {
 // 异步获取签名
 function getAuthorizationAsync(params, callback) {
 
+    var headers = util.clone(params.Headers);
+    delete headers['Content-Type'];
+    delete headers['Cache-Control'];
+    util.each(headers, function (v, k) {
+        v === '' && delete headers[k];
+    });
+
     var cb = function (AuthData) {
 
         // 检查签名格式
@@ -2184,7 +2191,7 @@ function getAuthorizationAsync(params, callback) {
             Method: params.Method,
             Pathname: Pathname,
             Query: params.Query,
-            Headers: params.Headers,
+            Headers: headers,
             UseRawKey: self.options.UseRawKey,
             SystemClockOffset: self.options.SystemClockOffset,
         });
@@ -2209,7 +2216,7 @@ function getAuthorizationAsync(params, callback) {
             Key: KeyName,
             Pathname: Pathname,
             Query: params.Query,
-            Headers: params.Headers,
+            Headers: headers,
             Scope: Scope,
         }, function (AuthData) {
             if (typeof AuthData === 'string') {
@@ -2249,7 +2256,7 @@ function getAuthorizationAsync(params, callback) {
                 Method: params.Method,
                 Pathname: Pathname,
                 Query: params.Query,
-                Headers: params.Headers,
+                Headers: headers,
                 Expires: params.Expires,
                 UseRawKey: self.options.UseRawKey,
                 SystemClockOffset: self.options.SystemClockOffset,
@@ -2566,7 +2573,7 @@ function _submitRequest(params, callback) {
     if (readStream) {
         readStream.on('error', function (err) {
             sender && sender.abort && sender.abort();
-            callback(err);
+            cb(err);
         });
         readStream.pipe(sender);
     }
@@ -2574,7 +2581,7 @@ function _submitRequest(params, callback) {
     if (params.outputStream) {
         params.outputStream.on('error', function (err) {
             sender && sender.abort && sender.abort();
-            callback(err)
+            cb(err)
         });
         sender.pipe(params.outputStream);
     }

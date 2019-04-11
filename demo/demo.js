@@ -459,7 +459,7 @@ function putObject() {
             Bucket: config.Bucket, /* 必须 */ // Bucket 格式：test-1250000000
             Region: config.Region,
             Key: filename, /* 必须 */
-            TaskReady: function (tid) {
+            onTaskReady: function (tid) {
                 TaskId = tid;
             },
             onProgress: function (progressData) {
@@ -642,7 +642,7 @@ function sliceUploadFile() {
             Region: config.Region,
             Key: filename, /* 必须 */
             FilePath: filepath, /* 必须 */
-            TaskReady: function (tid) {
+            onTaskReady: function (tid) {
                 TaskId = tid;
             },
             onHashProgress: function (progressData) {

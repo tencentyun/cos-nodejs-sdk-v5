@@ -37,6 +37,7 @@ var defaultOptions = {
     Proxy: '',
     Ip: '',
     StrictSsl: true,
+    KeepAlive: true,
     UserAgent: '',
 };
 

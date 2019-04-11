@@ -13,7 +13,11 @@ var policy = {
     'version': '2.0',
     'statement': [{
         'action': [
+            // 所有 action 请看文档 https://cloud.tencent.com/document/product/436/31923
+            // 简单上传
             'name/cos:PutObject',
+            'name/cos:PostObject',
+            // 分片上传
             'name/cos:InitiateMultipartUpload',
             'name/cos:ListMultipartUploads',
             'name/cos:ListParts',
@@ -45,7 +49,6 @@ var cos = new COS({
                     TmpSecretId: credentials.tmpSecretId,
                     TmpSecretKey: credentials.tmpSecretKey,
                     XCosSecurityToken: credentials.sessionToken,
-                    StartTime: data.starteTime,
                     ExpiredTime: data.expiredTime,
                 });
             }

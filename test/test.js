@@ -271,7 +271,7 @@ group('putObject(),cancelTask()', function () {
             Region: config.Region,
             Key: filename,
             Body: Buffer.from(Array(1024 * 1024 * 10).fill(0)),
-            TaskReady: function (taskId) {
+            onTaskReady: function (taskId) {
                 TaskId = taskId;
             },
             onProgress: function (info) {
@@ -309,7 +309,7 @@ group('sliceUploadFile() 完整上传文件', function () {
                 Region: config.Region,
                 Key: filename,
                 FilePath: filePath,
-                TaskReady: function (taskId) {
+                onTaskReady: function (taskId) {
                     TaskId = taskId;
                 },
                 onProgress: function (info) {
@@ -349,7 +349,7 @@ group('sliceUploadFile(),pauseTask(),restartTask()', function () {
                 Region: config.Region,
                 Key: filename,
                 FilePath: filePath,
-                TaskReady: function (taskId) {
+                onTaskReady: function (taskId) {
                     TaskId = taskId;
                 },
                 onProgress: function (info) {
@@ -386,7 +386,7 @@ group('sliceUploadFile(),cancelTask()', function () {
             Region: config.Region,
             Key: filename,
             FilePath: filePath,
-            TaskReady: function (taskId) {
+            onTaskReady: function (taskId) {
                 TaskId = taskId;
             },
             onProgress: function (info) {
@@ -443,7 +443,7 @@ group('abortUploadTask()', function () {
             Region: config.Region,
             Key: filename,
             FilePath: filePath,
-            TaskReady: function (taskId) {
+            onTaskReady: function (taskId) {
                 TaskId = taskId;
             },
             onProgress: function (info) {
@@ -470,7 +470,7 @@ group('abortUploadTask()', function () {
             Region: config.Region,
             Key: filename,
             FilePath: filePath,
-            TaskReady: function (taskId) {
+            onTaskReady: function (taskId) {
                 TaskId = taskId;
             },
             onProgress: function (info) {
@@ -1244,20 +1244,20 @@ group('ObjectAcl', function () {
             });
         });
     });
-    test('putObjectAcl() header ACL:public-read-write', function (done, assert) {
-        cos.putObjectAcl({
-            Bucket: config.Bucket,
-            Region: config.Region,
-            ACL: 'public-read-write',
-            Key: '1.txt',
-        }, function (err, data) {
-            assert.ok(!err, 'putObjectAcl 成功');
-            cos.getObjectAcl({Bucket: config.Bucket, Region: config.Region, Key: '1.txt'}, function (err, data) {
-                assert.ok(data.ACL = 'public-read-write');
-                done();
-            });
-        });
-    });
+    // test('putObjectAcl() header ACL:public-read-write', function (done, assert) {
+    //     cos.putObjectAcl({
+    //         Bucket: config.Bucket,
+    //         Region: config.Region,
+    //         ACL: 'public-read-write',
+    //         Key: '1.txt',
+    //     }, function (err, data) {
+    //         assert.ok(!err, 'putObjectAcl 成功');
+    //         cos.getObjectAcl({Bucket: config.Bucket, Region: config.Region, Key: '1.txt'}, function (err, data) {
+    //             assert.ok(data.ACL = 'public-read-write');
+    //             done();
+    //         });
+    //     });
+    // });
     test('putObjectAcl() header GrantRead:1001,1002', function (done, assert) {
         var GrantRead = 'id="qcs::cam::uin/1001:uin/1001",id="qcs::cam::uin/1002:uin/1002"';
         cos.putObjectAcl({

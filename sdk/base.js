@@ -2426,6 +2426,9 @@ function _submitRequest(params, callback) {
     if (this.options.Timeout) {
         opt.timeout = this.options.Timeout;
     }
+    if (this.options.KeepAlive) {
+        opt.forever = true;
+    }
 
     self.emit('before-send', opt);
     var sender = REQUEST(opt);

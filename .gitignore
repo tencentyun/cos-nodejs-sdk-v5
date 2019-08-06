@@ -1,4 +1,5 @@
 .idea/
+.vscode
 package-lock.json
 node_modules
 demo/config.js

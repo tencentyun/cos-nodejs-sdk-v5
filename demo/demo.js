@@ -28,7 +28,9 @@ function camSafeUrlEncode(str) {
 }
 
 function getService() {
-    cos.getService(function (err, data) {
+    cos.getService({
+      Region: 'ap-guangzhou',
+    },function (err, data) {
         console.log(err || data);
     });
 }
@@ -325,7 +327,7 @@ function putBucketLifecycle() {
                     "Prefix": "dir/"
                 },
                 "Transition": {
-                    "Days": "90",
+                    "Days": "180",
                     "StorageClass": "ARCHIVE"
                 }
             }, {

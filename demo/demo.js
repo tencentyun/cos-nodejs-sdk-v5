@@ -155,15 +155,13 @@ function putBucketCors() {
     cos.putBucketCors({
         Bucket: config.Bucket, // Bucket 格式：test-1250000000
         Region: config.Region,
-        CORSConfiguration: {
-            "CORSRules": [{
-                "AllowedOrigin": ["*"],
-                "AllowedMethod": ["GET", "POST", "PUT", "DELETE", "HEAD"],
-                "AllowedHeader": ["*"],
-                "ExposeHeader": ["ETag", "Content-Length", "x-cos-acl", "x-cos-version-id", "x-cos-request-id", "x-cos-delete-marker", "x-cos-server-side-encryption"],
-                "MaxAgeSeconds": "5"
-            }]
-        }
+        CORSRules: [{
+            "AllowedOrigin": ["*"],
+            "AllowedMethod": ["GET", "POST", "PUT", "DELETE", "HEAD"],
+            "AllowedHeader": ["*"],
+            "ExposeHeader": ["ETag", "Content-Length", "x-cos-acl", "x-cos-version-id", "x-cos-request-id", "x-cos-delete-marker", "x-cos-server-side-encryption"],
+            "MaxAgeSeconds": "5"
+        }]
     }, function (err, data) {
         console.log(err || data);
     });

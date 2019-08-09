@@ -899,47 +899,6 @@ group('putObjectCopy()', function () {
     });
 });
 
-group('sliceCopyFile()', function () {
-    var filename = 'bigger.zip';
-    var Key = 'bigger.copy.zip';
-    test('正常分片复制 object', function (done, assert) {
-        prepareBigObject().then(function () {
-            cos.sliceCopyFile({
-                Bucket: config.Bucket,
-                Region: config.Region,
-                Key: Key,
-                CopySource: config.Bucket + '.cos.' + config.Region + '.myqcloud.com/'+ filename,
-                SliceSize: 5 * 1024 * 1024,
-            },function (err, data) {
-                if (err) assert.fail();
-                assert.ok(data.ETag.length > 0);
-                done();
-            });
-        }).catch(function () {
-            assert.fail();
-            done();
-        });
-    });
-    test('单片复制 object', function (done, assert) {
-        prepareBigObject().then(function () {
-            cos.sliceCopyFile({
-                Bucket: config.Bucket,
-                Region: config.Region,
-                Key: Key,
-                CopySource: config.Bucket + '.cos.' + config.Region + '.myqcloud.com/'+ filename,
-                SliceSize: 10 * 1024 * 1024,
-            },function (err,data) {
-                if (err) assert.fail();
-                assert.ok(data.ETag.length > 0);
-                done();
-            });
-        }).catch(function () {
-            assert.fail();
-            done();
-        });
-    });
-});
-
 group('deleteMultipleObject', function () {
     test('deleteMultipleObject()', function (done, assert) {
         var content = Date.now().toString(36);

@@ -30,7 +30,7 @@ function camSafeUrlEncode(str) {
 function getAuth() {
     var key = '1mb.zip';
     var auth = cos.getAuth({
-        Method: 'delete',
+        Method: 'get',
         Key: key,
         Expires: 60,
     });
@@ -745,7 +745,7 @@ function sliceCopyFile() {
     });
 }
 
-// getService();
+getService();
 // getAuth();
 // getV4Auth();
 // getObjectUrl();

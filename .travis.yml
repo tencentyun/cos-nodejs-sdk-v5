@@ -10,4 +10,7 @@ script:
   - npm test
 
 notifications:
-  email: false
+  email:
+    recipients:
+      - wjielai@tencent.com
+      - fysntian@tencent.com

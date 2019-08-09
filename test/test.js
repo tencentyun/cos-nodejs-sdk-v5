@@ -255,7 +255,7 @@ group('getBucket()', function () {
                 done();
             });
         }).catch(function () {
-            assert.equal(false);
+            assert.fail();
             done();
         });
     });
@@ -335,7 +335,7 @@ group('sliceUploadFile() 完整上传文件', function () {
 group('sliceUploadFile(),pauseTask(),restartTask()', function () {
     test('sliceUploadFile(),pauseTask(),restartTask()', function (done, assert) {
         var filename = '10m.zip';
-        var filePath = createFileSync(path.resolve(__dirname, filename), 1024 * 1024 * 10)
+        var filePath = createFileSync(path.resolve(__dirname, filename), 1024 * 1024 * 10);
         var paused = false;
         var restarted = false;
         cos.abortUploadTask({
@@ -911,12 +911,12 @@ group('sliceCopyFile()', function () {
                 CopySource: config.Bucket + '.cos.' + config.Region + '.myqcloud.com/'+ filename,
                 SliceSize: 5 * 1024 * 1024,
             },function (err, data) {
-                if (err) throw err;
+                if (err) assert.fail();
                 assert.ok(data.ETag.length > 0);
                 done();
             });
         }).catch(function () {
-            assert.ok(false);
+            assert.fail();
             done();
         });
     });
@@ -929,12 +929,12 @@ group('sliceCopyFile()', function () {
                 CopySource: config.Bucket + '.cos.' + config.Region + '.myqcloud.com/'+ filename,
                 SliceSize: 10 * 1024 * 1024,
             },function (err,data) {
-                if (err) throw err;
+                if (err) assert.fail();
                 assert.ok(data.ETag.length > 0);
                 done();
             });
         }).catch(function () {
-            assert.ok(false);
+            assert.fail();
             done();
         });
     });

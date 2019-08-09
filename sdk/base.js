@@ -13,6 +13,7 @@ var util = require('./util');
  * @param  {Function}  callback     回调函数，必须
  */
 function getService(params, callback) {
+
     if (typeof params === 'function') {
         callback = params;
         params = {};
@@ -59,6 +60,48 @@ function getService(params, callback) {
 }
 
 /**
+ * 创建 Bucket，并初始化访问权限
+ * @param  {Object}  params                         参数对象，必须
+ *     @param  {String}  params.Bucket              Bucket名称，必须
+ *     @param  {String}  params.Region              地域名称，必须
+ *     @param  {String}  params.ACL                 用户自定义文件权限，可以设置：private，public-read；默认值：private，非必须
+ *     @param  {String}  params.GrantRead           赋予被授权者读的权限，格式x-cos-grant-read: uin=" ",uin=" "，非必须
+ *     @param  {String}  params.GrantWrite          赋予被授权者写的权限，格式x-cos-grant-write: uin=" ",uin=" "，非必须
+ *     @param  {String}  params.GrantFullControl    赋予被授权者读写权限，格式x-cos-grant-full-control: uin=" ",uin=" "，非必须
+ * @param  {Function}  callback                     回调函数，必须
+ * @return  {Object}  err                           请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
+ * @return  {Object}  data                          返回的数据
+ *     @return  {String}  data.Location             操作地址
+ */
+function putBucket(params, callback) {
+
+    var self = this;
+    submitRequest.call(this, {
+        Action: 'name/cos:PutBucket',
+        method: 'PUT',
+        Bucket: params.Bucket,
+        Region: params.Region,
+        headers: params.Headers,
+    }, function (err, data) {
+        if (err) {
+            return callback(err);
+        }
+        var url = getUrl({
+            protocol: self.options.Protocol,
+            domain: self.options.Domain,
+            bucket: params.Bucket,
+            region: params.Region,
+            isLocation: true,
+        });
+        callback(null, {
+            Location: url,
+            statusCode: data.statusCode,
+            headers: data.headers,
+        });
+    });
+}
+
+/**
  * 查看是否存在该Bucket，是否有权限访问
  * @param  {Object}  params                     参数对象，必须
  *     @param  {String}  params.Bucket          Bucket名称，必须
@@ -70,6 +113,7 @@ function getService(params, callback) {
  *     @return  {Boolean}  data.BucketAuth      是否有 Bucket 的访问权限
  */
 function headBucket(params, callback) {
+
     submitRequest.call(this, {
         Action: 'name/cos:HeadBucket',
         Bucket: params.Bucket,
@@ -97,6 +141,7 @@ function headBucket(params, callback) {
  *     @return  {Object}  data.ListBucketResult     返回的 object 列表信息
  */
 function getBucket(params, callback) {
+
     var reqParams = {};
     reqParams['prefix'] = params['Prefix'] || '';
     reqParams['delimiter'] = params['Delimiter'];
@@ -136,47 +181,6 @@ function getBucket(params, callback) {
 }
 
 /**
- * 创建 Bucket，并初始化访问权限
- * @param  {Object}  params                         参数对象，必须
- *     @param  {String}  params.Bucket              Bucket名称，必须
- *     @param  {String}  params.Region              地域名称，必须
- *     @param  {String}  params.ACL                 用户自定义文件权限，可以设置：private，public-read；默认值：private，非必须
- *     @param  {String}  params.GrantRead           赋予被授权者读的权限，格式x-cos-grant-read: uin=" ",uin=" "，非必须
- *     @param  {String}  params.GrantWrite          赋予被授权者写的权限，格式x-cos-grant-write: uin=" ",uin=" "，非必须
- *     @param  {String}  params.GrantFullControl    赋予被授权者读写权限，格式x-cos-grant-full-control: uin=" ",uin=" "，非必须
- * @param  {Function}  callback                     回调函数，必须
- * @return  {Object}  err                           请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
- * @return  {Object}  data                          返回的数据
- *     @return  {String}  data.Location             操作地址
- */
-function putBucket(params, callback) {
-    var self = this;
-    submitRequest.call(this, {
-        Action: 'name/cos:PutBucket',
-        method: 'PUT',
-        Bucket: params.Bucket,
-        Region: params.Region,
-        headers: params.Headers,
-    }, function (err, data) {
-        if (err) {
-            return callback(err);
-        }
-        var url = getUrl({
-            protocol: self.options.Protocol,
-            domain: self.options.Domain,
-            bucket: params.Bucket,
-            region: params.Region,
-            isLocation: true,
-        });
-        callback(null, {
-            Location: url,
-            statusCode: data.statusCode,
-            headers: data.headers,
-        });
-    });
-}
-
-/**
  * 删除 Bucket
  * @param  {Object}  params                 参数对象，必须
  *     @param  {String}  params.Bucket      Bucket名称，必须
@@ -187,6 +191,7 @@ function putBucket(params, callback) {
  *     @return  {String}  data.Location     操作地址
  */
 function deleteBucket(params, callback) {
+
     submitRequest.call(this, {
         Action: 'name/cos:DeleteBucket',
         Bucket: params.Bucket,
@@ -207,46 +212,6 @@ function deleteBucket(params, callback) {
 }
 
 /**
- * 获取 Bucket 的 权限列表
- * @param  {Object}  params                         参数对象，必须
- *     @param  {String}  params.Bucket              Bucket名称，必须
- *     @param  {String}  params.Region              地域名称，必须
- * @param  {Function}  callback                     回调函数，必须
- * @return  {Object}  err                           请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
- * @return  {Object}  data                          返回的数据
- *     @return  {Object}  data.AccessControlPolicy  访问权限信息
- */
-function getBucketAcl(params, callback) {
-    submitRequest.call(this, {
-        Action: 'name/cos:GetBucketACL',
-        method: 'GET',
-        Bucket: params.Bucket,
-        Region: params.Region,
-        headers: params.Headers,
-        action: 'acl',
-    }, function (err, data) {
-        if (err) {
-            return callback(err);
-        }
-        var AccessControlPolicy = data.AccessControlPolicy || {};
-        var Owner = AccessControlPolicy.Owner || {};
-        var Grant = AccessControlPolicy.AccessControlList.Grant || [];
-        Grant = util.isArray(Grant) ? Grant : [Grant];
-        var result = decodeAcl(AccessControlPolicy);
-        if (data.headers && data.headers['x-cos-acl']) {
-            result.ACL = data.headers['x-cos-acl'];
-        }
-        result = util.extend(result, {
-            Owner: Owner,
-            Grants: Grant,
-            statusCode: data.statusCode,
-            headers: data.headers,
-        });
-        callback(null, result);
-    });
-}
-
-/**
  * 设置 Bucket 的 权限列表
  * @param  {Object}  params                         参数对象，必须
  *     @param  {String}  params.Bucket              Bucket名称，必须
@@ -260,9 +225,11 @@ function getBucketAcl(params, callback) {
  * @return  {Object}  data                          返回的数据
  */
 function putBucketAcl(params, callback) {
+
     var headers = params.Headers;
 
     var xml = '';
+
     if (params['AccessControlPolicy']) {
         var AccessControlPolicy = util.clone(params['AccessControlPolicy'] || {});
         var Grants = AccessControlPolicy.Grants || AccessControlPolicy.Grant;
@@ -303,55 +270,43 @@ function putBucketAcl(params, callback) {
 }
 
 /**
- * 获取 Bucket 的 跨域设置
+ * 获取 Bucket 的 权限列表
  * @param  {Object}  params                         参数对象，必须
  *     @param  {String}  params.Bucket              Bucket名称，必须
  *     @param  {String}  params.Region              地域名称，必须
  * @param  {Function}  callback                     回调函数，必须
  * @return  {Object}  err                           请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
  * @return  {Object}  data                          返回的数据
- *     @return  {Object}  data.CORSRules            Bucket的跨域设置
+ *     @return  {Object}  data.AccessControlPolicy  访问权限信息
  */
-function getBucketCors(params, callback) {
+function getBucketAcl(params, callback) {
+
     submitRequest.call(this, {
-        Action: 'name/cos:GetBucketCORS',
+        Action: 'name/cos:GetBucketACL',
         method: 'GET',
         Bucket: params.Bucket,
         Region: params.Region,
         headers: params.Headers,
-        action: 'cors',
+        action: 'acl',
     }, function (err, data) {
         if (err) {
-            if (err.statusCode === 404 && err.error && err.error.Code === 'NoSuchCORSConfiguration') {
-                var result = {
-                    CORSRules: [],
-                    statusCode: err.statusCode,
-                };
-                err.headers && (result.headers = err.headers);
-                callback(null, result);
-            } else {
-                callback(err);
-            }
-            return;
+            return callback(err);
         }
-        var CORSConfiguration = data.CORSConfiguration || {};
-        var CORSRules = CORSConfiguration.CORSRules || CORSConfiguration.CORSRule || [];
-        CORSRules = util.clone(util.isArray(CORSRules) ? CORSRules : [CORSRules]);
-
-        util.each(CORSRules, function (rule) {
-            util.each(['AllowedOrigin', 'AllowedHeader', 'AllowedMethod', 'ExposeHeader'], function (key, j) {
-                var sKey = key + 's';
-                var val = rule[sKey] || rule[key] || [];
-                delete rule[key];
-                rule[sKey] = util.isArray(val) ? val : [val];
-            });
-        });
-
-        callback(null, {
-            CORSRules: CORSRules,
+        var AccessControlPolicy = data.AccessControlPolicy || {};
+        var Owner = AccessControlPolicy.Owner || {};
+        var Grant = AccessControlPolicy.AccessControlList.Grant || [];
+        Grant = util.isArray(Grant) ? Grant : [Grant];
+        var result = decodeAcl(AccessControlPolicy);
+        if (data.headers && data.headers['x-cos-acl']) {
+            result.ACL = data.headers['x-cos-acl'];
+        }
+        result = util.extend(result, {
+            Owner: Owner,
+            Grants: Grant,
             statusCode: data.statusCode,
             headers: data.headers,
         });
+        callback(null, result);
     });
 }
 
@@ -406,6 +361,60 @@ function putBucketCors(params, callback) {
 }
 
 /**
+ * 获取 Bucket 的 跨域设置
+ * @param  {Object}  params                         参数对象，必须
+ *     @param  {String}  params.Bucket              Bucket名称，必须
+ *     @param  {String}  params.Region              地域名称，必须
+ * @param  {Function}  callback                     回调函数，必须
+ * @return  {Object}  err                           请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
+ * @return  {Object}  data                          返回的数据
+ *     @return  {Object}  data.CORSRules            Bucket的跨域设置
+ */
+function getBucketCors(params, callback) {
+
+    submitRequest.call(this, {
+        Action: 'name/cos:GetBucketCORS',
+        method: 'GET',
+        Bucket: params.Bucket,
+        Region: params.Region,
+        headers: params.Headers,
+        action: 'cors',
+    }, function (err, data) {
+        if (err) {
+            if (err.statusCode === 404 && err.error && err.error.Code === 'NoSuchCORSConfiguration') {
+                var result = {
+                    CORSRules: [],
+                    statusCode: err.statusCode,
+                };
+                err.headers && (result.headers = err.headers);
+                callback(null, result);
+            } else {
+                callback(err);
+            }
+            return;
+        }
+        var CORSConfiguration = data.CORSConfiguration || {};
+        var CORSRules = CORSConfiguration.CORSRules || CORSConfiguration.CORSRule || [];
+        CORSRules = util.clone(util.isArray(CORSRules) ? CORSRules : [CORSRules]);
+
+        util.each(CORSRules, function (rule) {
+            util.each(['AllowedOrigin', 'AllowedHeader', 'AllowedMethod', 'ExposeHeader'], function (key, j) {
+                var sKey = key + 's';
+                var val = rule[sKey] || rule[key] || [];
+                delete rule[key];
+                rule[sKey] = util.isArray(val) ? val : [val];
+            });
+        });
+
+        callback(null, {
+            CORSRules: CORSRules,
+            statusCode: data.statusCode,
+            headers: data.headers,
+        });
+    });
+}
+
+/**
  * 删除 Bucket 的 跨域设置
  * @param  {Object}  params                 参数对象，必须
  *     @param  {String}  params.Bucket      Bucket名称，必须
@@ -415,6 +424,7 @@ function putBucketCors(params, callback) {
  * @return  {Object}  data                  返回的数据
  */
 function deleteBucketCors(params, callback) {
+
     submitRequest.call(this, {
         Action: 'name/cos:DeleteBucketCORS',
         method: 'DELETE',
@@ -435,7 +445,34 @@ function deleteBucketCors(params, callback) {
     });
 }
 
+/**
+ * 获取 Bucket 的 地域信息
+ * @param  {Object}  params             参数对象，必须
+ *     @param  {String}  params.Bucket  Bucket名称，必须
+ *     @param  {String}  params.Region  地域名称，必须
+ * @param  {Function}  callback         回调函数，必须
+ * @return  {Object}  err               请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
+ * @return  {Object}  data              返回数据，包含地域信息 LocationConstraint
+ */
+function getBucketLocation(params, callback) {
+
+    submitRequest.call(this, {
+        Action: 'name/cos:GetBucketLocation',
+        method: 'GET',
+        Bucket: params.Bucket,
+        Region: params.Region,
+        headers: params.Headers,
+        action: 'location',
+    }, function (err, data) {
+        if (err) {
+            return callback(err);
+        }
+        callback(null, data);
+    });
+}
+
 function putBucketPolicy(params, callback) {
+
     var Policy = params['Policy'];
     var PolicyStr = Policy;
     try {
@@ -475,61 +512,6 @@ function putBucketPolicy(params, callback) {
 }
 
 /**
- * 删除 Bucket 的 跨域设置
- * @param  {Object}  params                 参数对象，必须
- *     @param  {String}  params.Bucket      Bucket名称，必须
- *     @param  {String}  params.Region      地域名称，必须
- * @param  {Function}  callback             回调函数，必须
- * @return  {Object}  err                   请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
- * @return  {Object}  data                  返回的数据
- */
-function deleteBucketPolicy(params, callback) {
-    submitRequest.call(this, {
-        Action: 'name/cos:DeleteBucketPolicy',
-        method: 'DELETE',
-        Bucket: params.Bucket,
-        Region: params.Region,
-        headers: params.Headers,
-        action: 'policy',
-    }, function (err, data) {
-        if (err && err.statusCode === 204) {
-            return callback(null, {statusCode: err.statusCode});
-        } else if (err) {
-            return callback(err);
-        }
-        callback(null, {
-            statusCode: data.statusCode || err.statusCode,
-            headers: data.headers,
-        });
-    });
-}
-
-/**
- * 获取 Bucket 的 地域信息
- * @param  {Object}  params             参数对象，必须
- *     @param  {String}  params.Bucket  Bucket名称，必须
- *     @param  {String}  params.Region  地域名称，必须
- * @param  {Function}  callback         回调函数，必须
- * @return  {Object}  err               请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
- * @return  {Object}  data              返回数据，包含地域信息 LocationConstraint
- */
-function getBucketLocation(params, callback) {
-    submitRequest.call(this, {
-        Action: 'name/cos:GetBucketLocation',
-        method: 'GET',
-        Bucket: params.Bucket,
-        Region: params.Region,
-        headers: params.Headers,
-        action: 'location',
-    }, function (err, data) {
-        if (err) {
-            return callback(err);
-        }
-        callback(null, data);
-    });
-}
-
-/**
  * 获取 Bucket 的读取权限策略
  * @param  {Object}  params             参数对象，必须
  *     @param  {String}  params.Bucket  Bucket名称，必须
@@ -539,6 +521,7 @@ function getBucketLocation(params, callback) {
  * @return  {Object}  data              返回数据
  */
 function getBucketPolicy(params, callback) {
+
     submitRequest.call(this, {
         Action: 'name/cos:GetBucketPolicy',
         method: 'GET',
@@ -574,45 +557,31 @@ function getBucketPolicy(params, callback) {
 }
 
 /**
- * 获取 Bucket 的标签设置
- * @param  {Object}  params             参数对象，必须
- *     @param  {String}  params.Bucket  Bucket名称，必须
- *     @param  {String}  params.Region  地域名称，必须
- * @param  {Function}  callback         回调函数，必须
- * @return  {Object}  err               请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
- * @return  {Object}  data              返回数据
+ * 删除 Bucket 的 跨域设置
+ * @param  {Object}  params                 参数对象，必须
+ *     @param  {String}  params.Bucket      Bucket名称，必须
+ *     @param  {String}  params.Region      地域名称，必须
+ * @param  {Function}  callback             回调函数，必须
+ * @return  {Object}  err                   请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
+ * @return  {Object}  data                  返回的数据
  */
-function getBucketTagging(params, callback) {
+function deleteBucketPolicy(params, callback) {
+
     submitRequest.call(this, {
-        Action: 'name/cos:GetBucketTagging',
-        method: 'GET',
+        Action: 'name/cos:DeleteBucketPolicy',
+        method: 'DELETE',
         Bucket: params.Bucket,
         Region: params.Region,
         headers: params.Headers,
-        action: 'tagging',
+        action: 'policy',
     }, function (err, data) {
-        if (err) {
-            if (err.statusCode === 404 && err.error && (err.error === "Not Found" || err.error.Code === 'NoSuchTagSet')) {
-                var result = {
-                    Tags: [],
-                    statusCode: err.statusCode,
-                };
-                err.headers && (result.headers = err.headers);
-                callback(null, result);
-            } else {
-                callback(err);
-            }
-            return;
+        if (err && err.statusCode === 204) {
+            return callback(null, {statusCode: err.statusCode});
+        } else if (err) {
+            return callback(err);
         }
-        var Tags = [];
-        try {
-            Tags = data.Tagging.TagSet.Tag || [];
-        } catch (e) {
-        }
-        Tags = util.clone(util.isArray(Tags) ? Tags : [Tags]);
         callback(null, {
-            Tags: Tags,
-            statusCode: data.statusCode,
+            statusCode: data.statusCode || err.statusCode,
             headers: data.headers,
         });
     });
@@ -660,6 +629,52 @@ function putBucketTagging(params, callback) {
     });
 }
 
+/**
+ * 获取 Bucket 的标签设置
+ * @param  {Object}  params             参数对象，必须
+ *     @param  {String}  params.Bucket  Bucket名称，必须
+ *     @param  {String}  params.Region  地域名称，必须
+ * @param  {Function}  callback         回调函数，必须
+ * @return  {Object}  err               请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
+ * @return  {Object}  data              返回数据
+ */
+function getBucketTagging(params, callback) {
+
+    submitRequest.call(this, {
+        Action: 'name/cos:GetBucketTagging',
+        method: 'GET',
+        Bucket: params.Bucket,
+        Region: params.Region,
+        headers: params.Headers,
+        action: 'tagging',
+    }, function (err, data) {
+        if (err) {
+            if (err.statusCode === 404 && err.error && (err.error === "Not Found" || err.error.Code === 'NoSuchTagSet')) {
+                var result = {
+                    Tags: [],
+                    statusCode: err.statusCode,
+                };
+                err.headers && (result.headers = err.headers);
+                callback(null, result);
+            } else {
+                callback(err);
+            }
+            return;
+        }
+        var Tags = [];
+        try {
+            Tags = data.Tagging.TagSet.Tag || [];
+        } catch (e) {
+        }
+        Tags = util.clone(util.isArray(Tags) ? Tags : [Tags]);
+        callback(null, {
+            Tags: Tags,
+            statusCode: data.statusCode,
+            headers: data.headers,
+        });
+    });
+}
+
 
 /**
  * 删除 Bucket 的 标签设置
@@ -671,6 +686,7 @@ function putBucketTagging(params, callback) {
  * @return  {Object}  data              返回的数据
  */
 function deleteBucketTagging(params, callback) {
+
     submitRequest.call(this, {
         Action: 'name/cos:DeleteBucketTagging',
         method: 'DELETE',
@@ -694,7 +710,7 @@ function deleteBucketTagging(params, callback) {
 function putBucketLifecycle(params, callback) {
 
     var LifecycleConfiguration = params['LifecycleConfiguration'] || {};
-    var Rules = LifecycleConfiguration.Rules || [];
+    var Rules = LifecycleConfiguration.Rules || params.Rules || [];
     Rules = util.clone(Rules);
     var xml = util.json2xml({LifecycleConfiguration: {Rule: Rules}});
 
@@ -833,8 +849,8 @@ function getBucketVersioning(params, callback) {
 function putBucketReplication(params, callback) {
     var ReplicationConfiguration = util.clone(params.ReplicationConfiguration);
     var xml = util.json2xml({ReplicationConfiguration: ReplicationConfiguration});
-    xml = xml.replace(/<(\/?)Rules>/ig, '<$1Rule>');
-    xml = xml.replace(/<(\/?)Tags>/ig, '<$1Tag>');
+    xml = xml.replace(/<(\/?)Rules/ig, '<$1Rule');
+    xml = xml.replace(/<(\/?)Tags>/ig, '<$1Tag');
 
     var headers = params.Headers;
     headers['Content-Type'] = 'application/xml';
@@ -2613,29 +2629,29 @@ function _submitRequest(params, callback) {
 
 var API_MAP = {
     // Bucket 相关方法
-    getService: getService,
+    getService: getService,                       // Bucket
     putBucket: putBucket,
-    getBucket: getBucket,
     headBucket: headBucket,
+    getBucket: getBucket,
     deleteBucket: deleteBucket,
+    putBucketAcl: putBucketAcl,                  // BucketACL
     getBucketAcl: getBucketAcl,
-    putBucketAcl: putBucketAcl,
+    putBucketCors: putBucketCors,                // BucketCors
     getBucketCors: getBucketCors,
-    putBucketCors: putBucketCors,
     deleteBucketCors: deleteBucketCors,
-    getBucketLocation: getBucketLocation,
-    putBucketTagging: putBucketTagging,
-    getBucketTagging: getBucketTagging,
-    deleteBucketTagging: deleteBucketTagging,
-    getBucketPolicy: getBucketPolicy,
+    getBucketPolicy: getBucketPolicy,            // BucketPolicy
     putBucketPolicy: putBucketPolicy,
     deleteBucketPolicy: deleteBucketPolicy,
+    getBucketLocation: getBucketLocation,        // BucketLocation
+    putBucketTagging: putBucketTagging,          // BucketTagging
+    getBucketTagging: getBucketTagging,
+    deleteBucketTagging: deleteBucketTagging,
+    putBucketLifecycle: putBucketLifecycle,      // BucketLifecycle
     getBucketLifecycle: getBucketLifecycle,
-    putBucketLifecycle: putBucketLifecycle,
     deleteBucketLifecycle: deleteBucketLifecycle,
-    putBucketVersioning: putBucketVersioning,
+    putBucketVersioning: putBucketVersioning,    // BucketVersioning
     getBucketVersioning: getBucketVersioning,
-    putBucketReplication: putBucketReplication,
+    putBucketReplication: putBucketReplication,  // BucketReplication
     getBucketReplication: getBucketReplication,
     deleteBucketReplication: deleteBucketReplication,
 

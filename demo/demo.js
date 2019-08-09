@@ -27,18 +27,10 @@ function camSafeUrlEncode(str) {
         .replace(/\*/g, '%2A');
 }
 
-function getService() {
-    cos.getService({
-      Region: 'ap-guangzhou',
-    },function (err, data) {
-        console.log(err || data);
-    });
-}
-
 function getAuth() {
     var key = '1mb.zip';
     var auth = cos.getAuth({
-        Method: 'get',
+        Method: 'delete',
         Key: key,
         Expires: 60,
     });
@@ -71,6 +63,14 @@ function getObjectUrl() {
     console.log(url);
 }
 
+function getService() {
+    cos.getService({
+      Region: 'ap-guangzhou',
+    },function (err, data) {
+        console.log(err || data);
+    });
+}
+
 function putBucket() {
     cos.putBucket({
         Bucket: 'testnew-' + config.Bucket.substr(config.Bucket.lastIndexOf('-') + 1),
@@ -93,6 +93,15 @@ function headBucket() {
     cos.headBucket({
         Bucket: config.Bucket, // Bucket 格式：test-1250000000
         Region: config.Region
+    }, function (err, data) {
+        console.log(err || data);
+    });
+}
+
+function deleteBucket() {
+    cos.deleteBucket({
+        Bucket: 'testnew-' + config.Bucket.substr(config.Bucket.lastIndexOf('-') + 1),
+        Region: 'ap-guangzhou'
     }, function (err, data) {
         console.log(err || data);
     });
@@ -185,39 +194,6 @@ function deleteBucketCors() {
     });
 }
 
-function putBucketTagging() {
-    cos.putBucketTagging({
-        Bucket: config.Bucket, // Bucket 格式：test-1250000000
-        Region: config.Region,
-        Tagging: {
-            "Tags": [
-                {"Key": "k1", "Value": "v1"},
-                {"Key": "k2", "Value": "v2"}
-            ]
-        }
-    }, function (err, data) {
-        console.log(err || data);
-    });
-}
-
-function getBucketTagging() {
-    cos.getBucketTagging({
-        Bucket: config.Bucket, // Bucket 格式：test-1250000000
-        Region: config.Region
-    }, function (err, data) {
-        console.log(err || data);
-    });
-}
-
-function deleteBucketTagging() {
-    cos.deleteBucketTagging({
-        Bucket: config.Bucket, // Bucket 格式：test-1250000000
-        Region: config.Region
-    }, function (err, data) {
-        console.log(err || data);
-    });
-}
-
 function putBucketPolicy() {
     var AppId = config.Bucket.substr(config.Bucket.lastIndexOf('-') + 1);
     cos.putBucketPolicy({
@@ -296,8 +272,50 @@ function getBucketPolicy() {
     });
 }
 
+function deleteBucketPolicy() {
+    cos.deleteBucketPolicy({
+        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Region: config.Region
+    }, function (err, data) {
+        console.log(err || data);
+    });
+}
+
 function getBucketLocation() {
     cos.getBucketLocation({
+        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Region: config.Region
+    }, function (err, data) {
+        console.log(err || data);
+    });
+}
+
+function putBucketTagging() {
+    cos.putBucketTagging({
+        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Region: config.Region,
+        Tagging: {
+            "Tags": [
+                {"Key": "k1", "Value": "v1"},
+                {"Key": "k2", "Value": "v2"}
+            ]
+        }
+    }, function (err, data) {
+        console.log(err || data);
+    });
+}
+
+function getBucketTagging() {
+    cos.getBucketTagging({
+        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Region: config.Region
+    }, function (err, data) {
+        console.log(err || data);
+    });
+}
+
+function deleteBucketTagging() {
+    cos.deleteBucketTagging({
         Bucket: config.Bucket, // Bucket 格式：test-1250000000
         Region: config.Region
     }, function (err, data) {
@@ -388,17 +406,6 @@ function getBucketVersioning() {
     });
 }
 
-function listObjectVersions() {
-    cos.listObjectVersions({
-        Bucket: config.Bucket, // Bucket 格式：test-1250000000
-        Region: config.Region,
-        // Prefix: "",
-        // Delimiter: '/'
-    }, function (err, data) {
-        console.log(err || JSON.stringify(data, null, '    '));
-    });
-}
-
 function putBucketReplication() {
     var AppId = config.Bucket.substr(config.Bucket.lastIndexOf('-') + 1);
     cos.putBucketReplication({
@@ -434,15 +441,6 @@ function deleteBucketReplication() {
     cos.deleteBucketReplication({
         Bucket: config.Bucket, // Bucket 格式：test-1250000000
         Region: config.Region
-    }, function (err, data) {
-        console.log(err || data);
-    });
-}
-
-function deleteBucket() {
-    cos.deleteBucket({
-        Bucket: 'testnew-' + config.Bucket.substr(config.Bucket.lastIndexOf('-') + 1),
-        Region: 'ap-guangzhou'
     }, function (err, data) {
         console.log(err || data);
     });
@@ -532,6 +530,17 @@ function headObject() {
         Key: '1mb.zip'
     }, function (err, data) {
         console.log(err || data);
+    });
+}
+
+function listObjectVersions() {
+    cos.listObjectVersions({
+        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Region: config.Region,
+        // Prefix: "",
+        // Delimiter: '/'
+    }, function (err, data) {
+        console.log(err || JSON.stringify(data, null, '    '));
     });
 }
 
@@ -736,7 +745,7 @@ function sliceCopyFile() {
     });
 }
 
-getService();
+// getService();
 // getAuth();
 // getV4Auth();
 // getObjectUrl();

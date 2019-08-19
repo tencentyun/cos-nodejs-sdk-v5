@@ -2555,6 +2555,19 @@ function _submitRequest(params, callback) {
     };
     TaskId && self.on('inner-kill-task', killTask);
 
+    // 请求结束时，在 request 分配的 socket 上挂载 _lastBytesWritten 属性，记录该 socket 已经发送的字节数
+    sender.once('end', function() {
+        try {
+            Object.defineProperty(sender.req.connection, '_lastBytesWritten', {
+                enumerable: true,
+                configurable: true,
+                writable: true,
+                value: sender.req.connection.bytesWritten
+            });
+        } catch(e) {
+        }
+    });
+
     // upload progress
     if (params.onProgress && typeof params.onProgress === 'function') {
         var contentLength = opt.headers['Content-Length'];
@@ -2564,7 +2577,8 @@ function _submitRequest(params, callback) {
             var time1 = Date.now();
             var loaded = 0;
             try {
-                loaded = sender.req.connection.bytesWritten - sender.req._header.length;
+                // 已经上传的字节数 = socket当前累计发送的字节数 - 头部长度 - socket以前发送的字节数
+                loaded = sender.req.connection.bytesWritten - sender.req._header.length - (sender.req.connection._lastBytesWritten || 0);
             } catch (e) {
             }
             var total = contentLength;

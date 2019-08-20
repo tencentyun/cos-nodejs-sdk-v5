@@ -2494,7 +2494,21 @@ function _submitRequest(params, callback) {
         }
         return json;
     };
+    // 在 request 分配的 socket 上挂载 _lastBytesWritten 属性，记录该 socket 已经发送的字节数
+    var markLastBytesWritten = function() {
+        try {
+            Object.defineProperty(sender.req.connection, '_lastBytesWritten', {
+                enumerable: true,
+                configurable: true,
+                writable: true,
+                value: sender.req.connection.bytesWritten
+            });
+        } catch(e) {
+        }
+    };
+
     sender.on('error', function (err) {
+        markLastBytesWritten();
         cb({error: err});
     });
     sender.on('response', function (response) {
@@ -2554,48 +2568,56 @@ function _submitRequest(params, callback) {
         }
     };
     TaskId && self.on('inner-kill-task', killTask);
-    var time0 = Date.now();
+
+    // 请求结束时，在 request 分配的 socket 上挂载 _lastBytesWritten 属性，记录该 socket 已经发送的字节数
+    sender.once('end', function() {
+        markLastBytesWritten();
+    });
 
     // upload progress
     if (params.onProgress && typeof params.onProgress === 'function') {
         var contentLength = opt.headers['Content-Length'];
-        if (readStream) {
-            var uploadSize0 = 0;
-            var uploadTotal = contentLength;
-            var uploadLoaded = 0;
-            readStream.on('data', function (chunk) {
-                var time1 = Date.now();
-                uploadLoaded += chunk.length;
-                var speed = parseInt((uploadLoaded - uploadSize0) / ((time1 - time0) / 1000) * 100) / 100;
-                var percent = uploadTotal ? (parseInt(uploadLoaded / uploadTotal * 100) / 100) : 0;
-                time0 = time1;
-                uploadSize0 = uploadLoaded;
-                params.onProgress({
-                    loaded: uploadLoaded,
-                    total: uploadTotal,
-                    speed: speed,
-                    percent: percent,
-                });
+        var time0 = Date.now();
+        var size0 = 0;
+        sender.on('drain', function () {
+            var time1 = Date.now();
+            var loaded = 0;
+            try {
+                // 已经上传的字节数 = socket当前累计发送的字节数 - 头部长度 - socket以前发送的字节数
+                loaded = sender.req.connection.bytesWritten - sender.req._header.length - (sender.req.connection._lastBytesWritten || 0);
+            } catch (e) {
+            }
+            var total = contentLength;
+            var speed = parseInt((loaded - size0) / ((time1 - time0) / 1000) * 100) / 100;
+            var percent = total ? (parseInt(loaded / total * 100) / 100) : 0;
+            time0 = time1;
+            size0 = loaded;
+            params.onProgress({
+                loaded: loaded,
+                total: total,
+                speed: speed,
+                percent: percent,
             });
-        }
+        });
     }
     // download progress
     if (params.onDownloadProgress && typeof params.onDownloadProgress === 'function') {
-        var downloadSize0 = 0;
-        var downloadLoaded = 0;
-        var downloadTotal = 0;
+        var time0 = Date.now();
+        var size0 = 0;
+        var loaded = 0;
+        var total = 0;
         sender.on('response', function (res) {
-            downloadTotal = res.headers['content-length'];
+            total = res.headers['content-length'];
             sender.on('data', function (chunk) {
-                downloadLoaded += chunk.length;
+                loaded += chunk.length;
                 var time1 = Date.now();
-                var speed = parseInt((downloadLoaded - downloadSize0) / ((time1 - time0) / 1000) * 100) / 100;
-                var percent = downloadTotal ? (parseInt(downloadLoaded / downloadTotal * 100) / 100) : 0;
+                var speed = parseInt((loaded - size0) / ((time1 - time0) / 1000) * 100) / 100;
+                var percent = total ? (parseInt(loaded / total * 100) / 100) : 0;
                 time0 = time1;
-                downloadSize0 = downloadLoaded;
+                size0 = loaded;
                 params.onDownloadProgress({
-                    loaded: downloadLoaded,
-                    total: downloadTotal,
+                    loaded: loaded,
+                    total: total,
                     speed: speed,
                     percent: percent,
                 });

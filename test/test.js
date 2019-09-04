@@ -1915,3 +1915,87 @@ group('deleteMultipleObject Key 带中文字符', function () {
         });
     });
 });
+
+group('Content-Type: false Bug', function () {
+    test('fs.createReadStream 1', function (done, assert) {
+        var filename = '1';
+        var filepath = path.resolve(__dirname, filename);
+        util.createFile(filepath, 1, function (err) {
+            // 调用方法
+            cos.putObject({
+                Bucket: config.Bucket, /* 必须 */ // Bucket 格式：test-1250000000
+                Region: config.Region,
+                Key: filename,
+                Body: fs.createReadStream(filepath),
+            }, function (err1, data1) {
+                cos.headObject({
+                    Bucket: config.Bucket, /* 必须 */ // Bucket 格式：test-1250000000
+                    Region: config.Region,
+                    Key: filename,
+                }, function (err, data) {
+                    var contentType = data && data.headers['content-type'];
+                    assert.ok(contentType === 'application/octet-stream', '返回了 Content-Type: ' + contentType);
+                    fs.unlinkSync(filepath);
+                    done();
+                });
+            });
+        });
+    });
+    test('text 2', function (done, assert) {
+        // 调用方法
+        cos.putObject({
+            Bucket: config.Bucket, /* 必须 */ // Bucket 格式：test-1250000000
+            Region: config.Region,
+            Key: '2',
+            Body: 'hello!',
+        }, function (err1, data1) {
+            cos.headObject({
+                Bucket: config.Bucket, /* 必须 */ // Bucket 格式：test-1250000000
+                Region: config.Region,
+                Key: '2',
+            }, function (err, data) {
+                var contentType = data && data.headers['content-type'];
+                assert.ok(contentType === 'application/octet-stream', '返回了 Content-Type: ' + contentType);
+                done();
+            });
+        });
+    });
+    test('text 1.zip', function (done, assert) {
+        // 调用方法
+        cos.putObject({
+            Bucket: config.Bucket, /* 必须 */ // Bucket 格式：test-1250000000
+            Region: config.Region,
+            Key: '2.zip',
+            Body: 'hello!',
+        }, function (err1, data1) {
+            cos.headObject({
+                Bucket: config.Bucket, /* 必须 */ // Bucket 格式：test-1250000000
+                Region: config.Region,
+                Key: '2.zip',
+            }, function (err, data) {
+                var contentType = data && data.headers['content-type'];
+                assert.ok(contentType === 'application/zip', '返回了 Content-Type: ' + contentType);
+                done();
+            });
+        });
+    });
+    test('Buffer 3', function (done, assert) {
+        // 调用方法
+        cos.putObject({
+            Bucket: config.Bucket, /* 必须 */ // Bucket 格式：test-1250000000
+            Region: config.Region,
+            Key: '3',
+            Body: Buffer.from('hello!'),
+        }, function (err1, data1) {
+            cos.headObject({
+                Bucket: config.Bucket, /* 必须 */ // Bucket 格式：test-1250000000
+                Region: config.Region,
+                Key: '3',
+            }, function (err, data) {
+                var contentType = data && data.headers['content-type'];
+                assert.ok(contentType === 'application/octet-stream', '返回了 Content-Type: ' + contentType);
+                done();
+            });
+        });
+    });
+});

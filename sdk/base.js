@@ -1,7 +1,8 @@
 var pkg = require('../package.json');
-var fs = require('fs');
 var REQUEST = require('request');
+var mime = require('mime-types');
 var util = require('./util');
+var fs = require('fs');
 
 
 // Bucket 相关
@@ -2461,6 +2462,22 @@ function _submitRequest(params, callback) {
     }
     if (this.options.KeepAlive) {
         opt.forever = true;
+    }
+
+    // 修复 Content-Type: false 的 Bug，原因 request 模块会获取 request('mime-types).lookup(readStream.path) 作为 Content-Type
+    // 问题代码位置：https://github.com/request/request/blob/v2.88.1/request.js#L500
+    if (readStream) {
+        var hasContentType = false;
+        util.each(opt.headers, function (val, key) {
+            if (key.toLowerCase() === 'content-type') hasContentType = true;
+        });
+        if (
+            !hasContentType && // 1. not set Content-Type
+            readStream.readable && readStream.path && readStream.mode && // 2. isFileReadStream
+            !mime.lookup(readStream.path) // 3. mime return false
+        ) {
+            opt.headers['Content-Type'] = 'application/octet-stream';
+        }
     }
 
     self.emit('before-send', opt);

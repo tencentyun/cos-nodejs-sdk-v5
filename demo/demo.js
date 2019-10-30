@@ -457,34 +457,34 @@ function putBucketWebsite() {
             RedirectAllRequestsTo: {
                 Protocol: "https"
             },
-            ErrorDocument: {
-                Key: "error.html"
-            },
-            RoutingRules: [{
-                Condition: {
-                    HttpErrorCodeReturnedEquals: "404"
-                },
-                Redirect: {
-                    Protocol: "https",
-                    ReplaceKeyWith: "404.html"
-                }
-            }, {
-                Condition: {
-                    KeyPrefixEquals: "docs/"
-                },
-                Redirect: {
-                    Protocol: "https",
-                    ReplaceKeyPrefixWith: "documents/"
-                }
-            }, {
-                Condition: {
-                    KeyPrefixEquals: "img/"
-                },
-                Redirect: {
-                    Protocol: "https",
-                    ReplaceKeyWith: "picture.jpg"
-                }
-            }]
+            // ErrorDocument: {
+            //     Key: "error.html"
+            // },
+            // RoutingRules: [{
+            //     Condition: {
+            //         HttpErrorCodeReturnedEquals: "404"
+            //     },
+            //     Redirect: {
+            //         Protocol: "https",
+            //         ReplaceKeyWith: "404.html"
+            //     }
+            // }, {
+            //     Condition: {
+            //         KeyPrefixEquals: "docs/"
+            //     },
+            //     Redirect: {
+            //         Protocol: "https",
+            //         ReplaceKeyPrefixWith: "documents/"
+            //     }
+            // }, {
+            //     Condition: {
+            //         KeyPrefixEquals: "img/"
+            //     },
+            //     Redirect: {
+            //         Protocol: "https",
+            //         ReplaceKeyWith: "picture.jpg"
+            //     }
+            // }]
         }
     }, function (err, data) {
         console.log(err || data);

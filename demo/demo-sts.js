@@ -40,6 +40,7 @@ var cos = new COS({
             policy: policy,
             durationSeconds: 7200,
             proxy: '',
+            region: 'ap-guangzhou'
         }, function (err, data) {
             if (err) {
                 console.error(err);

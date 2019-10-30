@@ -344,6 +344,7 @@ group('sliceUploadFile(),pauseTask(),restartTask()', function () {
             Key: filename,
             Level: 'file',
         }, function (err, data) {
+            var TaskId;
             cos.sliceUploadFile({
                 Bucket: config.Bucket,
                 Region: config.Region,
@@ -1704,6 +1705,99 @@ group('BucketLifecycle', function () {
     });
 });
 
+group('BucketWebsite', function () {
+    var RoutingRules = [{
+        Condition: {
+            HttpErrorCodeReturnedEquals: "404"
+        },
+        Redirect: {
+            Protocol: "https",
+            ReplaceKeyWith: "404.html"
+        }
+    }, {
+        Condition: {
+            KeyPrefixEquals: "docs/"
+        },
+        Redirect: {
+            Protocol: "https",
+            ReplaceKeyPrefixWith: "documents/"
+        }
+    }, {
+        Condition: {
+            KeyPrefixEquals: "img/"
+        },
+        Redirect: {
+            Protocol: "https",
+            ReplaceKeyWith: "picture.jpg"
+        }
+    }];
+    var WebsiteConfiguration = {
+        IndexDocument: {
+            Suffix: "index.html"
+        },
+        RedirectAllRequestsTo: {
+            Protocol: "https"
+        },
+        ErrorDocument: {
+            Key: "error.html"
+        },
+    };
+    test('putBucketWebsite(),getBucketWebsite()', function (done, assert) {
+        cos.putBucketWebsite({
+            Bucket: config.Bucket,
+            Region: config.Region,
+            WebsiteConfiguration: WebsiteConfiguration
+        }, function (err, data) {
+            assert.ok(!err);
+            setTimeout(function () {
+                cos.getBucketWebsite({
+                    Bucket: config.Bucket,
+                    Region: config.Region
+                }, function (err, data) {
+                    assert.ok(comparePlainObject(WebsiteConfiguration, data.WebsiteConfiguration));
+                    done();
+                });
+            }, 2000);
+        });
+    });
+    test('putBucketWebsite() multi RoutingRules', function (done, assert) {
+        WebsiteConfiguration.RoutingRules = RoutingRules;
+        cos.putBucketWebsite({
+            Bucket: config.Bucket,
+            Region: config.Region,
+            WebsiteConfiguration: WebsiteConfiguration
+        }, function (err, data) {
+            assert.ok(!err);
+            setTimeout(function () {
+                cos.getBucketWebsite({
+                    Bucket: config.Bucket,
+                    Region: config.Region
+                }, function (err, data) {
+                    assert.ok(comparePlainObject(WebsiteConfiguration, data.WebsiteConfiguration));
+                    done();
+                });
+            }, 2000);
+        });
+    });
+    test('deleteBucketWebsite()', function (done, assert) {
+        cos.deleteBucketWebsite({
+            Bucket: config.Bucket,
+            Region: config.Region
+        }, function (err, data) {
+            assert.ok(!err);
+            setTimeout(function () {
+                cos.getBucketWebsite({
+                    Bucket: config.Bucket,
+                    Region: config.Region
+                }, function (err, data) {
+                    assert.ok(comparePlainObject({}, data.WebsiteConfiguration));
+                    done();
+                });
+            }, 2000);
+        });
+    });
+});
+
 group('params check Region', function () {
     test('params check', function (done, assert) {
         cos.headBucket({
@@ -1817,7 +1911,7 @@ group('Region 格式有误', function () {
     });
     test('Region 带有 :', function (done, assert) {
         cos.headBucket({
-            Bucket: 'te:st-1250000000',
+            Bucket: 'test-1250000000',
             Region: 'test:',
         }, function (err, data) {
             assert.ok(err && err.error === 'Region format error.');
@@ -1827,17 +1921,19 @@ group('Region 格式有误', function () {
 });
 
 group('复制文件', function () {
+    var filename = '10m.zip';
+    var filePath = path.resolve(__dirname, filename);
     test('sliceCopyFile() 正常分片复制', function (done, assert) {
-        var filename = '10m.zip';
+        createFileSync(filePath, 1024 * 1024 * 10);
         var Key = '10mb.copy.zip';
-        var blob = util.createFile({size: 1024 * 1024 * 10});
         var lastPercent;
         cos.putObject({
             Bucket: config.Bucket,
             Region: config.Region,
             Key: filename,
-            Body: blob,
+            Body: fs.createReadStream(filePath),
         }, function (err, data) {
+            fs.unlinkSync(filePath);
             cos.sliceCopyFile({
                 Bucket: config.Bucket,
                 Region: config.Region,

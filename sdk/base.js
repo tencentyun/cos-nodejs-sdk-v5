@@ -932,6 +932,141 @@ function deleteBucketReplication(params, callback) {
     });
 }
 
+
+/**
+ * 设置 Bucket 静态网站配置信息
+ * @param  {Object}  params                                                 参数对象，必须
+ *     @param  {String}  params.Bucket                                      Bucket名称，必须
+ *     @param  {String}  params.Region                                      地域名称，必须
+ *     @param  {Object}  params.WebsiteConfiguration                        地域名称，必须
+ *         @param  {Object}   WebsiteConfiguration.IndexDocument            索引文档，必须
+ *         @param  {Object}   WebsiteConfiguration.ErrorDocument            错误文档，非必须
+ *         @param  {Object}   WebsiteConfiguration.RedirectAllRequestsTo    重定向所有请求，非必须
+ *         @param  {Array}   params.RoutingRules                            重定向规则，非必须
+ * @param  {Function}  callback                                             回调函数，必须
+ * @return  {Object}  err                                                   请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
+ * @return  {Object}  data                                                  返回数据
+ */
+function putBucketWebsite(params, callback) {
+
+    if (!params['WebsiteConfiguration']) {
+        callback({ error: 'missing param WebsiteConfiguration' });
+        return;
+    }
+
+    var WebsiteConfiguration = util.clone(params['WebsiteConfiguration'] || {});
+    var RoutingRules = WebsiteConfiguration['RoutingRules'] || WebsiteConfiguration['RoutingRule'] || [];
+    RoutingRules = util.isArray(RoutingRules) ? RoutingRules : [RoutingRules];
+    delete WebsiteConfiguration.RoutingRule;
+    delete WebsiteConfiguration.RoutingRules;
+    RoutingRules.length > 0 && (WebsiteConfiguration.RoutingRules = { RoutingRule: RoutingRules });
+    var xml = util.json2xml({ WebsiteConfiguration: WebsiteConfiguration });
+
+    var headers = params.Headers;
+    headers['Content-Type'] = 'application/xml';
+    headers['Content-MD5'] = util.binaryBase64(util.md5(xml));
+
+    submitRequest.call(this, {
+        Action: 'name/cos:PutBucketWebsite',
+        method: 'PUT',
+        Bucket: params.Bucket,
+        Region: params.Region,
+        body: xml,
+        action: 'website',
+        headers: headers,
+    }, function (err, data) {
+        if (err && err.statusCode === 204) {
+            return callback(null, {statusCode: err.statusCode});
+        } else if (err) {
+            return callback(err);
+        }
+        callback(null, {
+            statusCode: data.statusCode,
+            headers: data.headers,
+        });
+    });
+}
+
+/**
+ * 获取 Bucket 的静态网站配置信息
+ * @param  {Object}  params             参数对象，必须
+ *     @param  {String}  params.Bucket  Bucket名称，必须
+ *     @param  {String}  params.Region  地域名称，必须
+ * @param  {Function}  callback         回调函数，必须
+ * @return  {Object}  err               请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
+ * @return  {Object}  data              返回数据
+ */
+function getBucketWebsite(params, callback) {
+
+    submitRequest.call(this, {
+        Action: 'name/cos:GetBucketWebsite',
+        method: 'GET',
+        Bucket: params.Bucket,
+        Region: params.Region,
+        Key: params.Key,
+        headers: params.Headers,
+        action: 'website',
+    }, function (err, data) {
+        if (err) {
+            if(err.statusCode === 404 && err.error.Code === 'NoSuchWebsiteConfiguration'){
+                var result = {
+                    WebsiteConfiguration: {},
+                    statusCode: err.statusCode,
+                };
+                err.headers && (result.headers = err.headers);
+                callback(null, result);
+            } else {
+                callback(err);
+            }
+            return;
+        }
+
+        var WebsiteConfiguration = data.WebsiteConfiguration || {};
+        if (WebsiteConfiguration['RoutingRules']) {
+            var RoutingRules = util.clone(WebsiteConfiguration['RoutingRules'].RoutingRule || []);
+            RoutingRules = util.makeArray(RoutingRules);
+            WebsiteConfiguration.RoutingRules = RoutingRules;
+        }
+
+        callback(null, {
+            WebsiteConfiguration: WebsiteConfiguration,
+            statusCode: data.statusCode,
+            headers: data.headers,
+        });
+    });
+}
+
+/**
+ * 删除 Bucket 的静态网站配置
+ * @param  {Object}  params             参数对象，必须
+ *     @param  {String}  params.Bucket  Bucket名称，必须
+ *     @param  {String}  params.Region  地域名称，必须
+ * @param  {Function}  callback         回调函数，必须
+ * @return  {Object}  err               请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
+ * @return  {Object}  data              返回数据
+ */
+function deleteBucketWebsite(params, callback) {
+
+    submitRequest.call(this, {
+        Action: 'name/cos:DeleteBucketWebsite',
+        method: 'DELETE',
+        Bucket: params.Bucket,
+        Region: params.Region,
+        headers: params.Headers,
+        action: 'website',
+    }, function (err, data) {
+        if (err && err.statusCode === 204) {
+            return callback(null, {statusCode: err.statusCode});
+        } else if (err) {
+            return callback(err);
+        }
+        callback(null, {
+            statusCode: data.statusCode,
+            headers: data.headers,
+        });
+    });
+}
+
 // Object 相关
 
 /**
@@ -2403,6 +2538,7 @@ function _submitRequest(params, callback) {
     var body = params.body;
     var json = params.json;
     var rawBody = params.rawBody;
+    var filePath = params.FilePath;
 
     // 处理 readStream and body
     var readStream;
@@ -2580,6 +2716,7 @@ function _submitRequest(params, callback) {
     // kill task
     var killTask = function (data) {
         if (data.TaskId === TaskId) {
+            readStream && readStream.isSdkCreated && readStream.close && readStream.close(); // 如果是 SDK 里从 FilePath 创建的读流，要主动取消
             sender && sender.abort && sender.abort();
             self.off('inner-kill-task', killTask);
         }
@@ -2691,6 +2828,9 @@ var API_MAP = {
     putBucketReplication: putBucketReplication,  // BucketReplication
     getBucketReplication: getBucketReplication,
     deleteBucketReplication: deleteBucketReplication,
+    putBucketWebsite: putBucketWebsite,          // BucketWebsite
+    getBucketWebsite: getBucketWebsite,
+    deleteBucketWebsite: deleteBucketWebsite,
 
     // Object 相关方法
     getObject: getObject,

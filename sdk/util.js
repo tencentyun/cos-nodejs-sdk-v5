@@ -215,6 +215,10 @@ function isInArray(arr, item) {
     return flag;
 }
 
+function makeArray(arr) {
+    return isArray(arr) ? arr : [arr];
+}
+
 function each(obj, fn) {
     for (var i in obj) {
         if (obj.hasOwnProperty(i)) {
@@ -534,6 +538,7 @@ var util = {
     extend: extend,
     isArray: isArray,
     isInArray: isInArray,
+    makeArray: makeArray,
     each: each,
     map: map,
     filter: filter,
@@ -580,7 +585,9 @@ var util = {
 })();
 util.fileSlice = function (FilePath, start, end, callback) {
     if (FilePath) {
-        callback(fs.createReadStream(FilePath, {start: start, end: end - 1}));
+        var readStream = fs.createReadStream(FilePath, {start: start, end: end - 1});
+        readStream.isSdkCreated = true;
+        callback(readStream);
     } else {
         callback(null);
     }

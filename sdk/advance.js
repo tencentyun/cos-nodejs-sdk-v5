@@ -944,7 +944,10 @@ function uploadFiles(params, callback) {
 
             // 添加上传任务
             var api = FileSize >= SliceSize ? 'sliceUploadFile' : 'putObject';
-            api === 'putObject' && (fileParams.Body = fs.createReadStream(fileParams.FilePath));
+            if (api === 'putObject') {
+                fileParams.Body = fs.createReadStream(fileParams.FilePath);
+                fileParams.Body.isSdkCreated = true;
+            }
             taskList.push({
                 api: api,
                 params: fileParams,

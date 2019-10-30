@@ -446,6 +446,69 @@ function deleteBucketReplication() {
     });
 }
 
+function putBucketWebsite() {
+    cos.putBucketWebsite({
+        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Region: config.Region,
+        WebsiteConfiguration: {
+            IndexDocument: {
+                Suffix: "index.html" // 必选
+            },
+            RedirectAllRequestsTo: {
+                Protocol: "https"
+            },
+            ErrorDocument: {
+                Key: "error.html"
+            },
+            RoutingRules: [{
+                Condition: {
+                    HttpErrorCodeReturnedEquals: "404"
+                },
+                Redirect: {
+                    Protocol: "https",
+                    ReplaceKeyWith: "404.html"
+                }
+            }, {
+                Condition: {
+                    KeyPrefixEquals: "docs/"
+                },
+                Redirect: {
+                    Protocol: "https",
+                    ReplaceKeyPrefixWith: "documents/"
+                }
+            }, {
+                Condition: {
+                    KeyPrefixEquals: "img/"
+                },
+                Redirect: {
+                    Protocol: "https",
+                    ReplaceKeyWith: "picture.jpg"
+                }
+            }]
+        }
+    }, function (err, data) {
+        console.log(err || data);
+    });
+}
+
+function getBucketWebsite() {
+    cos.getBucketWebsite({
+        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Region: config.Region
+    },function(err, data){
+        console.log(err || JSON.stringify(data, null, '    '));
+    });
+}
+
+function deleteBucketWebsite() {
+    cos.deleteBucketWebsite({
+        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Region: config.Region
+    },function(err, data){
+        console.log(err || data);
+    });
+}
+
 function putObject() {
     // 创建测试文件
     var filename = '1mb.zip';
@@ -737,9 +800,9 @@ function sliceCopyFile() {
             console.log('进度：' + percent + '%; 速度：' + speed + 'Mb/s;');
         }
     },function (err,data) {
-        if(err){
+        if (err) {
             console.log(err);
-        }else{
+        } else {
             console.log(data);
         }
     });
@@ -772,6 +835,9 @@ getService();
 // getBucketReplication();
 // putBucketReplication();
 // deleteBucketReplication();
+// putBucketWebsite();
+// getBucketWebsite();
+// deleteBucketWebsite();
 // deleteBucket();
 // putObject();
 // putObjectCopy();

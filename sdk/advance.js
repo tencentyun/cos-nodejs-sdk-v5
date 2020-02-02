@@ -12,7 +12,7 @@ function sliceUploadFile(params, callback) {
     var Region = params.Region;
     var Key = params.Key;
     var FilePath = params.FilePath;
-    var ChunkSize = params.ChunkSize || params.SliceSize || this.options.ChunkSize;
+    var ChunkSize = params.ChunkSize || params.SliceSize || self.options.ChunkSize;
     var AsyncLimit = params.AsyncLimit;
     var StorageClass = params.StorageClass || 'Standard';
     var ServerSideEncryption = params.ServerSideEncryption;
@@ -67,6 +67,7 @@ function sliceUploadFile(params, callback) {
         });
 
         // 获取 UploadId
+        onProgress(null, true); // 任务状态开始 uploading
         uploadSliceList.call(self, {
             TaskId: TaskId,
             Bucket: Bucket,
@@ -976,10 +977,10 @@ function sliceCopyFile(params, callback) {
     var SourceBucket = m[1];
     var SourceRegion = m[3];
     var SourceKey = decodeURIComponent(m[4]);
-    var CopySliceSize = params.SliceSize === undefined ? self.options.CopySliceSize : params.SliceSize;
-    CopySliceSize = Math.max(0, Math.min(CopySliceSize, 5 * 1024 * 1024 * 1024));
+    var CopySliceSize = params.CopySliceSize === undefined ? self.options.CopySliceSize : params.CopySliceSize;
+    CopySliceSize = Math.max(0, CopySliceSize);
 
-    var ChunkSize = params.ChunkSize || this.options.CopyChunkSize;
+    var ChunkSize = params.CopyChunkSize || this.options.CopyChunkSize;
     var ChunkParallel = this.options.CopyChunkParallelLimit;
 
     var FinishSize = 0;
@@ -1080,6 +1081,26 @@ function sliceCopyFile(params, callback) {
         }
         TargetHeader['x-cos-storage-class'] = params.Headers['x-cos-storage-class'] || SourceHeaders['x-cos-storage-class'];
         TargetHeader = util.clearKey(TargetHeader);
+        /**
+         * 对于归档存储的对象，如果未恢复副本，则不允许 Copy
+         */
+        if (SourceHeaders['x-cos-storage-class'] === 'ARCHIVE') {
+            var restoreHeader = SourceHeaders['x-cos-restore'];
+            if (!restoreHeader || restoreHeader === 'ongoing-request="true"') {
+                callback({ error: 'Unrestored archive object is not allowed to be copied' });
+                return;
+            }
+        }
+        /**
+         * 去除一些无用的头部，规避 multipartInit 出错
+         * 这些头部通常是在 putObjectCopy 时才使用
+         */
+        delete TargetHeader['x-cos-copy-source'];
+        delete TargetHeader['x-cos-metadata-directive'];
+        delete TargetHeader['x-cos-copy-source-If-Modified-Since'];
+        delete TargetHeader['x-cos-copy-source-If-Unmodified-Since'];
+        delete TargetHeader['x-cos-copy-source-If-Match'];
+        delete TargetHeader['x-cos-copy-source-If-None-Match'];
         self.multipartInit({
             Bucket: Bucket,
             Region: Region,

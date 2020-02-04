@@ -415,7 +415,7 @@ function getUploadIdAndPartList(params, callback) {
             if (RemoteUploadIdList.length) {
                 ep.emit('seek_local_avail_upload_id', RemoteUploadIdList);
             } else {
-                // 远端没有文件，清理所有 UploadId
+                // 远端没有 UploadId，清理缓存的 UploadId
                 var uuid = session.getFileId(params.FileStat, params.ChunkSize, Bucket, Key), LocalUploadIdList;
                 if (uuid && (LocalUploadIdList = session.getUploadIdList(uuid))) {
                     util.each(LocalUploadIdList, function (UploadId) {

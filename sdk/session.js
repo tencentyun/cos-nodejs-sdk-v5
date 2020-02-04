@@ -67,7 +67,7 @@ var mod = {
     saveUploadId: function (uuid, UploadId, limit) {
         init();
         if (!uuid) return;
-        // 检查文件信息或上传参数是否有变化，如果有变化，清理 UploadId
+        // 清理没用的 UploadId
         var part1 = uuid.substr(0, uuid.indexOf('-') + 1);
         for (var i = cache.length - 1; i >= 0; i--) {
             var item = cache[i];

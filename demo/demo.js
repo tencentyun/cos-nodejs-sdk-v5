@@ -551,33 +551,21 @@ function putObjectCopy() {
 function getObject() {
     var filepath1 = path.resolve(__dirname, '1mb.out1.zip');
     var filepath2 = path.resolve(__dirname, '1mb.out2.zip');
-    var filepath3 = path.resolve(__dirname, '1mb.out3.zip');
-    // cos.getObject({
-    //     Bucket: config.Bucket, // Bucket 格式：test-1250000000
-    //     Region: config.Region,
-    //     Key: '1mb.zip',
-    //     onProgress: function (progressData) {
-    //         console.log(JSON.stringify(progressData));
-    //     }
-    // }, function (err, data) {
-    //     fs.writeFileSync(filepath1, data.Body);
-    // });
-    // cos.getObject({
-    //     Bucket: config.Bucket, // Bucket 格式：test-1250000000
-    //     Region: config.Region,
-    //     Key: '1mb.zip',
-    //     Output: fs.createWriteStream(filepath2),
-    //     onProgress: function (progressData) {
-    //         console.log(JSON.stringify(progressData));
-    //     }
-    // }, function (err, data) {
-    //     console.log(err || data);
-    // });
     cos.getObject({
         Bucket: config.Bucket, // Bucket 格式：test-1250000000
         Region: config.Region,
         Key: '1mb.zip',
-        Output: filepath3,
+        onProgress: function (progressData) {
+            console.log(JSON.stringify(progressData));
+        }
+    }, function (err, data) {
+        fs.writeFileSync(filepath1, data.Body);
+    });
+    cos.getObject({
+        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Region: config.Region,
+        Key: '1mb.zip',
+        Output: fs.createWriteStream(filepath2),
         onProgress: function (progressData) {
             console.log(JSON.stringify(progressData));
         }

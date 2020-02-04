@@ -173,6 +173,31 @@ var md5 = function (str, encoding) {
     return crypto.createHash('md5').update(str).digest(encoding || 'hex');
 };
 
+// 获取文件分片
+var fileSlice = function (FilePath, start, end, callback) {
+    if (FilePath) {
+        var readStream = fs.createReadStream(FilePath, {start: start, end: end - 1});
+        readStream.isSdkCreated = true;
+        callback(readStream);
+    } else {
+        callback(null);
+    }
+};
+
+// 获取文件内容的 MD5
+var getBodyMd5 = function (UploadCheckContentMd5, Body, callback) {
+    callback = callback || noop;
+    if (UploadCheckContentMd5) {
+        if (Body instanceof Buffer || typeof Body === 'string') {
+            callback(util.md5(Body));
+        } else {
+            callback();
+        }
+    } else {
+        callback();
+    }
+};
+
 // 获取文件 md5 值
 var getFileMd5 = function (readStream, callback) {
     var md5 = crypto.createHash('md5');
@@ -522,6 +547,7 @@ var getFileSize = function (api, params, callback) {
     callback(null, size);
 };
 
+// 获取调正的时间戳
 var getSkewTime = function (offset) {
     return Date.now() + (offset || 0);
 };
@@ -534,6 +560,8 @@ var util = {
     json2xml: json2xml,
     md5: md5,
     clearKey: clearKey,
+    fileSlice: fileSlice,
+    getBodyMd5: getBodyMd5,
     getFileMd5: getFileMd5,
     binaryBase64: binaryBase64,
     extend: extend,
@@ -552,65 +580,6 @@ var util = {
     getAuth: getAuth,
     getV4Auth: getV4Auth,
     isBrowser: false,
-};
-
-(function () {
-    try {
-        configStore = new ConfigStore('cos-nodejs-sdk-v5-storage');
-    } catch (e) {
-    }
-    var map = {};
-    var update = function (key, val) {
-        if (map.hasOwnProperty(key)) {
-            map[key] = val;
-        } else {
-            map[key] = val;
-            setTimeout(function () {
-                if (!configStore) return;
-                if (map[key] === undefined) {
-                    configStore.delete(key);
-                } else {
-                    configStore.set(key, map[key]);
-                }
-                delete map[key];
-            }, 300);
-        }
-    };
-    util.localStorage = {
-        getItem: function (key) {
-            return configStore && configStore.get(key);
-        },
-        setItem: update,
-        removeItem: update,
-    };
-})();
-util.fileSlice = function (FilePath, start, end, callback) {
-    if (FilePath) {
-        var readStream = fs.createReadStream(FilePath, {start: start, end: end - 1});
-        readStream.isSdkCreated = true;
-        callback(readStream);
-    } else {
-        callback(null);
-    }
-};
-util.getFileUUID = function (FileStat, ChunkSize) {
-    if (FileStat && FileStat.FilePath && FileStat.size && FileStat.ctime && FileStat.mtime && ChunkSize) {
-        return util.md5([FileStat.FilePath].join('::')) + '-' + util.md5([FileStat.size, FileStat.ctime, FileStat.mtime, ChunkSize].join('::'));
-    } else {
-        return null;
-    }
-};
-util.getBodyMd5 = function (UploadCheckContentMd5, Body, callback) {
-    callback = callback || noop;
-    if (UploadCheckContentMd5) {
-        if (Body instanceof Buffer || typeof Body === 'string') {
-            callback(util.md5(Body));
-        } else {
-            callback();
-        }
-    } else {
-        callback();
-    }
 };
 
 module.exports = util;

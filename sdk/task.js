@@ -1,3 +1,4 @@
+var session = require('./session');
 var util = require('./util');
 
 var originApiMap = {};
@@ -124,6 +125,10 @@ var initTask = function (cos) {
             }
             task.state = switchToState;
             cos.emit('inner-kill-task', {TaskId: id, toState: switchToState});
+            try {
+                var UploadId = task && task.params && task.params.UploadData.UploadId
+            } catch(e) {}
+            if (switchToState === 'canceled' && UploadId) session.removeUsing(UploadId)
             emitListUpdate();
             if (running) {
                 uploadingFileCount--;

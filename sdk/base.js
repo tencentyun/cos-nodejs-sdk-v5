@@ -1305,6 +1305,7 @@ function putObject(params, callback) {
         if (params.ContentLength !== undefined) {
             params.Headers['Content-Length'] = params.ContentLength;
         }
+        onProgress(null, true); // 任务状态开始 uploading
         submitRequest.call(self, {
             Action: 'name/cos:PutObject',
             TaskId: params.TaskId,

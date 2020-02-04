@@ -9,7 +9,7 @@ var cache;
 var timer;
 
 var init = function () {
-    if (store) return;
+    if (cache) return;
     store = new ConfigStore('cos-nodejs-sdk-v5-storage');
     cache = store.get(cacheKey) || [];
     // 清理太老旧的数据

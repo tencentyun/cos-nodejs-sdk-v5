@@ -550,7 +550,7 @@ function uploadSliceList(params, cb) {
         });
     }, function (err) {
         if (!self._isRunningTask(TaskId)) return;
-        if (err)  return cb(err);
+        if (err) return cb(err);
         cb(null, {
             UploadId: UploadData.UploadId,
             SliceList: UploadData.PartList

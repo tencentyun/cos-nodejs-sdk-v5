@@ -509,6 +509,35 @@ function deleteBucketWebsite() {
     });
 }
 
+function putBucketReferer() {
+    cos.putBucketReferer({
+        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Region: config.Region,
+        RefererConfiguration: {
+            Status: 'Enabled',
+            RefererType: 'White-List',
+            DomainList: {
+                Domains: [
+                    '*.qq.com',
+                    '*.qcloud.com',
+                ]
+            },
+            EmptyReferConfiguration: 'Allow',
+        }
+    }, function (err, data) {
+        console.log(err || data);
+    });
+}
+
+function getBucketReferer() {
+    cos.getBucketReferer({
+        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Region: config.Region
+    },function(err, data){
+        console.log(err || JSON.stringify(data, null, '    '));
+    });
+}
+
 function putObject() {
     // 创建测试文件
     var filename = '1mb.zip';
@@ -827,6 +856,8 @@ getService();
 // putBucketWebsite();
 // getBucketWebsite();
 // deleteBucketWebsite();
+// putBucketReferer();
+// getBucketReferer();
 // deleteBucket();
 // putObject();
 // putObjectCopy();

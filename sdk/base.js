@@ -945,7 +945,7 @@ function putBucketWebsite(params, callback) {
     RoutingRules = util.isArray(RoutingRules) ? RoutingRules : [RoutingRules];
     delete WebsiteConfiguration.RoutingRule;
     delete WebsiteConfiguration.RoutingRules;
-    RoutingRules.length > 0 && (WebsiteConfiguration.RoutingRules = { RoutingRule: RoutingRules });
+    if (RoutingRules.length) WebsiteConfiguration.RoutingRules = { RoutingRule: RoutingRules };
     var xml = util.json2xml({ WebsiteConfiguration: WebsiteConfiguration });
 
     var headers = params.Headers;
@@ -1047,6 +1047,109 @@ function deleteBucketWebsite(params, callback) {
             return callback(err);
         }
         callback(null, {
+            statusCode: data.statusCode,
+            headers: data.headers,
+        });
+    });
+}
+
+
+/**
+ * 设置 Bucket 的防盗链白名单或者黑名单
+ * @param  {Object}  params                                                 参数对象，必须
+ *     @param  {String}  params.Bucket                                      Bucket名称，必须
+ *     @param  {String}  params.Region                                      地域名称，必须
+ *     @param  {Object}  params.RefererConfiguration                        地域名称，必须
+ *         @param  {String}   RefererConfiguration.Status                   是否开启防盗链，枚举值：Enabled、Disabled
+ *         @param  {String}   RefererConfiguration.RefererType              防盗链类型，枚举值：Black-List、White-List，必须
+ *         @param  {Array}   RefererConfiguration.DomianList.Domain         生效域名，必须
+ *         @param  {String}   RefererConfiguration.EmptyReferConfiguration  ，非必须
+ * @param  {Function}  callback                                             回调函数，必须
+ * @return  {Object}  err                                                   请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
+ * @return  {Object}  data                                                  返回数据
+ */
+function putBucketReferer(params, callback) {
+
+    if (!params['RefererConfiguration']) {
+        callback({ error: 'missing param RefererConfiguration' });
+        return;
+    }
+
+    var RefererConfiguration = util.clone(params['RefererConfiguration'] || {});
+    var DomainList = RefererConfiguration['DomainList'] || {};
+    var Domains = DomainList['Domains'] || DomainList['Domain'] || [];
+    Domains = util.isArray(Domains) ? Domains : [Domains];
+    if (Domains.length) RefererConfiguration.DomainList = {Domain: Domains};
+    var xml = util.json2xml({ RefererConfiguration: RefererConfiguration });
+
+    var headers = params.Headers;
+    headers['Content-Type'] = 'application/xml';
+    headers['Content-MD5'] = util.binaryBase64(util.md5(xml));
+
+    submitRequest.call(this, {
+        Action: 'name/cos:PutBucketReferer',
+        method: 'PUT',
+        Bucket: params.Bucket,
+        Region: params.Region,
+        body: xml,
+        action: 'referer',
+        headers: headers,
+    }, function (err, data) {
+        if (err && err.statusCode === 204) {
+            return callback(null, {statusCode: err.statusCode});
+        } else if (err) {
+            return callback(err);
+        }
+        callback(null, {
+            statusCode: data.statusCode,
+            headers: data.headers,
+        });
+    });
+}
+
+/**
+ * 获取 Bucket 的防盗链白名单或者黑名单
+ * @param  {Object}  params             参数对象，必须
+ *     @param  {String}  params.Bucket  Bucket名称，必须
+ *     @param  {String}  params.Region  地域名称，必须
+ * @param  {Function}  callback         回调函数，必须
+ * @return  {Object}  err               请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
+ * @return  {Object}  data              返回数据
+ */
+function getBucketReferer(params, callback) {
+
+    submitRequest.call(this, {
+        Action: 'name/cos:GetBucketReferer',
+        method: 'GET',
+        Bucket: params.Bucket,
+        Region: params.Region,
+        Key: params.Key,
+        headers: params.Headers,
+        action: 'referer',
+    }, function (err, data) {
+        if (err) {
+            if(err.statusCode === 404 && err.error.Code === 'NoSuchRefererConfiguration'){
+                var result = {
+                    WebsiteConfiguration: {},
+                    statusCode: err.statusCode,
+                };
+                err.headers && (result.headers = err.headers);
+                callback(null, result);
+            } else {
+                callback(err);
+            }
+            return;
+        }
+
+        var RefererConfiguration = data.RefererConfiguration || {};
+        if (RefererConfiguration['DomainList']) {
+            var Domains = util.clone(RefererConfiguration['DomainList'].Domain || []);
+            Domains = util.makeArray(Domains);
+            RefererConfiguration.DomainList = {Domains: Domains};
+        }
+
+        callback(null, {
+            RefererConfiguration: RefererConfiguration,
             statusCode: data.statusCode,
             headers: data.headers,
         });
@@ -2832,6 +2935,8 @@ var API_MAP = {
     putBucketWebsite: putBucketWebsite,          // BucketWebsite
     getBucketWebsite: getBucketWebsite,
     deleteBucketWebsite: deleteBucketWebsite,
+    putBucketReferer: putBucketReferer,          // BucketReferer
+    getBucketReferer: getBucketReferer,
 
     // Object 相关方法
     getObject: getObject,

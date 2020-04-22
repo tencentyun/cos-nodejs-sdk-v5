@@ -7,8 +7,8 @@ var config = require('./config');
 
 
 var LongBucketName = config.Bucket;
-var ShortBucketName = LongBucketName.substr(0, LongBucketName.indexOf('-'));
-var AppId = LongBucketName.substr(LongBucketName.indexOf('-') + 1);
+var ShortBucketName = LongBucketName.substr(0, LongBucketName.lastIndexOf('-'));
+var AppId = LongBucketName.substr(LongBucketName.lastIndexOf('-') + 1);
 var policy = {
     'version': '2.0',
     'statement': [{

@@ -15,7 +15,7 @@ function sliceUploadFile(params, callback) {
     var FilePath = params.FilePath;
     var ChunkSize = params.ChunkSize || params.SliceSize || self.options.ChunkSize;
     var AsyncLimit = params.AsyncLimit;
-    var StorageClass = params.StorageClass || 'Standard';
+    var StorageClass = params.StorageClass;
     var ServerSideEncryption = params.ServerSideEncryption;
     var FileSize;
 
@@ -869,7 +869,7 @@ function uploadFiles(params, callback) {
             };
 
             // 添加上传任务
-            var api = FileSize >= SliceSize ? 'sliceUploadFile' : 'putObject';
+            var api = FileSize > SliceSize ? 'sliceUploadFile' : 'putObject';
             if (api === 'putObject') {
                 fileParams.Body = fs.createReadStream(fileParams.FilePath);
                 fileParams.Body.isSdkCreated = true;

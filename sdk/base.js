@@ -77,12 +77,22 @@ function getService(params, callback) {
 function putBucket(params, callback) {
 
     var self = this;
+
+    var xml = '';
+    if(params['BucketAZConfig']){
+        var CreateBucketConfiguration = {
+            BucketAZConfig: params.BucketAZConfig
+        };
+        xml = util.json2xml({CreateBucketConfiguration: CreateBucketConfiguration});
+    }
+
     submitRequest.call(this, {
         Action: 'name/cos:PutBucket',
         method: 'PUT',
         Bucket: params.Bucket,
         Region: params.Region,
         headers: params.Headers,
+        body: xml,
     }, function (err, data) {
         if (err) {
             return callback(err);

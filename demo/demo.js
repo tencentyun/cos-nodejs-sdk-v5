@@ -74,7 +74,8 @@ function getService() {
 function putBucket() {
     cos.putBucket({
         Bucket: 'testnew-' + config.Bucket.substr(config.Bucket.lastIndexOf('-') + 1),
-        Region: 'ap-guangzhou'
+        Region: 'ap-guangzhou',
+        // BucketAZConfig: 'MAZ',
     }, function (err, data) {
         console.log(err || data);
     });

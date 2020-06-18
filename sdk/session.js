@@ -11,7 +11,8 @@ var timer;
 var init = function () {
     if (cache) return;
     store = new ConfigStore('cos-nodejs-sdk-v5-storage');
-    cache = store.get(cacheKey) || [];
+    cache = store.get(cacheKey);
+    if (!cache || !(cache instanceof Array)) cache = [];
     // 清理太老旧的数据
     var changed = false;
     var now = Math.round(Date.now() / 1000);

@@ -15,7 +15,20 @@ var cos = new COS({
     ChunkParallelLimit: 8,   // 控制单个文件下分片上传并发数，在同园区上传可以设置较大的并发数
     ChunkSize: 1024 * 1024 * 8,  // 控制分片大小，单位 B，在同园区上传可以设置较大的分片大小
     Proxy: '',
+    Protocol: 'http:',
 });
+
+cos.getObject({
+    Bucket: config.Bucket, // Bucket 格式：test-1250000000
+    Region: config.Region,
+    Key: '1.txt',
+    Output: fs.createWriteStream('./456.txt')
+}, function (err, data) {
+    console.log(err || data);
+});
+return;
+
+
 var TaskId;
 
 function camSafeUrlEncode(str) {
@@ -721,17 +734,17 @@ function putObjectCopy() {
 
 function getObject() {
     var filepath1 = path.resolve(__dirname, '1mb.out1.zip');
-    var filepath2 = path.resolve(__dirname, '1mb.out2.zip');
-    cos.getObject({
-        Bucket: config.Bucket, // Bucket 格式：test-1250000000
-        Region: config.Region,
-        Key: '1mb.zip',
-        onProgress: function (progressData) {
-            console.log(JSON.stringify(progressData));
-        }
-    }, function (err, data) {
-        fs.writeFileSync(filepath1, data.Body);
-    });
+    var filepath2 = path.resolve(__dirname, '123/1mb.out2.zip');
+    // cos.getObject({
+    //     Bucket: config.Bucket, // Bucket 格式：test-1250000000
+    //     Region: config.Region,
+    //     Key: '1mb.zip',
+    //     onProgress: function (progressData) {
+    //         console.log(JSON.stringify(progressData));
+    //     }
+    // }, function (err, data) {
+    //     fs.writeFileSync(filepath1, data.Body);
+    // });
     cos.getObject({
         Bucket: config.Bucket, // Bucket 格式：test-1250000000
         Region: config.Region,
@@ -967,7 +980,7 @@ function sliceCopyFile() {
     });
 }
 
-getService();
+// getService();
 // getAuth();
 // getV4Auth();
 // getObjectUrl();
@@ -1003,7 +1016,7 @@ getService();
 // deleteBucket();
 // putObject();
 // putObjectCopy();
-// getObject();
+getObject();
 // headObject();
 // putObjectAcl();
 // getObjectAcl();

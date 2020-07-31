@@ -3395,7 +3395,7 @@ function _submitRequest(params, callback) {
         params.outputStream.on('error', function (err) {
             sender && sender.abort && sender.abort();
             cb(err)
-        }).on('finish', () => {
+        }).on('finish', function () {
             // 当有传入outputStream时，在它的finish事件抛出时执行成功回调，该时间点可以保证文件已经下载并完全写入了磁盘
             cb(null, {});
         });

@@ -3277,11 +3277,7 @@ function _submitRequest(params, callback) {
         var chunkList = [];
         var statusCode = response.statusCode;
         var statusSuccess = Math.floor(statusCode / 100) === 2; // 200 202 204 206
-        if (statusSuccess && params.outputStream) {
-            sender.on('end', function () {
-                cb(null, {});
-            });
-        } else if (responseContentLength >= process.binding('buffer').kMaxLength && opt.method !== 'HEAD') {
+        if (responseContentLength >= process.binding('buffer').kMaxLength && opt.method !== 'HEAD') {
             cb({error: 'file size large than ' + process.binding('buffer').kMaxLength + ', please use "Output" Stream to getObject.'});
         } else {
             var dataHandler = function (chunk) {
@@ -3399,6 +3395,9 @@ function _submitRequest(params, callback) {
         params.outputStream.on('error', function (err) {
             sender && sender.abort && sender.abort();
             cb(err)
+        }).on('finish', () => {
+            // 当有传入outputStream时，在它的finish事件抛出时执行成功回调，该时间点可以保证文件已经下载并完全写入了磁盘
+            cb(null, {});
         });
         sender.pipe(params.outputStream);
     }

@@ -2,11 +2,9 @@
 
 var fs = require('fs');
 var crypto = require('crypto');
-var ConfigStore = require('configstore');
 var xml2js = require('xml2js');
 var xmlParser = new xml2js.Parser({explicitArray: false, ignoreAttrs: true});
 var xmlBuilder = new xml2js.Builder();
-var configStore;
 
 function camSafeUrlEncode(str) {
     return encodeURIComponent(str)

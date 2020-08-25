@@ -1,4 +1,4 @@
-var ConfigStore = require('configstore');
+var Conf = require('conf');
 var util = require('./util');
 
 // 按照文件特征值，缓存 UploadId
@@ -10,7 +10,7 @@ var timer;
 
 var init = function () {
     if (cache) return;
-    store = new ConfigStore('cos-nodejs-sdk-v5-storage');
+    store = new Conf({configName: 'cos-nodejs-sdk-v5-upload-id-list'});
     cache = store.get(cacheKey);
     if (!cache || !(cache instanceof Array)) cache = [];
     // 清理太老旧的数据

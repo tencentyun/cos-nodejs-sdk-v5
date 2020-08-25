@@ -18,17 +18,6 @@ var cos = new COS({
     Protocol: 'http:',
 });
 
-cos.getObject({
-    Bucket: config.Bucket, // Bucket 格式：test-1250000000
-    Region: config.Region,
-    Key: '1.txt',
-    Output: fs.createWriteStream('./456.txt')
-}, function (err, data) {
-    console.log(err || data);
-});
-return;
-
-
 var TaskId;
 
 function camSafeUrlEncode(str) {

@@ -6,9 +6,7 @@ var COS = require('../index');
 var config = require('./config');
 
 
-var LongBucketName = config.Bucket;
-var ShortBucketName = LongBucketName.substr(0, LongBucketName.lastIndexOf('-'));
-var AppId = LongBucketName.substr(LongBucketName.lastIndexOf('-') + 1);
+var AppId = config.Bucket.substr(config.Bucket.lastIndexOf('-') + 1);
 var policy = {
     'version': '2.0',
     'statement': [{
@@ -27,7 +25,7 @@ var policy = {
         'effect': 'allow',
         'principal': {'qcs': ['*']},
         'resource': [
-            'qcs::cos:' + config.Region + ':uid/' + AppId + ':prefix//' + AppId + '/' + ShortBucketName + '/*'
+            'qcs::cos:' + config.Region + ':uid/' + AppId + ':' + config.Bucket + '/*'
         ]
     }]
 };

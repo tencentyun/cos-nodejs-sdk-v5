@@ -10,7 +10,7 @@ var timer;
 
 var init = function () {
     if (cache) return;
-    store = new Conf({configName: 'cos-nodejs-sdk-v5-upload-id-list'});
+    store = new Conf({configName: 'cos-nodejs-sdk-v5-storage'});
     cache = store.get(cacheKey);
     if (!cache || !(cache instanceof Array)) cache = [];
     // 清理太老旧的数据

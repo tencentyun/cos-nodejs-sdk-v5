@@ -969,7 +969,7 @@ function sliceCopyFile() {
     });
 }
 
-// getService();
+getService();
 // getAuth();
 // getV4Auth();
 // getObjectUrl();
@@ -1005,7 +1005,7 @@ function sliceCopyFile() {
 // deleteBucket();
 // putObject();
 // putObjectCopy();
-getObject();
+// getObject();
 // headObject();
 // putObjectAcl();
 // getObjectAcl();

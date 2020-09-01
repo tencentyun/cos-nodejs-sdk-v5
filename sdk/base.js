@@ -2710,7 +2710,7 @@ function getObjectUrl(params, callback) {
     var url = getUrl({
         ForcePathStyle: self.options.ForcePathStyle,
         protocol: params.Protocol || self.options.Protocol,
-        domain: self.options.Domain,
+        domain: params.Domain || self.options.Domain,
         bucket: params.Bucket,
         region: params.Region,
         object: params.Key,

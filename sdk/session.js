@@ -10,8 +10,12 @@ var timer;
 
 var init = function () {
     if (cache) return;
-    store = new Conf({configName: 'cos-nodejs-sdk-v5-storage'});
-    cache = store.get(cacheKey);
+    var opt = {configName: 'cos-nodejs-sdk-v5-storage'};
+    if (this.options.ConfCwd) opt.cwd = this.options.ConfCwd;
+    store = new Conf(opt);
+    try {
+        cache = store.get(cacheKey);
+    } catch (e) {}
     if (!cache || !(cache instanceof Array)) cache = [];
     // 清理太老旧的数据
     var changed = false;
@@ -23,14 +27,18 @@ var init = function () {
             changed = true;
         }
     }
-    changed && store.set(cacheKey, cache);
+    try {
+        changed && store.set(cacheKey, cache);
+    } catch (e) {}
 };
 
 // 把缓存存到本地
 var save = function () {
     if (timer) return;
     timer = setTimeout(function () {
-        store.set(cacheKey, cache);
+        try {
+            store.set(cacheKey, cache);
+        } catch (e) {}
         timer = null;
     }, 400);
 };
@@ -56,7 +64,7 @@ var mod = {
     // 获取文件对应的 UploadId 列表
     getUploadIdList: function (uuid) {
         if (!uuid) return null;
-        init();
+        init.call(this);
         var list = [];
         for (var i = 0; i < cache.length; i++) {
             if (cache[i][0] === uuid)
@@ -66,7 +74,7 @@ var mod = {
     },
     // 缓存 UploadId
     saveUploadId: function (uuid, UploadId, limit) {
-        init();
+        init.call(this);
         if (!uuid) return;
         // 清理没用的 UploadId
         var part1 = uuid.substr(0, uuid.indexOf('-') + 1);
@@ -84,7 +92,7 @@ var mod = {
     },
     // UploadId 已用完，移除掉
     removeUploadId: function (UploadId) {
-        init();
+        init.call(this);
         delete mod.using[UploadId];
         for (var i = cache.length - 1; i >= 0; i--) {
             if (cache[i][1] === UploadId) cache.splice(i, 1)

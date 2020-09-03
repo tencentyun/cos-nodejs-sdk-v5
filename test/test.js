@@ -2368,3 +2368,174 @@ group('Content-Type: false Bug', function () {
         });
     });
 });
+
+var tagging2str = (obj) => {
+    var arr = [];
+    obj.forEach(v => arr.push(v.Key + '=' + encodeURIComponent(v.Value)))
+    return arr.join('&');
+}
+group('上传带 tagging', function () {
+    var Tags = [
+        {Key: "k1", Value: "v1"},
+        {Key: "k2", Value: "v2"},
+    ];
+    var key = '1.txt';
+
+    test('putObject 带 x-cos-tagging', function (done, assert) {
+        Tags[0].Value = Date.now().toString(36);
+        var tagStr = tagging2str(Tags);
+        // 调用方法
+        cos.putObject({
+            Bucket: config.Bucket, /* 必须 */ // Bucket 格式：test-1250000000
+            Region: config.Region,
+            Key: key,
+            Body: 'hello!',
+            Headers: {
+                'x-cos-tagging': tagStr,
+            },
+        }, function (err1, data1) {
+            cos.headObject({
+                Bucket: config.Bucket, /* 必须 */ // Bucket 格式：test-1250000000
+                Region: config.Region,
+                Key: key,
+            }, function (err2, data2) {
+                var taggingCount = data2 && data2.headers['x-cos-tagging-count'];
+                assert.ok(taggingCount === '2', '返回 x-cos-tagging-count: ' + taggingCount);
+                cos.getObjectTagging({
+                    Bucket: config.Bucket, /* 必须 */ // Bucket 格式：test-1250000000
+                    Region: config.Region,
+                    Key: key,
+                }, function (err3, data3) {
+                    assert.ok(comparePlainObject(Tags, data3.Tags));
+                    done();
+                });
+            });
+        });
+    });
+
+    // test('sliceUploadFile 带 x-cos-tagging', function (done, assert) {
+    //     Tags[0].Value = Date.now().toString(36);
+    //     var tagStr = tagging2str(Tags);
+    //     // 调用方法
+    //     cos.sliceUploadFile({
+    //         Bucket: config.Bucket, /* 必须 */ // Bucket 格式：test-1250000000
+    //         Region: config.Region,
+    //         Key: key,
+    //         Body: 'hello!',
+    //         Headers: {
+    //             'x-cos-tagging': tagStr,
+    //         },
+    //     }, function (err1, data1) {
+    //         cos.headObject({
+    //             Bucket: config.Bucket, /* 必须 */ // Bucket 格式：test-1250000000
+    //             Region: config.Region,
+    //             Key: key,
+    //         }, function (err2, data2) {
+    //             var taggingCount = data2 && data2.headers['x-cos-tagging-count'];
+    //             assert.ok(taggingCount === '1', '返回 x-cos-tagging-count: ' + taggingCount);
+    //             cos.getObjectTagging({
+    //                 Bucket: config.Bucket, /* 必须 */ // Bucket 格式：test-1250000000
+    //                 Region: config.Region,
+    //                 Key: key,
+    //             }, function (err3, data3) {
+    //                 assert.ok(data3 && data3.Tags && comparePlainObject(Tags, data3.Tags));
+    //                 done();
+    //             });
+    //         });
+    //     });
+    // });
+});
+
+group('ObjectTagging', function () {
+    var key = '1.txt';
+    var Tags = [
+        {Key: "k1", Value: "v1"},
+        {Key: "k2", Value: "v2"},
+    ];
+    test('putObjectTagging(),getObjectTagging()', function (done, assert) {
+        Tags[0].Value = Date.now().toString(36);
+        cos.putObjectTagging({
+            Bucket: config.Bucket,
+            Region: config.Region,
+            Key: key,
+            Tagging: {
+                Tags: Tags
+            },
+        }, function (err, data) {
+            assert.ok(!err);
+            setTimeout(function () {
+                cos.getObjectTagging({
+                    Bucket: config.Bucket,
+                    Region: config.Region,
+                    Key: key,
+                }, function (err, data) {
+                    assert.ok(comparePlainObject(Tags, data.Tags));
+                    done();
+                });
+            }, 1000);
+        });
+    });
+    test('deleteObjectTagging()', function (done, assert) {
+        cos.deleteObjectTagging({
+            Bucket: config.Bucket,
+            Region: config.Region,
+            Key: key,
+        }, function (err, data) {
+            assert.ok(!err);
+            setTimeout(function () {
+                cos.getObjectTagging({
+                    Bucket: config.Bucket,
+                    Region: config.Region,
+                    Key: key,
+                }, function (err, data) {
+                    assert.ok(comparePlainObject([], data.Tags));
+                    done();
+                });
+            }, 1000);
+        });
+    });
+});
+
+group('getBucketAccelerate', function () {
+    test('putBucketAccelerate(),getBucketAccelerate() Enabled', function (done, assert) {
+        cos.putBucketAccelerate({
+            Bucket: config.Bucket,
+            Region: config.Region,
+            AccelerateConfiguration: {
+                Status: 'Enabled', // Suspended、Enabled
+            },
+        }, function (err, data) {
+            assert.ok(!err);
+            setTimeout(function () {
+                cos.getBucketAccelerate({
+                    Bucket: config.Bucket,
+                    Region: config.Region,
+                }, function (err2, data2) {
+                    assert.ok(data2 && data2.AccelerateConfiguration && data2.AccelerateConfiguration.Status === 'Enabled');
+                    done();
+                });
+            }, 1000);
+        });
+    });
+
+    test('putBucketAccelerate(),getBucketAccelerate() Suspended', function (done, assert) {
+        cos.putBucketAccelerate({
+            Bucket: config.Bucket,
+            Region: config.Region,
+            AccelerateConfiguration: {
+                Status: 'Suspended', // Suspended、Enabled
+            },
+        }, function (err, data) {
+            assert.ok(!err);
+            setTimeout(function () {
+                cos.getBucketAccelerate({
+                    Bucket: config.Bucket,
+                    Region: config.Region,
+                }, function (err2, data2) {
+                    assert.ok(data2 && data2.AccelerateConfiguration && data2.AccelerateConfiguration.Status === 'Suspended');
+                    done();
+                });
+            }, 1000);
+        });
+    });
+});

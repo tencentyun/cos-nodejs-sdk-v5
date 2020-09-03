@@ -39,6 +39,7 @@ var defaultOptions = {
     StrictSsl: true,
     KeepAlive: true,
     UserAgent: '',
+    ConfCwd: '',
 };
 
 // 对外暴露的类

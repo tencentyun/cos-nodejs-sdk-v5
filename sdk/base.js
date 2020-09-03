@@ -25,15 +25,15 @@ function getService(params, callback) {
     var region = params.Region;
     if (domain) {
         domain = domain.replace(/\{\{AppId\}\}/ig, appId || '')
-        .replace(/\{\{Region\}\}/ig, region || '').replace(/\{\{.*?\}\}/ig, '');
+            .replace(/\{\{Region\}\}/ig, region || '').replace(/\{\{.*?\}\}/ig, '');
         if (!/^[a-zA-Z]+:\/\//.test(domain)) {
             domain = protocol + '//' + domain;
         }
         if (domain.slice(-1) === '/') {
             domain = domain.slice(0, -1);
         }
-    } else if(region){
-        domain = protocol + '//cos.'+ region + '.myqcloud.com';
+    } else if (region) {
+        domain = protocol + '//cos.' + region + '.myqcloud.com';
     } else {
         domain = protocol + '//service.cos.myqcloud.com';
     }
@@ -1661,6 +1661,58 @@ function deleteBucketInventory(params, callback) {
     });
 }
 
+/* 全球加速 */
+function putBucketAccelerate(params, callback) {
+
+    if (!params['AccelerateConfiguration']) {
+        callback({error: 'missing param AccelerateConfiguration'});
+        return;
+    }
+
+    var configuration = { AccelerateConfiguration: params.AccelerateConfiguration || {} };
+
+    var xml = util.json2xml(configuration);
+
+    var headers = {};
+    headers['Content-Type'] = 'application/xml';
+    headers['Content-MD5'] = util.binaryBase64(util.md5(xml));
+
+    submitRequest.call(this, {
+        Interface: 'putBucketAccelerate',
+        Action: 'name/cos:PutBucketAccelerate',
+        method: 'PUT',
+        Bucket: params.Bucket,
+        Region: params.Region,
+        body: xml,
+        action: 'accelerate',
+        headers: headers,
+    }, function (err, data) {
+        if (err) {
+            return callback(err);
+        }
+        callback(null, {
+            statusCode: data.statusCode,
+            headers: data.headers,
+        });
+    });
+}
+
+function getBucketAccelerate(params, callback) {
+    submitRequest.call(this, {
+        Interface: 'getBucketAccelerate',
+        Action: 'name/cos:GetBucketAccelerate',
+        method: 'GET',
+        Bucket: params.Bucket,
+        Region: params.Region,
+        action: 'accelerate',
+    }, function (err, data) {
+        if (!err) {
+            !data.AccelerateConfiguration && (data.AccelerateConfiguration = {});
+        }
+        callback(err, data);
+    });
+}
+
 // Object 相关
 
 /**
@@ -2338,6 +2390,133 @@ function restoreObject(params, callback) {
     });
 }
 
+/**
+ * 设置 Object 的标签
+ * @param  {Object}  params             参数对象，必须
+ *     @param  {String}  params.Bucket  Object名称，必须
+ *     @param  {String}  params.Region  地域名称，必须
+ *     @param  {Array}   params.TagSet  标签设置，必须
+ * @param  {Function}  callback         回调函数，必须
+ * @return  {Object}  err               请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/42998
+ * @return  {Object}  data              返回数据
+ */
+function putObjectTagging(params, callback) {
+
+    var Tagging = params['Tagging'] || {};
+    var Tags = Tagging.TagSet || Tagging.Tags || params['Tags'] || [];
+    Tags = util.clone(util.isArray(Tags) ? Tags : [Tags]);
+    var xml = util.json2xml({Tagging: {TagSet: {Tag: Tags}}});
+
+    var headers = params.Headers;
+    headers['Content-Type'] = 'application/xml';
+    headers['Content-MD5'] = util.binaryBase64(util.md5(xml));
+
+    submitRequest.call(this, {
+        Interface: 'putObjectTagging',
+        Action: 'name/cos:PutObjectTagging',
+        method: 'PUT',
+        Bucket: params.Bucket,
+        Key: params.Key,
+        Region: params.Region,
+        body: xml,
+        action: 'tagging',
+        headers: headers,
+        VersionId: params.VersionId,
+    }, function (err, data) {
+        if (err && err.statusCode === 204) {
+            return callback(null, {statusCode: err.statusCode});
+        } else if (err) {
+            return callback(err);
+        }
+        callback(null, {
+            statusCode: data.statusCode,
+            headers: data.headers,
+        });
+    });
+}
+
+/**
+ * 获取 Object 的标签设置
+ * @param  {Object}  params             参数对象，必须
+ *     @param  {String}  params.Bucket  Bucket名称，必须
+ *     @param  {String}  params.Region  地域名称，必须
+ * @param  {Function}  callback         回调函数，必须
+ * @return  {Object}  err               请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/42998
+ * @return  {Object}  data              返回数据
+ */
+function getObjectTagging(params, callback) {
+
+    submitRequest.call(this, {
+        Interface: 'getObjectTagging',
+        Action: 'name/cos:GetObjectTagging',
+        method: 'GET',
+        Key: params.Key,
+        Bucket: params.Bucket,
+        Region: params.Region,
+        headers: params.Headers,
+        action: 'tagging',
+        VersionId: params.VersionId,
+    }, function (err, data) {
+        if (err) {
+            if (err.statusCode === 404 && err.error && (err.error === "Not Found" || err.error.Code === 'NoSuchTagSet')) {
+                var result = {
+                    Tags: [],
+                    statusCode: err.statusCode,
+                };
+                err.headers && (result.headers = err.headers);
+                callback(null, result);
+            } else {
+                callback(err);
+            }
+            return;
+        }
+        var Tags = [];
+        try {
+            Tags = data.Tagging.TagSet.Tag || [];
+        } catch (e) {
+        }
+        Tags = util.clone(util.isArray(Tags) ? Tags : [Tags]);
+        callback(null, {
+            Tags: Tags,
+            statusCode: data.statusCode,
+            headers: data.headers,
+        });
+    });
+}
+
+/**
+ * 删除 Object 的 标签设置
+ * @param  {Object}  params             参数对象，必须
+ *     @param  {String}  params.Bucket  Object名称，必须
+ *     @param  {String}  params.Region  地域名称，必须
+ * @param  {Function}  callback         回调函数，必须
+ * @return  {Object}  err               请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/42998
+ * @return  {Object}  data              返回的数据
+ */
+function deleteObjectTagging(params, callback) {
+    submitRequest.call(this, {
+        Interface: 'deleteObjectTagging',
+        Action: 'name/cos:DeleteObjectTagging',
+        method: 'DELETE',
+        Bucket: params.Bucket,
+        Region: params.Region,
+        Key: params.Key,
+        headers: params.Headers,
+        action: 'tagging',
+        VersionId: params.VersionId,
+    }, function (err, data) {
+        if (err && err.statusCode === 204) {
+            return callback(null, {statusCode: err.statusCode});
+        } else if (err) {
+            return callback(err);
+        }
+        callback(null, {
+            statusCode: data.statusCode,
+            headers: data.headers,
+        });
+    });
+}
+
 
 // 分块上传
 
@@ -2771,12 +2950,12 @@ function decodeAcl(AccessControlPolicy) {
         'READ_ACP': 'GrantReadAcp',
         'WRITE_ACP': 'GrantWriteAcp',
     };
-    var Grant = AccessControlPolicy.AccessControlList.Grant;
+    var Grant = AccessControlPolicy.AccessControlList && AccessControlPolicy.AccessControlList.Grant;
     if (Grant) {
         Grant = util.isArray(Grant) ? Grant : [Grant];
     }
     var PublicAcl = {READ: 0, WRITE: 0, FULL_CONTROL: 0};
-    Grant.length && util.each(Grant, function (item) {
+    Grant && Grant.length && util.each(Grant, function (item) {
         if (item.Grantee.ID === 'qcs::cam::anyone:anyone' || item.Grantee.URI === 'http://cam.qcloud.com/groups/global/AllUsers') {
             PublicAcl[item.Permission] = 1;
         } else if (item.Grantee.ID !== AccessControlPolicy.Owner.ID) {
@@ -2991,6 +3170,7 @@ function getAuthorizationAsync(params, callback) {
             Query: params.Query,
             Headers: headers,
             Scope: Scope,
+            SystemClockOffset: self.options.SystemClockOffset,
         }, function (AuthData) {
             if (typeof AuthData === 'string') {
                 AuthData = {Authorization: AuthData};
@@ -3452,6 +3632,8 @@ var API_MAP = {
     getBucketInventory: getBucketInventory,
     listBucketInventory: listBucketInventory,
     deleteBucketInventory: deleteBucketInventory,
+    putBucketAccelerate: putBucketAccelerate,
+    getBucketAccelerate: getBucketAccelerate,
 
     // Object 相关方法
     getObject: getObject,
@@ -3465,6 +3647,9 @@ var API_MAP = {
     putObjectCopy: putObjectCopy,
     deleteMultipleObject: deleteMultipleObject,
     restoreObject: restoreObject,
+    putObjectTagging: putObjectTagging,
+    getObjectTagging: getObjectTagging,
+    deleteObjectTagging: deleteObjectTagging,
 
     // 分块上传相关方法
     uploadPartCopy: uploadPartCopy,

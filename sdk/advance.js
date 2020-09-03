@@ -48,7 +48,7 @@ function sliceUploadFile(params, callback) {
                 onProgress(null, true);
                 return ep.emit('error', err);
             }
-            session.removeUploadId(UploadData.UploadId);
+            session.removeUploadId.call(self, UploadData.UploadId);
             onProgress({loaded: FileSize, total: FileSize}, true);
             ep.emit('upload_complete', data);
         });
@@ -59,7 +59,7 @@ function sliceUploadFile(params, callback) {
 
         // 处理 UploadId 缓存
         var uuid = session.getFileId(params.FileStat, params.ChunkSize, Bucket, Key);
-        uuid && session.saveUploadId(uuid, UploadData.UploadId, self.options.UploadIdCacheLimit); // 缓存 UploadId
+        uuid && session.saveUploadId.call(self, uuid, UploadData.UploadId, self.options.UploadIdCacheLimit); // 缓存 UploadId
         session.setUsing(UploadData.UploadId); // 标记 UploadId 为正在使用
 
         // 获取 UploadId
@@ -347,7 +347,7 @@ function getUploadIdAndPartList(params, callback) {
     ep.on('seek_local_avail_upload_id', function (RemoteUploadIdList) {
         // 在本地找可用的 UploadId
         var uuid = session.getFileId(params.FileStat, params.ChunkSize, Bucket, Key);
-        var LocalUploadIdList = session.getUploadIdList(uuid);
+        var LocalUploadIdList = session.getUploadIdList.call(self, uuid);
         if (!uuid || !LocalUploadIdList) {
             ep.emit('has_and_check_upload_id', RemoteUploadIdList);
             return;
@@ -361,7 +361,7 @@ function getUploadIdAndPartList(params, callback) {
             var UploadId = LocalUploadIdList[index];
             // 如果不在远端 UploadId 列表里，跳过并删除
             if (!util.isInArray(RemoteUploadIdList, UploadId)) {
-                session.removeUploadId(UploadId);
+                session.removeUploadId.call(self, UploadId);
                 next(index + 1);
                 return;
             }
@@ -380,7 +380,7 @@ function getUploadIdAndPartList(params, callback) {
                 if (!self._isRunningTask(TaskId)) return;
                 if (err) {
                     // 如果 UploadId 获取会出错，跳过并删除
-                    session.removeUploadId(UploadId);
+                    session.removeUploadId.call(self, UploadId);
                     next(index + 1);
                 } else {
                     // 找到可用 UploadId
@@ -417,9 +417,9 @@ function getUploadIdAndPartList(params, callback) {
             } else {
                 // 远端没有 UploadId，清理缓存的 UploadId
                 var uuid = session.getFileId(params.FileStat, params.ChunkSize, Bucket, Key), LocalUploadIdList;
-                if (uuid && (LocalUploadIdList = session.getUploadIdList(uuid))) {
+                if (uuid && (LocalUploadIdList = session.getUploadIdList.call(self, uuid))) {
                     util.each(LocalUploadIdList, function (UploadId) {
-                        session.removeUploadId(UploadId);
+                        session.removeUploadId.call(self, UploadId);
                     });
                 }
                 ep.emit('no_available_upload_id');

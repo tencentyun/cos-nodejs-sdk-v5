@@ -12,8 +12,8 @@ var init = function () {
     if (cache) return;
     var opt = {configName: 'cos-nodejs-sdk-v5-storage'};
     if (this.options.ConfCwd) opt.cwd = this.options.ConfCwd;
-    store = new Conf(opt);
     try {
+        store = new Conf(opt);
         cache = store.get(cacheKey);
     } catch (e) {}
     if (!cache || !(cache instanceof Array)) cache = [];

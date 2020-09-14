@@ -1008,7 +1008,7 @@ function getBucketWebsite(params, callback) {
                 var result = {
                     WebsiteConfiguration: {},
                     statusCode: err.statusCode,
-                }
+                };
                 err.headers && (result.headers = err.headers);
                 callback(null, result);
             } else {
@@ -1062,7 +1062,6 @@ function deleteBucketWebsite(params, callback) {
         });
     });
 }
-
 
 /**
  * 设置 Bucket 的防盗链白名单或者黑名单
@@ -1473,12 +1472,12 @@ function putBucketInventory(params, callback) {
         };
     }
 
-    if(InventoryConfiguration.Destination
+    if (InventoryConfiguration.Destination
         && InventoryConfiguration.Destination.COSBucketDestination
         && InventoryConfiguration.Destination.COSBucketDestination.Encryption
     ) {
         var Encryption = InventoryConfiguration.Destination.COSBucketDestination.Encryption;
-        if(Object.keys(Encryption).indexOf('SSECOS') > -1) {
+        if (Object.keys(Encryption).indexOf('SSECOS') > -1) {
             Encryption['SSE-COS'] = Encryption['SSECOS'];
             delete Encryption['SSECOS'];
         }
@@ -1550,12 +1549,12 @@ function getBucketInventory(params, callback) {
             }
             InventoryConfiguration.OptionalFields = Field;
         }
-        if(InventoryConfiguration.Destination
+        if (InventoryConfiguration.Destination
             && InventoryConfiguration.Destination.COSBucketDestination
             && InventoryConfiguration.Destination.COSBucketDestination.Encryption
         ) {
             var Encryption = InventoryConfiguration.Destination.COSBucketDestination.Encryption;
-            if(Object.keys(Encryption).indexOf('SSE-COS') > -1) {
+            if (Object.keys(Encryption).indexOf('SSE-COS') > -1) {
                 Encryption['SSECOS'] = Encryption['SSE-COS'];
                 delete Encryption['SSE-COS'];
             }
@@ -1607,12 +1606,12 @@ function listBucketInventory(params, callback) {
                 InventoryConfiguration.OptionalFields = Field;
             }
 
-            if(InventoryConfiguration.Destination
+            if (InventoryConfiguration.Destination
                 && InventoryConfiguration.Destination.COSBucketDestination
                 && InventoryConfiguration.Destination.COSBucketDestination.Encryption
             ) {
                 var Encryption = InventoryConfiguration.Destination.COSBucketDestination.Encryption;
-                if(Object.keys(Encryption).indexOf('SSE-COS') > -1) {
+                if (Object.keys(Encryption).indexOf('SSE-COS') > -1) {
                     Encryption['SSECOS'] = Encryption['SSE-COS'];
                     delete Encryption['SSE-COS'];
                 }
@@ -1960,6 +1959,10 @@ function putObject(params, callback) {
     var FileSize = params.ContentLength;
     var onProgress = util.throttleOnProgress.call(self, FileSize, params.onProgress);
 
+    // 特殊处理 Cache-Control
+    var headers = params.Headers;
+    if (!headers['Cache-Control'] && !headers['cache-control']) headers['Cache-Control'] = '';
+
     util.getBodyMd5(self.options.UploadCheckContentMd5, params.Body, function (md5) {
         if (md5) (params.Headers['Content-MD5'] = util.binaryBase64(md5));
         if (params.ContentLength !== undefined) {
@@ -2220,7 +2223,7 @@ function putObjectCopy(params, callback) {
 
     // 特殊处理 Cache-Control
     var headers = params.Headers;
-    !headers['Cache-Control'] && (headers['Cache-Control'] = '');
+    if (!headers['Cache-Control'] && !headers['cache-control']) headers['Cache-Control'] = '';
 
     var CopySource = params.CopySource || '';
     var m = CopySource.match(/^([^.]+-\d+)\.cos(v6)?\.([^.]+)\.[^/]+\/(.+)$/);
@@ -2547,7 +2550,7 @@ function multipartInit(params, callback) {
 
     // 特殊处理 Cache-Control
     var headers = params.Headers;
-    !headers['Cache-Control'] && (headers['Cache-Control'] = '');
+    if (!headers['Cache-Control'] && !headers['cache-control']) headers['Cache-Control'] = '';
 
     submitRequest.call(this, {
         Action: 'name/cos:InitiateMultipartUpload',
@@ -2950,7 +2953,8 @@ function decodeAcl(AccessControlPolicy) {
         'READ_ACP': 'GrantReadAcp',
         'WRITE_ACP': 'GrantWriteAcp',
     };
-    var Grant = AccessControlPolicy.AccessControlList && AccessControlPolicy.AccessControlList.Grant;
+    var AccessControlList = AccessControlPolicy && AccessControlPolicy.AccessControlList || {};
+    var Grant = AccessControlList.Grant;
     if (Grant) {
         Grant = util.isArray(Grant) ? Grant : [Grant];
     }
@@ -3247,7 +3251,7 @@ function allowRetry(err) {
                 this.options.SystemClockOffset = serverTime - Date.now();
                 allowRetry = true;
             }
-        } else if (Math.round(err.statusCode / 100) === 5) {
+        } else if (Math.floor(err.statusCode / 100) === 5) {
             allowRetry = true;
         }
     }
@@ -3590,9 +3594,9 @@ function _submitRequest(params, callback) {
 
 var API_MAP = {
     // Bucket 相关方法
-    getService: getService,                       // Bucket
+    getService: getService,                      // Bucket
     putBucket: putBucket,
-    headBucket: headBucket,
+    headBucket: headBucket,                      // Bucket
     getBucket: getBucket,
     deleteBucket: deleteBucket,
     putBucketAcl: putBucketAcl,                  // BucketACL

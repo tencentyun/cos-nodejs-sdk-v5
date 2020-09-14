@@ -468,7 +468,7 @@ var throttleOnProgress = function (total, onProgress) {
             if (size1 === 0 && total === 0) {
                 percent = 1;
             } else {
-                percent = Math.round(size1 / total * 100) / 100 || 0;
+                percent = Math.floor(size1 / total * 100) / 100 || 0;
             }
             time0 = time1;
             size0 = size1;

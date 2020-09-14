@@ -3,7 +3,6 @@ var path = require('path');
 var COS = require('../index');
 var request = require('request');
 var util = require('../demo/util');
-var STS = require('qcloud-cos-sts');
 var config = require('../demo/config');
 var Writable = require('stream').Writable;
 
@@ -900,6 +899,105 @@ group('putObjectCopy()', function () {
     });
 });
 
+group('sliceCopyFile()', function () {
+    var filename = 'bigger.zip';
+    var Key = 'bigger.copy.zip';
+    test('正常分片复制 object', function (done, assert) {
+        prepareBigObject(true).then(function () {
+            cos.headObject({
+                Bucket: config.Bucket,
+                Region: config.Region,
+                Key: filename,
+            }, function (err, data1) {
+                if (err) throw err;
+                cos.sliceCopyFile({
+                    Bucket: config.Bucket,
+                    Region: config.Region,
+                    Key: Key,
+                    CopySource: config.Bucket + '.cos.' + config.Region + '.myqcloud.com/'+ filename,
+                    SliceSize: 5 * 1024 * 1024,
+                },function (err, data) {
+                    if (err) throw err;
+                    assert.ok(data.ETag.length > 0);
+                    cos.headObject({
+                        Bucket: config.Bucket,
+                        Region: config.Region,
+                        Key: Key,
+                    }, function (err, data2) {
+                        if (err) throw err;
+                        delete data1.VersionId;
+                        delete data2.VersionId;
+                        delete data1.headers['x-cos-request-id'];
+                        delete data2.headers['x-cos-request-id'];
+                        delete data1.headers['x-cos-version-id'];
+                        delete data2.headers['x-cos-version-id'];
+                        delete data1.headers['last-modified'];
+                        delete data2.headers['last-modified'];
+                        delete data1.headers['date'];
+                        delete data2.headers['date'];
+                        delete data1.headers['etag'];
+                        delete data2.headers['etag'];
+                        delete data1.ETag;
+                        delete data2.ETag;
+                        assert.ok(comparePlainObject(data1, data2));
+                        done();
+                    });
+                });
+            });
+        }).catch(function () {
+            assert.ok(false);
+            done();
+        });
+    });
+    test('单片复制 object', function (done, assert) {
+        setTimeout(function () {
+            prepareBigObject(true).then(function () {
+                cos.headObject({
+                    Bucket: config.Bucket,
+                    Region: config.Region,
+                    Key: filename,
+                }, function (err, data1) {
+                    if (err) throw err;
+                    cos.sliceCopyFile({
+                        Bucket: config.Bucket,
+                        Region: config.Region,
+                        Key: Key,
+                        CopySource: config.Bucket + '.cos.' + config.Region + '.myqcloud.com/' + filename,
+                        SliceSize: 10 * 1024 * 1024,
+                    }, function (err, data) {
+                        if (err) throw err;
+                        assert.ok(data.ETag.length > 0);
+                        setTimeout(function () {
+                            cos.headObject({
+                                Bucket: config.Bucket,
+                                Region: config.Region,
+                                Key: Key,
+                            }, function (err, data2) {
+                                if (err) throw err;
+                                delete data1.VersionId;
+                                delete data2.VersionId;
+                                delete data1.headers['x-cos-request-id'];
+                                delete data2.headers['x-cos-request-id'];
+                                delete data1.headers['x-cos-version-id'];
+                                delete data2.headers['x-cos-version-id'];
+                                delete data1.headers['last-modified'];
+                                delete data2.headers['last-modified'];
+                                delete data1.headers['date'];
+                                delete data2.headers['date'];
+                                assert.ok(comparePlainObject(data1, data2));
+                                done();
+                            });
+                        }, 2000);
+                    });
+                });
+            }).catch(function () {
+                assert.ok(false);
+                done();
+            });
+        }, 2000);
+    });
+});
+
 group('deleteMultipleObject', function () {
     test('deleteMultipleObject()', function (done, assert) {
         var content = Date.now().toString(36);
@@ -999,19 +1097,19 @@ group('BucketAcl', function () {
             });
         });
     });
-    // test('putBucketAcl() header ACL:public-read-write', function (done, assert) {
-    //     cos.putBucketAcl({
-    //         Bucket: config.Bucket,
-    //         Region: config.Region,
-    //         ACL: 'public-read-write',
-    //     }, function (err, data) {
-    //         assert.ok(!err, 'putBucketAcl 成功');
-    //         cos.getBucketAcl({Bucket: config.Bucket, Region: config.Region}, function (err, data) {
-    //             assert.ok(data.ACL === 'public-read-write');
-    //             done();
-    //         });
-    //     });
-    // });
+    test('putBucketAcl() header ACL:public-read-write', function (done, assert) {
+        cos.putBucketAcl({
+            Bucket: config.Bucket,
+            Region: config.Region,
+            ACL: 'public-read-write',
+        }, function (err, data) {
+            assert.ok(!err, 'putBucketAcl 成功');
+            cos.getBucketAcl({Bucket: config.Bucket, Region: config.Region}, function (err, data) {
+                assert.ok(data.ACL === 'public-read-write');
+                done();
+            });
+        });
+    });
     test('putBucketAcl() header GrantRead:1001,1002', function (done, assert) {
         var GrantRead = 'id="qcs::cam::uin/1001:uin/1001", id="qcs::cam::uin/1002:uin/1002"';
         cos.putBucketAcl({
@@ -1204,6 +1302,7 @@ group('ObjectAcl', function () {
             });
         });
     });
+    // Object 不再支持修改写权限
     // test('putObjectAcl() header ACL:public-read-write', function (done, assert) {
     //     cos.putObjectAcl({
     //         Bucket: config.Bucket,
@@ -1233,6 +1332,7 @@ group('ObjectAcl', function () {
             });
         });
     });
+    // Object 不再支持修改写权限
     // test('putObjectAcl() header GrantWrite:1001,1002', function (done, assert) {
     //     var GrantWrite = 'id="qcs::cam::uin/1001:uin/1001", id="qcs::cam::uin/1002:uin/1002"';
     //     cos.putObjectAcl({
@@ -1343,7 +1443,24 @@ group('BucketCors', function () {
         "AllowedOrigins": ["*"],
         "AllowedMethods": ["GET", "POST", "PUT", "DELETE", "HEAD"],
         "AllowedHeaders": ["*", 'test-' + Date.now().toString(36)],
-        "ExposeHeaders": ["ETag", "Date", "Content-Length", "x-cos-acl", "x-cos-version-id", "x-cos-request-id", "x-cos-delete-marker", "x-cos-server-side-encryption"],
+        "ExposeHeaders": [
+            'etag',
+            'date',
+            'content-length',
+            'expires',
+            'cache-control',
+            'content-disposition',
+            'content-encoding',
+            'x-cos-acl',
+            'x-cos-version-id',
+            'x-cos-request-id',
+            'x-cos-delete-marker',
+            'x-cos-server-side-encryption',
+            'x-cos-storage-class',
+            'x-cos-acl',
+            'x-cos-meta-test',
+            'x-cos-tagging-count',
+        ],
         "MaxAgeSeconds": "5"
     }];
     var CORSRulesMulti = [{
@@ -1376,7 +1493,7 @@ group('BucketCors', function () {
             }, 2000);
         });
     });
-    test('putBucketCors(),getBucketCors()', function (done, assert) {
+    test('putBucketCors() old CORSConfiguration', function (done, assert) {
         CORSRules[0].AllowedHeaders[1] = 'test-' + Date.now().toString(36);
         cos.putBucketCors({
             Bucket: config.Bucket,
@@ -1384,46 +1501,6 @@ group('BucketCors', function () {
             CORSConfiguration: {
                 CORSRules: CORSRules
             }
-        }, function (err, data) {
-            assert.ok(!err);
-            setTimeout(function () {
-                cos.getBucketCors({
-                    Bucket: config.Bucket,
-                    Region: config.Region
-                }, function (err, data) {
-                    assert.ok(comparePlainObject(CORSRules, data.CORSRules));
-                    done();
-                });
-            }, 2000);
-        });
-    });
-    test('putBucketCors() old', function (done, assert) {
-        CORSRules[0].AllowedHeaders[1] = 'test-' + Date.now().toString(36);
-        cos.putBucketCors({
-            Bucket: config.Bucket,
-            Region: config.Region,
-            CORSConfiguration: {
-                CORSRules: CORSRules
-            }
-        }, function (err, data) {
-            assert.ok(!err);
-            setTimeout(function () {
-                cos.getBucketCors({
-                    Bucket: config.Bucket,
-                    Region: config.Region
-                }, function (err, data) {
-                    assert.ok(comparePlainObject(CORSRules, data.CORSRules));
-                    done();
-                });
-            }, 2000);
-        });
-    });
-    test('putBucketCors() old', function (done, assert) {
-        CORSRules[0].AllowedHeaders[1] = 'test-' + Date.now().toString(36);
-        cos.putBucketCors({
-            Bucket: config.Bucket,
-            Region: config.Region,
-            CORSRules: CORSRules
         }, function (err, data) {
             assert.ok(!err);
             setTimeout(function () {
@@ -1452,6 +1529,46 @@ group('BucketCors', function () {
                     Region: config.Region
                 }, function (err, data) {
                     assert.ok(comparePlainObject(CORSRulesMulti, data.CORSRules));
+                    done();
+                });
+            }, 2000);
+        });
+    });
+    test('putBucketCors() old CORSRules', function (done, assert) {
+        CORSRules[0].AllowedHeaders[1] = 'test-' + Date.now().toString(36);
+        cos.putBucketCors({
+            Bucket: config.Bucket,
+            Region: config.Region,
+            CORSRules: CORSRules
+        }, function (err, data) {
+            assert.ok(!err);
+            setTimeout(function () {
+                cos.getBucketCors({
+                    Bucket: config.Bucket,
+                    Region: config.Region
+                }, function (err, data) {
+                    assert.ok(comparePlainObject(CORSRules, data.CORSRules));
+                    done();
+                });
+            }, 2000);
+        });
+    });
+    test('putBucketCors(),getBucketCors()', function (done, assert) {
+        CORSRules[0].AllowedHeaders = ['*'];
+        cos.putBucketCors({
+            Bucket: config.Bucket,
+            Region: config.Region,
+            CORSConfiguration: {
+                CORSRules: CORSRules
+            }
+        }, function (err, data) {
+            assert.ok(!err);
+            setTimeout(function () {
+                cos.getBucketCors({
+                    Bucket: config.Bucket,
+                    Region: config.Region
+                }, function (err, data) {
+                    assert.ok(comparePlainObject(CORSRules, data.CORSRules));
                     done();
                 });
             }, 2000);
@@ -2078,8 +2195,273 @@ group('deleteMultipleObject Key 带中文字符', function () {
     });
 });
 
+group('upload Content-Type', function () {
+    var filename = Date.now() + '.zip';
+    var filePath = path.resolve(__dirname, filename);
+    createFileSync(filePath, 1);
+    // putObject
+    test('putObject empty string Content-Type null -> application/octet-stream', function (done, assert) {
+        cos.putObject({
+            Bucket: config.Bucket,
+            Region: config.Region,
+            Key: '1.txt',
+            Body: '',
+        }, function (err, data) {
+            cos.headObject({
+                Bucket: config.Bucket,
+                Region: config.Region,
+                Key: '1',
+            }, function (err, data) {
+                assert.ok(data.headers['content-type'] === 'application/octet-stream', 'Content-Type 正确');
+                done();
+            });
+        });
+    });
+    test('putObject file Content-Type null -> application/zip', function (done, assert) {
+        cos.putObject({
+            Bucket: config.Bucket,
+            Region: config.Region,
+            Key: '1.txt',
+            ContentType: 'text/xml',
+            FilePath: filePath,
+        }, function (err, data) {
+            cos.headObject({
+                Bucket: config.Bucket,
+                Region: config.Region,
+                Key: '1.txt',
+            }, function (err, data) {
+                assert.ok(data.headers['content-type'] === 'text/xml', 'Content-Type 正确');
+                done();
+            });
+        });
+    });
+    test('putObject stream Content-Type null -> application/zip', function (done, assert) {
+        cos.putObject({
+            Bucket: config.Bucket,
+            Region: config.Region,
+            Key: '1.txt',
+            Body: fs.createReadStream(filePath),
+        }, function (err, data) {
+            cos.headObject({
+                Bucket: config.Bucket,
+                Region: config.Region,
+                Key: '1.txt',
+            }, function (err, data) {
+                assert.ok(data.headers['content-type'] === 'application/zip', 'Content-Type 正确');
+                done();
+            });
+        });
+    });
+    test('putObject stream Content-Type null -> application/zip', function (done, assert) {
+        cos.putObject({
+            Bucket: config.Bucket,
+            Region: config.Region,
+            Key: '1.txt',
+            ContentType: 'text/xml',
+            Body: fs.createReadStream(filePath),
+        }, function (err, data) {
+            cos.headObject({
+                Bucket: config.Bucket,
+                Region: config.Region,
+                Key: '1.txt',
+            }, function (err, data) {
+                assert.ok(data.headers['content-type'] === 'text/xml', 'Content-Type 正确');
+                done();
+            });
+        });
+    });
+    // test('putObject string Content-Type null -> application/zip', function (done, assert) {
+    //     cos.putObject({
+    //         Bucket: config.Bucket,
+    //         Region: config.Region,
+    //         Key: '1.zip',
+    //         Body: '12345',
+    //     }, function (err, data) {
+    //         cos.headObject({
+    //             Bucket: config.Bucket,
+    //             Region: config.Region,
+    //             Key: '1.zip',
+    //         }, function (err, data) {
+    //             assert.ok(data.headers['content-type'] === 'application/zip', 'Content-Type 正确');
+    //             done();
+    //         });
+    //     });
+    // });
+    // test('putObject file Content-Type null -> text/plain', function (done, assert) {
+    //     cos.putObject({
+    //         Bucket: config.Bucket,
+    //         Region: config.Region,
+    //         Key: '1.txt',
+    //         FilePath: filePath,
+    //     }, function (err, data) {
+    //         cos.headObject({
+    //             Bucket: config.Bucket,
+    //             Region: config.Region,
+    //             Key: '1.txt',
+    //         }, function (err, data) {
+    //             console.log(data.headers['content-type']);
+    //             assert.ok(data.headers['content-type'] === 'text/plain', 'Content-Type 正确');
+    //             done();
+    //         });
+    //     });
+    // });
+    // sliceUploadFile
+    test('sliceUploadFile string Content-Type text/xml -> text/xml', function (done, assert) {
+        cos.sliceUploadFile({
+            Bucket: config.Bucket,
+            Region: config.Region,
+            Key: '1.txt',
+            FilePath: filePath,
+        }, function (err, data) {
+            cos.headObject({
+                Bucket: config.Bucket,
+                Region: config.Region,
+                Key: '1.txt',
+            }, function (err, data) {
+                assert.ok(data.headers['content-type'] === 'text/plain', 'Content-Type 正确');
+                done();
+            });
+        });
+    });
+    test('sliceUploadFile string Content-Type text/xml -> text/xml', function (done, assert) {
+        cos.sliceUploadFile({
+            Bucket: config.Bucket,
+            Region: config.Region,
+            Key: '1.txt',
+            ContentType: 'text/xml',
+            FilePath: filePath,
+        }, function (err, data) {
+            cos.headObject({
+                Bucket: config.Bucket,
+                Region: config.Region,
+                Key: '1.txt',
+            }, function (err, data) {
+                assert.ok(data.headers['content-type'] === 'text/xml', 'Content-Type 正确');
+                fs.unlinkSync(filePath);
+                done();
+            });
+        });
+    });
+});
+
+group('Cache-Control', function () {
+    var filename = Date.now() + '.zip';
+    var filePath = path.resolve(__dirname, filename);
+    createFileSync(filePath, 1);
+    // putObject
+    test('putObject Cache-Control: null -> Cache-Control: null or max-age=259200', function (done, assert) {
+        cos.putObject({
+            Bucket: config.Bucket,
+            Region: config.Region,
+            Key: '1mb.zip',
+            Body: '',
+        }, function (err, data) {
+            cos.headObject({
+                Bucket: config.Bucket,
+                Region: config.Region,
+                Key: '1mb.zip',
+            }, function (err, data) {
+                assert.ok(data.headers['cache-control'] === undefined || data.headers['cache-control'] === 'max-age=259200', 'cache-control 正确');
+                done();
+            });
+        });
+    });
+    test('putObject Cache-Control: max-age=7200 -> Cache-Control: max-age=7200', function (done, assert) {
+        cos.putObject({
+            Bucket: config.Bucket,
+            Region: config.Region,
+            Key: '1mb.zip',
+            Body: '',
+            CacheControl: 'max-age=7200',
+        }, function (err, data) {
+            cos.headObject({
+                Bucket: config.Bucket,
+                Region: config.Region,
+                Key: '1mb.zip',
+            }, function (err, data) {
+                assert.ok(data.headers['cache-control'] === 'max-age=7200', 'cache-control 正确');
+                done();
+            });
+        });
+    });
+    test('putObject Cache-Control: no-cache -> Cache-Control: no-cache', function (done, assert) {
+        cos.putObject({
+            Bucket: config.Bucket,
+            Region: config.Region,
+            Key: '1mb.zip',
+            Body: '',
+            CacheControl: 'no-cache',
+        }, function (err, data) {
+            cos.headObject({
+                Bucket: config.Bucket,
+                Region: config.Region,
+                Key: '1mb.zip',
+            }, function (err, data) {
+                assert.ok(data.headers['cache-control'] === 'no-cache' || data.headers['cache-control'] === 'no-cache, max-age=259200', 'cache-control 正确');
+                done();
+            });
+        });
+    });
+    // sliceUploadFile
+    test('sliceUploadFile Cache-Control: null -> Cache-Control: null or max-age=259200', function (done, assert) {
+        cos.sliceUploadFile({
+            Bucket: config.Bucket,
+            Region: config.Region,
+            Key: '1mb.zip',
+            FilePath: filePath,
+        }, function (err, data) {
+            cos.headObject({
+                Bucket: config.Bucket,
+                Region: config.Region,
+                Key: '1mb.zip',
+            }, function (err, data) {
+                assert.ok(data.headers['cache-control'] === undefined || data.headers['cache-control'] === 'max-age=259200', 'cache-control 正确');
+                done();
+            });
+        });
+    });
+    test('sliceUploadFile Cache-Control: max-age=7200 -> Cache-Control: max-age=7200', function (done, assert) {
+        cos.sliceUploadFile({
+            Bucket: config.Bucket,
+            Region: config.Region,
+            Key: '1mb.zip',
+            FilePath: filePath,
+            CacheControl: 'max-age=7200',
+        }, function (err, data) {
+            cos.headObject({
+                Bucket: config.Bucket,
+                Region: config.Region,
+                Key: '1mb.zip',
+            }, function (err, data) {
+                assert.ok(data.headers['cache-control'] === 'max-age=7200', 'cache-control 正确');
+                done();
+            });
+        });
+    });
+    test('sliceUploadFile Cache-Control: no-cache -> Cache-Control: no-cache', function (done, assert) {
+        cos.sliceUploadFile({
+            Bucket: config.Bucket,
+            Region: config.Region,
+            Key: '1mb.zip',
+            FilePath: filePath,
+            CacheControl: 'no-cache',
+        }, function (err, data) {
+            cos.headObject({
+                Bucket: config.Bucket,
+                Region: config.Region,
+                Key: '1mb.zip',
+            }, function (err, data) {
+                console.log(data.headers['cache-control']);
+                assert.ok(data.headers['cache-control'] === 'no-cache' || data.headers['cache-control'] === 'no-cache, max-age=259200', 'cache-control 正确');
+                fs.unlinkSync(filePath);
+                done();
+            });
+        });
+    });
+});
+
 group('BucketLogging', function () {
-    var TargetBucket = 'bucket-logging' + Date.now().toString(36) + '-' + AppId;
+    var TargetBucket = config.Bucket;
     var TargetPrefix = 'bucket-logging-prefix' + Date.now().toString(36) + '/';
     var BucketLoggingStatus = {
         LoggingEnabled: {
@@ -2088,30 +2470,13 @@ group('BucketLogging', function () {
         }
     };
 
-    // 创建新 Bucket
-    before(function (done) {
-        cos.putBucket({
-            Bucket: TargetBucket,
-            Region: config.Region,
-        }, done);
-    });
-
-    // 删除新 Bucket
-    after(function (done) {
-        cos.deleteBucket({
-            Bucket: TargetBucket,
-            Region: config.Region,
-        }, done);
-    });
-
     test('putBucketLogging(), getBucketLogging()', function (done, assert) {
         cos.putBucketLogging({
             Bucket: config.Bucket,
             Region: config.Region,
             BucketLoggingStatus: BucketLoggingStatus
-        }, function(err, data) {
+        }, function (err, data) {
             assert.ok(!err);
-
             cos.getBucketLogging({
                 Bucket: config.Bucket,
                 Region: config.Region
@@ -2127,7 +2492,7 @@ group('BucketLogging', function () {
             Bucket: config.Bucket,
             Region: config.Region,
             BucketLoggingStatus: ''
-        }, function(err, data) {
+        }, function (err, data) {
             assert.ok(!err);
 
             cos.getBucketLogging({
@@ -2514,7 +2879,7 @@ group('getBucketAccelerate', function () {
                     assert.ok(data2 && data2.AccelerateConfiguration && data2.AccelerateConfiguration.Status === 'Enabled');
                     done();
                 });
-            }, 1000);
+            }, 2000);
         });
     });
 

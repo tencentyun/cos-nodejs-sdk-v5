@@ -2187,6 +2187,8 @@ group('deleteMultipleObject Key 带中文字符', function () {
             Objects: [
                 {Key: '中文/中文.txt'},
                 {Key: '中文/中文.zip', VersionId: 'MTg0NDY3NDI1MzM4NzM0ODA2MTI'},
+                {Key: unescape(encodeURIComponent('中文'))},
+                {Key: unescape('%e8%af%b4%2e%70%72%70%72')},
             ]
         }, function (err, data) {
             assert.ok(!err, '成功进行批量删除');

@@ -1006,7 +1006,7 @@ function sliceCopyFile(params, callback) {
         /**
          * 对于归档存储的对象，如果未恢复副本，则不允许 Copy
          */
-        if (SourceHeaders['x-cos-storage-class'] === 'ARCHIVE') {
+        if (SourceHeaders['x-cos-storage-class'] === 'ARCHIVE' || SourceHeaders['x-cos-storage-class'] === 'DEEP_ARCHIVE') {
             var restoreHeader = SourceHeaders['x-cos-restore'];
             if (!restoreHeader || restoreHeader === 'ongoing-request="true"') {
                 callback({ error: 'Unrestored archive object is not allowed to be copied' });

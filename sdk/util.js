@@ -463,7 +463,7 @@ var throttleOnProgress = function (total, onProgress) {
         timer = 0;
         if (onProgress && (typeof onProgress === 'function')) {
             time1 = Date.now();
-            var speed = Math.max(0, Math.round((size1 - size0) / ((time1 - time0) / 1000) * 100) / 100);
+            var speed = Math.max(0, Math.round((size1 - size0) / ((time1 - time0) / 1000) * 100) / 100) || 0;
             var percent;
             if (size1 === 0 && total === 0) {
                 percent = 1;

@@ -3533,8 +3533,8 @@ function _submitRequest(params, callback) {
             } catch (e) {
             }
             var total = contentLength;
-            var speed = parseInt((loaded - size0) / ((time1 - time0) / 1000) * 100) / 100;
-            var percent = total ? (parseInt(loaded / total * 100) / 100) : 0;
+            var speed = parseInt((loaded - size0) / ((time1 - time0) / 1000) * 100) / 100 || 0;
+            var percent = parseInt(loaded / total * 100) / 100 || 0;
             time0 = time1;
             size0 = loaded;
             params.onProgress({
@@ -3556,8 +3556,8 @@ function _submitRequest(params, callback) {
             sender.on('data', function (chunk) {
                 loaded += chunk.length;
                 var time1 = Date.now();
-                var speed = parseInt((loaded - size0) / ((time1 - time0) / 1000) * 100) / 100;
-                var percent = total ? (parseInt(loaded / total * 100) / 100) : 0;
+                var speed = parseInt((loaded - size0) / ((time1 - time0) / 1000) * 100) / 100 || 0;
+                var percent = parseInt(loaded / total * 100) / 100 || 0;
                 time0 = time1;
                 size0 = loaded;
                 params.onDownloadProgress({

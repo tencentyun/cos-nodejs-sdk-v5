@@ -380,6 +380,8 @@ var formatParams = function (apiName, params) {
 var apiWrapper = function (apiName, apiFn) {
     return function (params, callback) {
 
+        var self = this;
+
         // 处理参数
         if (typeof params === 'function') {
             callback = params;
@@ -418,7 +420,7 @@ var apiWrapper = function (apiName, apiFn) {
                     return;
                 }
                 // 判断 region 格式
-                if (!this.options.CompatibilityMode && params.Region.indexOf('-') === -1 && params.Region !== 'yfb' && params.Region !== 'default') {
+                if (!self.options.CompatibilityMode && params.Region.indexOf('-') === -1 && params.Region !== 'yfb' && params.Region !== 'default') {
                     console.warn('warning: param Region format error, find help here: https://cloud.tencent.com/document/product/436/6224');
                 }
             }
@@ -427,8 +429,8 @@ var apiWrapper = function (apiName, apiFn) {
                 if (!/^([a-z\d-]+)-(\d+)$/.test(params.Bucket)) {
                     if (params.AppId) {
                         params.Bucket = params.Bucket + '-' + params.AppId;
-                    } else if (this.options.AppId) {
-                        params.Bucket = params.Bucket + '-' + this.options.AppId;
+                    } else if (self.options.AppId) {
+                        params.Bucket = params.Bucket + '-' + self.options.AppId;
                     } else {
                         _callback({error: 'Bucket should format as "test-1250000000".'});
                         return;
@@ -440,13 +442,23 @@ var apiWrapper = function (apiName, apiFn) {
                 }
             }
             // 如果 Key 是 / 开头，强制去掉第一个 /
-            if (!this.options.UseRawKey && params.Key && params.Key.substr(0, 1) === '/') {
+            if (!self.options.UseRawKey && params.Key && params.Key.substr(0, 1) === '/') {
                 params.Key = params.Key.substr(1);
             }
         }
-        var res = apiFn.call(this, params, _callback);
-        if (apiName === 'getAuth' || apiName === 'getV4Auth' || apiName === 'getObjectUrl') {
-            return res;
+
+        var isSync = apiName === 'getAuth' || apiName === 'getV4Auth' || apiName === 'getObjectUrl';
+        var Promise = global.Promise;
+        if (!isSync && Promise && !callback) {
+            return new Promise(function (resolve, reject) {
+                callback = function (err, data) {
+                    err ? reject(err) : resolve(data);
+                };
+                apiFn.call(self, params, _callback);
+            });
+        } else {
+            var res = apiFn.call(self, params, _callback);
+            if (isSync) return res;
         }
     }
 };

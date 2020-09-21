@@ -2219,24 +2219,6 @@ group('upload Content-Type', function () {
             });
         });
     });
-    test('putObject file Content-Type null -> application/zip', function (done, assert) {
-        cos.putObject({
-            Bucket: config.Bucket,
-            Region: config.Region,
-            Key: '1.txt',
-            ContentType: 'text/xml',
-            FilePath: filePath,
-        }, function (err, data) {
-            cos.headObject({
-                Bucket: config.Bucket,
-                Region: config.Region,
-                Key: '1.txt',
-            }, function (err, data) {
-                assert.ok(data.headers['content-type'] === 'text/xml', 'Content-Type 正确');
-                done();
-            });
-        });
-    });
     test('putObject stream Content-Type null -> application/zip', function (done, assert) {
         cos.putObject({
             Bucket: config.Bucket,
@@ -2254,37 +2236,56 @@ group('upload Content-Type', function () {
             });
         });
     });
-    test('putObject stream Content-Type null -> application/zip', function (done, assert) {
+    test('putObject string Content-Type null -> application/zip', function (done, assert) {
         cos.putObject({
             Bucket: config.Bucket,
             Region: config.Region,
-            Key: '1.txt',
-            ContentType: 'text/xml',
-            Body: fs.createReadStream(filePath),
+            Key: '1.zip',
+            Body: '12345',
         }, function (err, data) {
             cos.headObject({
                 Bucket: config.Bucket,
                 Region: config.Region,
-                Key: '1.txt',
+                Key: '1.zip',
             }, function (err, data) {
-                assert.ok(data.headers['content-type'] === 'text/xml', 'Content-Type 正确');
+                assert.ok(data.headers['content-type'] === 'application/zip', 'Content-Type 正确');
                 done();
             });
         });
     });
-    // test('putObject string Content-Type null -> application/zip', function (done, assert) {
+    // putObject 不支持 FilePath
+    // test('putObject file Content-Type null -> application/zip', function (done, assert) {
     //     cos.putObject({
     //         Bucket: config.Bucket,
     //         Region: config.Region,
-    //         Key: '1.zip',
-    //         Body: '12345',
+    //         Key: '1.txt',
+    //         ContentType: 'text/xml',
+    //         FilePath: filePath,
     //     }, function (err, data) {
     //         cos.headObject({
     //             Bucket: config.Bucket,
     //             Region: config.Region,
-    //             Key: '1.zip',
+    //             Key: '1.txt',
     //         }, function (err, data) {
-    //             assert.ok(data.headers['content-type'] === 'application/zip', 'Content-Type 正确');
+    //             assert.ok(data.headers['content-type'] === 'text/xml', 'Content-Type 正确');
+    //             done();
+    //         });
+    //     });
+    // });
+    // test('putObject stream Content-Type null -> application/zip', function (done, assert) {
+    //     cos.putObject({
+    //         Bucket: config.Bucket,
+    //         Region: config.Region,
+    //         Key: '1.txt',
+    //         ContentType: 'text/xml',
+    //         Body: fs.createReadStream(filePath),
+    //     }, function (err, data) {
+    //         cos.headObject({
+    //             Bucket: config.Bucket,
+    //             Region: config.Region,
+    //             Key: '1.txt',
+    //         }, function (err, data) {
+    //             assert.ok(data.headers['content-type'] === 'text/xml', 'Content-Type 正确');
     //             done();
     //         });
     //     });
@@ -2903,6 +2904,74 @@ group('getBucketAccelerate', function () {
                     done();
                 });
             }, 1000);
+        });
+    });
+});
+
+group('Promise', function () {
+    test('getService callback', function (done, assert) {
+        var res = cos.getService(function (err, data) {
+            assert.ok(!err && data);
+            done();
+        });
+        assert.ok(!res);
+    });
+
+    test('Promise() getService', function (done, assert) {
+        cos.getService().then(function (data) {
+            assert.ok(data);
+            done();
+        }).catch(function (err) {
+            assert.ok(false);
+            done();
+        });
+    });
+
+    test('Promise() getService region', function (done, assert) {
+        cos.getService({
+            Region: config.Region,
+        }).then(function (data) {
+            assert.ok(data);
+            done();
+        }).catch(function (err) {
+            assert.ok(false);
+            done();
+        });
+    });
+
+    test('Promise() getObjectUrl', function (done, assert) {
+        var res = cos.getObjectUrl({
+            Bucket: config.Bucket,
+            Region: config.Region,
+            Key: '123.txt',
+        });
+        assert.ok(!res.then);
+        done();
+    });
+
+    test('Promise() headBucket', function (done, assert) {
+        cos.headBucket({
+            Bucket: config.Bucket,
+            Region: config.Region,
+        }).then(function (data) {
+            assert.ok(data);
+            done();
+        }).catch(function () {
+            assert.ok(false);
+            done();
+        });
+    });
+
+    test('Promise() headBucket error', function (done, assert) {
+        cos.headBucket({
+            Bucket: Date.now() + '-' + config.Bucket,
+            Region: config.Region,
+        }).then(function (data) {
+            assert.ok(!data);
+            done();
+        }).catch(function (err) {
+            assert.ok(err && err.statusCode === 404);
+            done();
         });
     });
 });

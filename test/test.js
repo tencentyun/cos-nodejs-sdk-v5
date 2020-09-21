@@ -2909,13 +2909,6 @@ group('getBucketAccelerate', function () {
 });
 
 group('Promise', function () {
-    test('getService callback', function (done, assert) {
-        var res = cos.getService(function (err, data) {
-            assert.ok(!err && data);
-            done();
-        });
-        assert.ok(!res);
-    });
 
     test('Promise() getService', function (done, assert) {
         cos.getService().then(function (data) {
@@ -2962,15 +2955,26 @@ group('Promise', function () {
         });
     });
 
+    test('headBucket callback', function (done, assert) {
+        var res = cos.headBucket({
+            Bucket: config.Bucket,
+            Region: config.Region,
+        }, function (err, data) {
+            assert.ok(!err && data);
+            done();
+        });
+        assert.ok(!res);
+    });
+
     test('Promise() headBucket error', function (done, assert) {
         cos.headBucket({
-            Bucket: Date.now() + '-' + config.Bucket,
-            Region: config.Region,
+            Bucket: config.Bucket,
+            Region: config.Region + '/',
         }).then(function (data) {
             assert.ok(!data);
             done();
         }).catch(function (err) {
-            assert.ok(err && err.statusCode === 404);
+            assert.ok(err && err.error === 'Region format error.');
             done();
         });
     });

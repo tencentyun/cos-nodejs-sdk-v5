@@ -2979,3 +2979,41 @@ group('Promise', function () {
         });
     });
 });
+
+group('Query 的键值带有特殊字符', function () {
+    test('getAuth()', function (done, assert) {
+        var content = Date.now().toString();
+        var key = '1.txt';
+        cos.putObject({
+            Bucket: config.Bucket,
+            Region: config.Region,
+            Key: key,
+            Body: content,
+        }, function (err, data) {
+            var str = 'qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM,./;\'[]\\-=0987654321`~!@#$%^&*()_+{}|":>?<';
+            var qs = {};
+            qs[str] = str;
+            var AuthData = cos.getAuth({
+                Method: 'GET',
+                Key: key,
+                Query: qs,
+            });
+            if (typeof AuthData === 'string') {
+                AuthData = {Authorization: AuthData};
+            }
+            var link = 'http://' + config.Bucket + '.cos.' + config.Region + '.myqcloud.com' + '/' +
+                camSafeUrlEncode(key).replace(/%2F/g, '/') +
+                '?sign=' + camSafeUrlEncode(AuthData.Authorization) +
+                (AuthData.XCosSecurityToken ? '&x-cos-security-token=' + AuthData.XCosSecurityToken : '') +
+                '&' + camSafeUrlEncode(str) + '=' + camSafeUrlEncode(str);
+            request({
+                method: 'GET',
+                url: link,
+            }, function (err, response, body) {
+                assert.ok(response.statusCode === 200);
+                assert.ok(body === content);
+                done();
+            });
+        });
+    });
+});

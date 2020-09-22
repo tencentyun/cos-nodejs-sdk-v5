@@ -38,11 +38,11 @@ var getAuth = function (opt) {
     if (!SecretId) return console.error('missing param SecretId');
     if (!SecretKey) return console.error('missing param SecretKey');
 
-    var getObjectKeys = function (obj) {
+    var getObjectKeys = function (obj, forKey) {
         var list = [];
         for (var key in obj) {
             if (obj.hasOwnProperty(key)) {
-                list.push(key);
+                list.push(forKey ? camSafeUrlEncode(key).toLowerCase() : key);
             }
         }
         return list.sort(function (a, b) {
@@ -59,8 +59,7 @@ var getAuth = function (opt) {
         for (i = 0; i < keyList.length; i++) {
             key = keyList[i];
             val = (obj[key] === undefined || obj[key] === null) ? '' : ('' + obj[key]);
-            key = key.toLowerCase();
-            key = camSafeUrlEncode(key);
+            key = camSafeUrlEncode(key).toLowerCase();
             val = camSafeUrlEncode(val) || '';
             list.push(key + '=' + val)
         }
@@ -83,8 +82,8 @@ var getAuth = function (opt) {
     var qAk = SecretId;
     var qSignTime = KeyTime || now + ';' + exp;
     var qKeyTime = KeyTime || now + ';' + exp;
-    var qHeaderList = getObjectKeys(headers).join(';').toLowerCase();
-    var qUrlParamList = getObjectKeys(queryParams).join(';').toLowerCase();
+    var qHeaderList = getObjectKeys(headers, true).join(';').toLowerCase();
+    var qUrlParamList = getObjectKeys(queryParams, true).join(';').toLowerCase();
 
     // 签名算法说明文档：https://www.qcloud.com/document/product/436/7778
     // 步骤一：计算 SignKey

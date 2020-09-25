@@ -969,7 +969,129 @@ function sliceCopyFile() {
     });
 }
 
-getService();
+function uploadFolder() {
+    var localFolder = path.resolve(__dirname, '../test/');
+    var remotePrefix = 'folder/';
+    fs.readdir(localFolder, function (err, list) {
+        if (err) return console.error(err);
+        var files = list.map(function (filename) {
+            var Key = remotePrefix + filename;
+            return {
+                Bucket: config.Bucket, // Bucket 格式：test-1250000000
+                Region: config.Region,
+                Key: Key,
+                FilePath: path.resolve(localFolder, filename),
+            };
+        });
+        cos.uploadFiles({
+            files: files,
+            SliceSize: 1024 * 1024,
+            onProgress: function (info) {
+                var percent = parseInt(info.percent * 10000) / 100;
+                var speed = parseInt(info.speed / 1024 / 1024 * 100) / 100;
+                console.log('进度：' + percent + '%; 速度：' + speed + 'Mb/s;');
+            },
+            onFileFinish: function (err, data, options) {
+                console.log(options.Key + ' 上传' + (err ? '失败' : '完成'));
+            },
+        }, function (err, data) {
+            console.log(err || data);
+        });
+    });
+}
+
+function listFolder() {
+    var _listFolder = function(params, callback) {
+        var Contents = [];
+        var CommonPrefixes = [];
+        var marker;
+        var next = function() {
+            params.Marker = marker;
+            cos.getBucket(params, function(err, data) {
+                if (err) return callback(err);
+                data && data.CommonPrefixes && data.CommonPrefixes.forEach(function (item) {
+                    CommonPrefixes.push(item);
+                });
+                data && data.Contents && data.Contents.forEach(function (item) {
+                    Contents.push(item);
+                });
+                if (data.IsTruncated === 'true') {
+                    marker = data.NextMarker;
+                    next();
+                } else {
+                    callback(null, {
+                        CommonPrefixes: CommonPrefixes,
+                        Contents: Contents,
+                    });
+                }
+            });
+        };
+        next();
+    };
+    _listFolder({
+        Bucket: config.Bucket,
+        Region: config.Region,
+        Delimiter: '/', // 如果按目录列出文件传入该分隔符，如果要深度列出文件不传改参数
+        Prefix: 'folder/', // 要列出的目录前缀
+    }, function (err, data) {
+        console.log(err || data);
+    });
+}
+
+function deleteFolder() {
+    var _deleteFolder = function(params, callback) {
+        var deletedList = [];
+        var errorList = [];
+        var marker;
+        var next = function() {
+            params.Marker = marker;
+            cos.getBucket(params, function(err, data) {
+                if (err) return callback(err);
+                var Objects = [];
+                if (data && data.Contents && data.Contents.length) {
+                    data.Contents.forEach(function (item) {
+                        Objects.push({Key: item.Key});
+                    });
+                }
+                var afterDeleted = function () {
+                    if (data.IsTruncated === 'true') {
+                        marker = data.NextMarker;
+                        next();
+                    } else {
+                        callback(null, { Deleted: deletedList, Error: errorList });
+                    }
+                };
+                if (Objects.length) {
+                    cos.deleteMultipleObject({
+                        Bucket: params.Bucket,
+                        Region: params.Region,
+                        Objects: Objects,
+                    }, function (err, data) {
+                        data.Deleted && data.Deleted.forEach(function (item) {
+                            deletedList.push(item);
+                        });
+                        data.Error && data.Error.forEach(function (item) {
+                            errorList.push(item);
+                        });
+                        afterDeleted();
+                    });
+                } else {
+                    afterDeleted();
+                }
+            });
+        };
+        next();
+    };
+    _deleteFolder({
+        Bucket: config.Bucket,
+        Region: config.Region,
+        Prefix: 'folder/', // 要列出的目录前缀
+    }, function (err, data) {
+        console.log(err || data);
+    });
+}
+
+// getService();
 // getAuth();
 // getV4Auth();
 // getObjectUrl();
@@ -1019,3 +1141,6 @@ getService();
 // restartTask();
 // uploadFiles();
 // sliceCopyFile();
+// uploadFolder();
+// listFolder();
+// deleteFolder();

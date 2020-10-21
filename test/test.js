@@ -6,14 +6,6 @@ var util = require('../demo/util');
 var config = require('../demo/config');
 var Writable = require('stream').Writable;
 
-if (process.env.AppId) {
-    config = {
-        SecretId: process.env.SecretId,
-        SecretKey: process.env.SecretKey,
-        Bucket: process.env.Bucket,
-        Region: process.env.Region
-    }
-}
 var dataURItoUploadBody = function (dataURI) {
     return Buffer.from(dataURI.split(',')[1], 'base64');
 };
@@ -60,7 +52,7 @@ var cos = new COS({
     UploadCheckContentMd5: true,   // 上传过程计算 Content-MD5
 });
 
-var AppId = config.AppId;
+var AppId;
 var Bucket = config.Bucket;
 var BucketShortName = Bucket;
 var BucketLongName = Bucket + '-' + AppId;
@@ -2591,6 +2583,13 @@ group('BucketInventory', function () {
                 Region: config.Region,
                 Id: InventoryConfiguration.Id
             }, function(err, data) {
+                console.log('-----------------------------');
+                console.log(JSON.stringify(config));
+                console.log('-----------------------------');
+                console.log(JSON.stringify(InventoryConfiguration));
+                console.log('-----------------------------');
+                console.log(JSON.stringify(data.InventoryConfiguration));
+                console.log('-----------------------------');
                 assert.ok(comparePlainObject(InventoryConfiguration, data.InventoryConfiguration));
                 done();
             });

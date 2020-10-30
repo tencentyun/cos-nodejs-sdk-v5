@@ -4,7 +4,9 @@ var COS = require('../index');
 var request = require('request');
 var util = require('../demo/util');
 var config = require('../demo/config');
-var Writable = require('stream').Writable;
+var Stream = require('stream');
+
+var Writable = Stream.Writable;
 
 var dataURItoUploadBody = function (dataURI) {
     return Buffer.from(dataURI.split(',')[1], 'base64');
@@ -539,6 +541,7 @@ group('putObject()', function () {
         var outputStream = new Writable({
             write: function (chunk, encoding, callback) {
                 objectContent = Buffer.concat([objectContent, chunk]);
+                callback();
             }
         });
         setTimeout(function () {
@@ -750,7 +753,7 @@ group('putObject()', function () {
     });
 });
 
-group('getObject()', function () {
+group('getObject(),getObjectStream()', function () {
     test('getObject() body', function (done, assert) {
         var key = '1.txt';
         var content = Date.now().toString();
@@ -780,6 +783,7 @@ group('getObject()', function () {
         var outputStream = new Writable({
             write: function (chunk, encoding, callback) {
                 objectContent = Buffer.concat([objectContent, chunk]);
+                callback();
             }
         });
         var content = Date.now().toString(36);
@@ -807,6 +811,59 @@ group('getObject()', function () {
                     assert.ok(!err);
                     done();
                 });
+            });
+        });
+    });
+    test('getObjectStream', function (done, assert) {
+        var content = Date.now().toString();
+        var key = '1.json';
+        cos.putObject({
+            Bucket: config.Bucket,
+            Region: config.Region,
+            Key: key,
+            Body: content,
+        }, function (err, data) {
+            var bufList = [];
+            var writeStream = new Writable({
+                write: function (chunk, encoding, callback) {
+                    bufList.push(chunk);
+                    callback();
+                },
+            });
+            cos.getObjectStream({
+                Bucket: config.Bucket,
+                Region: config.Region,
+                Key: key,
+            }, function (err, data) {
+                assert.ok(Buffer.concat(bufList).toString() === content);
+                done();
+            }).pipe(writeStream);
+        });
+    });
+    test('getObject Output', function (done, assert) {
+        var content = Date.now().toString();
+        var key = '1.json';
+        cos.putObject({
+            Bucket: config.Bucket,
+            Region: config.Region,
+            Key: key,
+            Body: content,
+        }, function (err, data) {
+            var bufList = [];
+            var writeStream = new Writable({
+                write: function (chunk, encoding, callback) {
+                    bufList.push(chunk);
+                    callback();
+                },
+            });
+            cos.getObject({
+                Bucket: config.Bucket,
+                Region: config.Region,
+                Key: key,
+                Output: writeStream,
+            }, function (err, data) {
+                assert.ok(Buffer.concat(bufList).toString() === content);
+                done();
             });
         });
     });
@@ -2198,7 +2255,7 @@ group('upload Content-Type', function () {
         cos.putObject({
             Bucket: config.Bucket,
             Region: config.Region,
-            Key: '1.txt',
+            Key: '1',
             Body: '',
         }, function (err, data) {
             cos.headObject({
@@ -2206,6 +2263,7 @@ group('upload Content-Type', function () {
                 Region: config.Region,
                 Key: '1',
             }, function (err, data) {
+                console.log(data.headers['content-type']);
                 assert.ok(data.headers['content-type'] === 'application/octet-stream', 'Content-Type 正确');
                 done();
             });
@@ -2583,13 +2641,6 @@ group('BucketInventory', function () {
                 Region: config.Region,
                 Id: InventoryConfiguration.Id
             }, function(err, data) {
-                console.log('-----------------------------');
-                console.log(JSON.stringify(config));
-                console.log('-----------------------------');
-                console.log(JSON.stringify(InventoryConfiguration));
-                console.log('-----------------------------');
-                console.log(JSON.stringify(data.InventoryConfiguration));
-                console.log('-----------------------------');
                 assert.ok(comparePlainObject(InventoryConfiguration, data.InventoryConfiguration));
                 done();
             });
@@ -3013,6 +3064,94 @@ group('Query 的键值带有特殊字符', function () {
                 assert.ok(body === content);
                 done();
             });
+        });
+    });
+});
+
+group('selectObjectContent(),selectObjectContentStream()', function () {
+    var key = '1.json';
+    var selectJsonOpt = {
+        Bucket: config.Bucket,
+        Region: config.Region,
+        Key: key,
+        SelectType: 2,
+        SelectRequest: {
+            Expression: "Select * from COSObject",
+            ExpressionType: "SQL",
+            InputSerialization: {JSON: {Type: "DOCUMENT",},},
+            OutputSerialization: {JSON: {RecordDelimiter: "\n"},},
+            RequestProgress: {Enabled: "FALSE"}
+        },
+    };
+    test('selectObjectContent', function (done, assert) {
+        var time = Date.now();
+        var content = `{"a":123,"b":"${time}","c":{"d":456}}`;
+        cos.putObject({
+            Bucket: config.Bucket,
+            Region: config.Region,
+            Key: key,
+            Body: content,
+        }, function (err, data) {
+            var bufList = [];
+            var writeStream = new Writable({
+                write: function (chunk, encoding, callback) {
+                    bufList.push(chunk);
+                    callback();
+                },
+            });
+            cos.selectObjectContent(selectJsonOpt, function (err, data) {
+                assert.ok(data.Payload.toString() === content + '\n');
+                done();
+            });
+        });
+    });
+    test('selectObjectContentStream', function (done, assert) {
+        var time = Date.now();
+        var content = `{"a":123,"b":"${time}","c":{"d":456}}`;
+        cos.putObject({
+            Bucket: config.Bucket,
+            Region: config.Region,
+            Key: key,
+            Body: content,
+        }, function (err, data) {
+            var bufList = [];
+            var writeStream = new Writable({
+                write: function (chunk, encoding, callback) {
+                    bufList.push(chunk);
+                    callback();
+                },
+            });
+            cos.selectObjectContentStream(selectJsonOpt, function (err, data) {
+                assert.ok(Buffer.concat(bufList).toString() === content + '\n');
+                done();
+            }).pipe(writeStream);
+        });
+    });
+    test('selectObjectContentStream raw', function (done, assert) {
+        var time = Date.now();
+        var content = `{"a":123,"b":"${time}","c":{"d":456}}`;
+        var key = '1.json';
+        cos.putObject({
+            Bucket: config.Bucket,
+            Region: config.Region,
+            Key: key,
+            Body: content,
+        }, function (err, data) {
+            var bufList = [];
+            var writeStream = new Writable({
+                write: function (chunk, encoding, callback) {
+                    bufList.push(chunk);
+                    callback();
+                },
+            });
+            cos.selectObjectContentStream({
+                ...selectJsonOpt,
+                DataType: 'raw',
+            }, function (err, data) {
+                var result = Buffer.concat(bufList).toString();
+                assert.ok(result.includes('<BytesScanned>') && result.includes(content));
+                done();
+            }).pipe(writeStream);
         });
     });
 });

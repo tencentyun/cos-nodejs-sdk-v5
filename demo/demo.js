@@ -892,9 +892,7 @@ var selectCsvOpt = {
                 QuoteEscapeCharacter: "\""
             }
         },
-        RequestProgress: {
-            Enabled: "FALSE"
-        }
+        RequestProgress: {Enabled: "FALSE"}
     },
 };
 
@@ -906,19 +904,9 @@ var selectJsonOpt = {
     SelectRequest: {
         Expression: "Select * from COSObject",
         ExpressionType: "SQL",
-        InputSerialization: {
-            JSON: {
-                Type: "DOCUMENT",
-            },
-        },
-        OutputSerialization: {
-            JSON: {
-                RecordDelimiter: "\n"
-            },
-        },
-        RequestProgress: {
-            Enabled: "FALSE"
-        }
+        InputSerialization: {JSON: {Type: "DOCUMENT"}},
+        OutputSerialization: {JSON: {RecordDelimiter: "\n"}},
+        RequestProgress: {Enabled: "FALSE"}
     },
 };
 

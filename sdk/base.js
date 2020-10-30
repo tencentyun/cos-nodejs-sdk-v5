@@ -2595,8 +2595,8 @@ function selectObjectContent(params, callback) {
         };
         // 只要流里有解析出 stats，就返回 Stats
         if (selectResult.stats) result.Stats = selectResult.stats;
-        // 只要有 records，就返回 PayLoad
-        if (selectResult.records) result.PayLoad = Buffer.concat(selectResult.records);
+        // 只要有 records，就返回 Payload
+        if (selectResult.records) result.Payload = Buffer.concat(selectResult.records);
         callback(null, result);
     });
     if (!params.ReturnStream && params.DataType !== 'raw') {

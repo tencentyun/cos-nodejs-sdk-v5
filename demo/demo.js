@@ -723,17 +723,22 @@ function putObjectCopy() {
 
 function getObject() {
     var filepath1 = path.resolve(__dirname, '1mb.out1.zip');
-    var filepath2 = path.resolve(__dirname, '123/1mb.out2.zip');
-    // cos.getObject({
-    //     Bucket: config.Bucket, // Bucket 格式：test-1250000000
-    //     Region: config.Region,
-    //     Key: '1mb.zip',
-    //     onProgress: function (progressData) {
-    //         console.log(JSON.stringify(progressData));
-    //     }
-    // }, function (err, data) {
-    //     fs.writeFileSync(filepath1, data.Body);
-    // });
+    var filepath2 = path.resolve(__dirname, '1mb.out2.zip');
+    var filepath3 = path.resolve(__dirname, '1mb.out3.zip');
+
+    // file1 获取对象字节到内存变量
+    cos.getObject({
+        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Region: config.Region,
+        Key: '1mb.zip',
+        onProgress: function (progressData) {
+            console.log(JSON.stringify(progressData));
+        }
+    }, function (err, data) {
+        fs.writeFileSync(filepath1, data.Body);
+    });
+
+    // file2 获取对象到本地文件
     cos.getObject({
         Bucket: config.Bucket, // Bucket 格式：test-1250000000
         Region: config.Region,
@@ -745,6 +750,19 @@ function getObject() {
     }, function (err, data) {
         console.log(err || data);
     });
+
+    // file3 pipe 格式获取对象到本地文件
+    var stream = cos.getObjectStream({
+        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Region: config.Region,
+        Key: '1mb.zip',
+        onProgress: function (progressData) {
+            console.log(JSON.stringify(progressData));
+        }
+    }, function (err, data) {
+        console.log(err || data);
+    });
+    stream.pipe(fs.createWriteStream(filepath3))
 }
 
 function headObject() {
@@ -841,6 +859,92 @@ function restoreObject() {
             }
         }
     }, function (err, data) {
+        console.log(err || data);
+    });
+}
+
+var selectCsvOpt = {
+    Bucket: config.Bucket, // Bucket 格式：test-1250000000
+    Region: config.Region,
+    Key: '1.csv',
+    SelectType: 2,
+    SelectRequest: {
+        // Expression: "select * from cosobject s limit 100",
+        Expression: "Select * from COSObject",
+        ExpressionType: "SQL",
+        InputSerialization: {
+            CSV: {
+                FileHeaderInfo: "IGNORE",
+                RecordDelimiter: "\\n",
+                FieldDelimiter: ",",
+                QuoteCharacter: "\"",
+                QuoteEscapeCharacter: "\"",
+                Comments: "#",
+                AllowQuotedRecordDelimiter: "FALSE"
+            }
+        },
+        OutputSerialization: {
+            CSV: {
+                QuoteFields: "ASNEEDED",
+                RecordDelimiter: "\\n",
+                FieldDelimiter: ",",
+                QuoteCharacter: "\"",
+                QuoteEscapeCharacter: "\""
+            }
+        },
+        RequestProgress: {
+            Enabled: "FALSE"
+        }
+    },
+};
+
+var selectJsonOpt = {
+    Bucket: config.Bucket, // Bucket 格式：test-1250000000
+    Region: config.Region,
+    Key: '1.json',
+    SelectType: 2,
+    SelectRequest: {
+        Expression: "Select * from COSObject",
+        ExpressionType: "SQL",
+        InputSerialization: {
+            JSON: {
+                Type: "DOCUMENT",
+            },
+        },
+        OutputSerialization: {
+            JSON: {
+                RecordDelimiter: "\n"
+            },
+        },
+        RequestProgress: {
+            Enabled: "FALSE"
+        }
+    },
+};
+
+function selectObjectContentStream() {
+    // 查询 JSON
+    var selectStream = cos.selectObjectContentStream({
+        ...selectJsonOpt,
+        // DataType: 'raw',
+    }, function (err, data) {
+        console.log(err || data);
+    });
+    var outFile = './result.txt';
+    selectStream.pipe(fs.createWriteStream(outFile));
+    selectStream.on('end', () => console.log(fs.readFileSync(outFile).toString()))
+}
+
+selectObjectContent()
+function selectObjectContent() {
+    // // 如果返回结果很大，可以用 selectObjectContentStream 处理
+    // // 查询 CSV
+    // cos.selectObjectContent(selectCsvOpt, function (err, data) {
+    //     console.log(err || data);
+    // });
+
+    // 查询 JSON
+    cos.selectObjectContent(selectJsonOpt, function (err, data) {
         console.log(err || data);
     });
 }
@@ -1113,9 +1217,9 @@ function deleteFolder() {
 // getBucketLifecycle();
 // putBucketLifecycle();
 // deleteBucketLifecycle();
+// putBucketVersioning();
 // getBucketVersioning();
 // listObjectVersions();
-// putBucketVersioning();
 // getBucketReplication();
 // putBucketReplication();
 // deleteBucketReplication();
@@ -1124,9 +1228,19 @@ function deleteFolder() {
 // deleteBucketWebsite();
 // putBucketReferer();
 // getBucketReferer();
+// putBucketDomain()
+// getBucketDomain()
+// deleteBucketDomain()
+// putBucketLogging()
+// getBucketLogging()
+// deleteBucketLogging()
+// putBucketInventory()
+// getBucketInventory()
+// deleteBucketInventory()
+// listBucketInventory()
 // deleteBucket();
-// putObject();
 // putObjectCopy();
+// getObjectStream();
 // getObject();
 // headObject();
 // putObjectAcl();
@@ -1135,11 +1249,14 @@ function deleteFolder() {
 // deleteMultipleObject();
 // restoreObject();
 // abortUploadTask();
+// selectObjectContentStream();
+// selectObjectContent();
 // sliceUploadFile();
+// uploadFiles();
 // cancelTask();
 // pauseTask();
 // restartTask();
-// uploadFiles();
+// putObject();
 // sliceCopyFile();
 // uploadFolder();
 // listFolder();

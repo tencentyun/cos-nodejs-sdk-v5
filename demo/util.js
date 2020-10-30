@@ -1,7 +1,7 @@
 var os = require('os');
 var fs = require('fs');
-var platform = os.platform();
 
+var platform = os.platform();
 var createFile = function (filepath, size, callback) {
     var cb = function (err) {
         callback && callback();

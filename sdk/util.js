@@ -445,7 +445,8 @@ var apiWrapper = function (apiName, apiFn) {
         };
 
         var errMsg = checkParams();
-        var isSync = apiName === 'getAuth' || apiName === 'getV4Auth' || apiName === 'getObjectUrl';
+        var isSync = apiName === 'getAuth' || apiName === 'getV4Auth' || apiName === 'getObjectUrl'
+            || apiName.indexOf('Stream') > -1;
         var Promise = global.Promise;
         if (!isSync && Promise && !callback) {
             return new Promise(function (resolve, reject) {
@@ -562,6 +563,30 @@ var getSkewTime = function (offset) {
     return Date.now() + (offset || 0);
 };
 
+// 重写 callback，等待流结束后才 callback
+var callbackAfterStreamFinish = function (stream, callback) {
+    if (!stream) return callback;
+    var err, data, count = 2;
+    var cb = function (e, d) {
+        // 如果有数据，且没有错误，清理 设置错误
+        if (d && !data || e || err) {
+            data = d;
+        }
+        if (e && !err) {
+            err = e;
+            data = null;
+        }
+        --count === 0 && callback(err, data);
+    };
+    stream.on('error', function (err) {
+        cb(err);
+    });
+    stream.on('finish', function () {
+        cb();
+    });
+    return cb;
+};
+
 var util = {
     noop: noop,
     formatParams: formatParams,
@@ -587,6 +612,7 @@ var util = {
     throttleOnProgress: throttleOnProgress,
     getFileSize: getFileSize,
     getSkewTime: getSkewTime,
+    callbackAfterStreamFinish: callbackAfterStreamFinish,
     getAuth: getAuth,
     getV4Auth: getV4Auth,
     isBrowser: false,

@@ -19,7 +19,7 @@ npm i cos-nodejs-sdk-v5 --save
 var COS = require('cos-nodejs-sdk-v5');
 // 创建实例
 var cos = new COS({
-    SecretId: 'AKIDxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
+    SecretId: 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
     SecretKey: 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
 });
 // 分片上传

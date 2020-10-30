@@ -1,6 +1,7 @@
 var pkg = require('../package.json');
 var REQUEST = require('request');
 var mime = require('mime-types');
+var Stream = require('stream');
 var util = require('./util');
 var fs = require('fs');
 
@@ -1818,7 +1819,7 @@ function listObjectVersions(params, callback) {
  * @param  {Object}  data                                   为对应的 object 数据，包括 body 和 headers
  */
 function getObject(params, callback) {
-    var reqParams = {};
+    var reqParams = params.Query || {};
 
     reqParams['response-content-type'] = params['ResponseContentType'];
     reqParams['response-content-language'] = params['ResponseContentLanguage'];
@@ -1831,7 +1832,10 @@ function getObject(params, callback) {
 
     var self = this;
     var outputStream = params.Output;
-    if (outputStream && typeof outputStream === 'string') {
+    if (params.ReturnStream) {
+        outputStream = new Stream.PassThrough();
+        BodyType = 'stream';
+    } else if (outputStream && typeof outputStream === 'string') {
         outputStream = fs.createWriteStream(outputStream);
         BodyType = 'stream';
     } else if (outputStream && typeof outputStream.pipe === 'function') {
@@ -1899,10 +1903,9 @@ function getObject(params, callback) {
         if (err) {
             var statusCode = err.statusCode;
             if (params.Headers['If-Modified-Since'] && statusCode && statusCode === 304) {
-                return callback(null, {
-                    NotModified: true
-                });
+                return callback(null, {NotModified: true});
             }
+            if (outputStream) outputStream.emit('error', err);
             return callback(err);
         }
         var result = {};
@@ -1922,7 +1925,12 @@ function getObject(params, callback) {
         });
         callback(null, result);
     });
+    if (params.ReturnStream) return outputStream;
+}
 
+function getObjectStream(params, callback) {
+    params.ReturnStream = true;
+    return getObject.call(this, params, callback);
 }
 
 /**
@@ -1977,6 +1985,7 @@ function putObject(params, callback) {
             Region: params.Region,
             Key: params.Key,
             headers: params.Headers,
+            qs: params.Query,
             body: params.Body,
             onProgress: onProgress,
         }, function (err, data) {
@@ -1995,15 +2004,9 @@ function putObject(params, callback) {
                     object: params.Key,
                 });
                 url = url.substr(url.indexOf('://') + 3);
-                var result = {
-                    Location: url,
-                    statusCode: data.statusCode,
-                    headers: data.headers,
-                };
-                if (data.headers && data.headers.etag) {
-                    result.ETag = data.headers.etag;
-                }
-                return callback(null, result);
+                data.Location = url;
+                if (data.headers && data.headers.etag) data.ETag = data.headers.etag;
+                return callback(null, data);
             }
             callback(null, data);
         });
@@ -2520,6 +2523,117 @@ function deleteObjectTagging(params, callback) {
     });
 }
 
+/**
+ * 使用 SQL 语句从指定对象（CSV 格式或者 JSON 格式）中检索内容
+ * @param  {Object}  params                   参数对象，必须
+ *     @param  {String}  params.Bucket        Object名称，必须
+ *     @param  {String}  params.Region        地域名称，必须
+ *     @param  {Object}  params.SelectRequest 地域名称，必须
+ * @param  {Function}  callback               回调函数，必须
+ * @return  {Object}  err                     请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/42998
+ * @return  {Object}  data                    返回的数据
+ */
+function selectObjectContent(params, callback) {
+    var SelectType = params['SelectType'];
+    if (!SelectType) return callback({error: 'missing param SelectType'});
+
+    var SelectRequest = params['SelectRequest'] || {};
+    var xml = util.json2xml({SelectRequest: SelectRequest});
+
+    var headers = params.Headers;
+    headers['Content-Type'] = 'application/xml';
+    headers['Content-MD5'] = util.binaryBase64(util.md5(xml));
+
+    var outputStream;
+    var selectResult = {};
+    var SelectStream = require('./select-stream');
+    if (params.ReturnStream && params.DataType === 'raw') { // 流 && raw 直接原样数据吐回
+        outputStream = new Stream.PassThrough();
+    } else { // 包含 params.ReturnStream || !params.ReturnStream
+        outputStream = new SelectStream();
+        outputStream.on('message:progress', function (progress) {
+            if (typeof params.onProgress === 'function') params.onProgress(progress);
+        });
+        outputStream.on('message:stats', function (stats) {
+            selectResult.stats = stats;
+        });
+        outputStream.on('message:error', function (error) {
+            selectResult.error = error;
+        });
+    }
+    submitRequest.call(this, {
+        Interface: 'selectObjectContent',
+        Action: 'name/cos:GetObject',
+        method: 'POST',
+        Bucket: params.Bucket,
+        Region: params.Region,
+        Key: params.Key,
+        headers: params.Headers,
+        action: 'select',
+        qs: {
+            'select-type': params['SelectType'],
+        },
+        VersionId: params.VersionId,
+        body: xml,
+        rawBody: true,
+        outputStream: outputStream,
+    }, function (err, data) {
+        if (err && err.statusCode === 204) {
+            return callback(null, {statusCode: err.statusCode});
+        } else if (err) {
+            if (outputStream) outputStream.emit('error', err);
+            return callback(err);
+        } else if (selectResult.error) {
+            return callback(util.extend(selectResult.error, {
+                statusCode: data.statusCode,
+                headers: data.headers,
+            }));
+        }
+        var result = {
+            statusCode: data.statusCode,
+            headers: data.headers,
+        };
+        // 只要流里有解析出 stats，就返回 Stats
+        if (selectResult.stats) result.Stats = selectResult.stats;
+        // 只要有 records，就返回 PayLoad
+        if (selectResult.records) result.PayLoad = Buffer.concat(selectResult.records);
+        callback(null, result);
+    });
+    if (!params.ReturnStream && params.DataType !== 'raw') {
+        selectResult.records = [];
+        outputStream.pipe(new Stream.Writable({
+            write: function (chunk, encoding, callback) {
+                selectResult.records.push(chunk);
+                callback();
+            },
+            writev: function (chunks, encoding, callback) {
+                chunks.forEach(function (item) {
+                    selectResult.records.push(chunks);
+                });
+                callback();
+            },
+        }));
+        outputStream.pipe(outputStream);
+    }
+    if (params.ReturnStream) return outputStream;
+}
+
+/**
+ * 使用 SQL 语句从指定对象（CSV 格式或者 JSON 格式）中检索内容
+ * @param  {Object}  params                   参数对象，必须
+ *     @param  {String}  params.Bucket        Object名称，必须
+ *     @param  {String}  params.Region        地域名称，必须
+ *     @param  {Object}  params.SelectRequest 地域名称，必须
+ * @param  {Function}  callback               回调函数，必须
+ * @return  {Object}  err                     请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/42998
+ * @return  {Object}  data                    返回的数据
+ * @return  {Object}  Stream                  返回值
+ */
+function selectObjectContentStream(params, callback) {
+    params.ReturnStream = true;
+    return selectObjectContent.call(this, params, callback);
+}
+
 
 // 分块上传
 
@@ -2560,6 +2674,7 @@ function multipartInit(params, callback) {
         Key: params.Key,
         action: 'uploads',
         headers: params.Headers,
+        qs: params.Query,
     }, function (err, data) {
         if (err) {
             return callback(err);
@@ -3297,7 +3412,10 @@ function submitRequest(params, callback) {
             }
             params.AuthData = AuthData;
             _submitRequest.call(self, params, function (err, data) {
-                if (err && tryTimes < 2 && (oldClockOffset !== self.options.SystemClockOffset || allowRetry.call(self, err))) {
+                if (err &&
+                    !params.outputStream &&
+                    tryTimes < 2 &&
+                    (oldClockOffset !== self.options.SystemClockOffset || allowRetry.call(self, err))) {
                     if (params.headers) {
                         delete params.headers.Authorization;
                         delete params.headers['token'];
@@ -3406,6 +3524,9 @@ function _submitRequest(params, callback) {
             opt.headers['Content-Type'] = 'application/octet-stream';
         }
     }
+
+    // 特殊处理内容到写入流的情况，等待流 finish 后才 callback
+    if (params.outputStream) callback = util.callbackAfterStreamFinish(params.outputStream, callback);
 
     self.emit('before-send', opt);
     var sender = REQUEST(opt);
@@ -3641,6 +3762,7 @@ var API_MAP = {
 
     // Object 相关方法
     getObject: getObject,
+    getObjectStream: getObjectStream,
     headObject: headObject,
     listObjectVersions: listObjectVersions,
     putObject: putObject,
@@ -3654,6 +3776,8 @@ var API_MAP = {
     putObjectTagging: putObjectTagging,
     getObjectTagging: getObjectTagging,
     deleteObjectTagging: deleteObjectTagging,
+    selectObjectContent: selectObjectContent,
+    selectObjectContentStream: selectObjectContentStream,
 
     // 分块上传相关方法
     uploadPartCopy: uploadPartCopy,

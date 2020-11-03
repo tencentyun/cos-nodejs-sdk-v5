@@ -923,7 +923,6 @@ function selectObjectContentStream() {
     selectStream.on('end', () => console.log(fs.readFileSync(outFile).toString()))
 }
 
-selectObjectContent()
 function selectObjectContent() {
     // // 如果返回结果很大，可以用 selectObjectContentStream 处理
     // // 查询 CSV

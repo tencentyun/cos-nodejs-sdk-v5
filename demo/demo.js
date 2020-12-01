@@ -702,7 +702,10 @@ function putObject() {
             // Body: fs.readFileSync(filepath),
             // 格式2. 传入文件流，必须需要传文件大小
             Body: fs.createReadStream(filepath),
-            ContentLength: fs.statSync(filepath).size
+            ContentLength: fs.statSync(filepath).size,
+
+            // 万象持久化接口，上传时持久化
+            // 'Pic-Operations': '{"is_pic_info": 1, "rules": [{"fileid": "test.jpg", "rule": "imageMogr2/thumbnail/!50p"}]}'
         }, function (err, data) {
             console.log(err || data);
             fs.unlinkSync(filepath);

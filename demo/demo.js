@@ -15,7 +15,7 @@ var cos = new COS({
     ChunkParallelLimit: 8,   // 控制单个文件下分片上传并发数，在同园区上传可以设置较大的并发数
     ChunkSize: 1024 * 1024 * 8,  // 控制分片大小，单位 B，在同园区上传可以设置较大的分片大小
     Proxy: '',
-    Protocol: 'http:',
+    Protocol: 'https:',
 });
 
 var TaskId;
@@ -923,7 +923,6 @@ function selectObjectContentStream() {
     selectStream.on('end', () => console.log(fs.readFileSync(outFile).toString()))
 }
 
-selectObjectContent()
 function selectObjectContent() {
     // // 如果返回结果很大，可以用 selectObjectContentStream 处理
     // // 查询 CSV

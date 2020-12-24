@@ -3190,7 +3190,7 @@ function getAuthorizationAsync(params, callback) {
                 formatAllow = true;
             } else {
                 try {
-                    auth = atob(auth);
+                    auth = Buffer.from(auth, 'base64').toString();
                     if (auth.indexOf('a=') > -1 &&
                         auth.indexOf('k=') > -1 &&
                         auth.indexOf('t=') > -1 &&
@@ -3204,7 +3204,7 @@ function getAuthorizationAsync(params, callback) {
         if (formatAllow) {
             callback && callback(null, AuthData);
         } else {
-            callback && callback('authorization error');
+            callback && callback({error: 'authorization error'});
         }
     };
 

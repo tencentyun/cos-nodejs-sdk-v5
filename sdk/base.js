@@ -3168,10 +3168,8 @@ function getUrl(params) {
 function getAuthorizationAsync(params, callback) {
 
     var headers = util.clone(params.Headers);
-    delete headers['Content-Type'];
-    delete headers['Cache-Control'];
     util.each(headers, function (v, k) {
-        v === '' && delete headers[k];
+        (v === '' || ['content-type', 'cache-control', 'expires'].indexOf(k.toLowerCase())) && delete headers[k];
     });
 
     var cb = function (AuthData) {

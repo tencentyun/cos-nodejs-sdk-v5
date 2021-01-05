@@ -1,6 +1,6 @@
 {
   "name": "cos-nodejs-sdk-v5",
-  "version": "2.8.5",
+  "version": "2.8.6",
   "description": "cos nodejs sdk v5",
   "main": "index.js",
   "scripts": {
@@ -30,7 +30,7 @@
   "dependencies": {
     "conf": "^7.1.2",
     "mime-types": "^2.1.24",
-    "request": "^2.88.0",
+    "request": "^2.88.2",
     "xml2js": "^0.4.19"
   },
   "devDependencies": {

@@ -577,6 +577,52 @@ function deleteBucketDomain() {
     });
 }
 
+function putBucketOrigin() {
+    cos.putBucketOrigin({
+        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Region: config.Region,
+        OriginRule: [{
+            OriginType: 'Mirror',
+            OriginCondition: {HTTPStatusCode: '404', Prefix: ''},
+            OriginParameter: {
+                Protocol: 'HTTP',
+                FollowQueryString: 'true',
+                HttpHeader: {NewHttpHeaders: {Header: [{Key: 'a', Value: 'a'}]}},
+                FollowRedirection: 'true',
+                HttpRedirectCode: ['301', '302']
+            },
+            OriginInfo: {
+                HostInfo: {HostName: ''},
+                FileInfo: {
+                    PrefixConfiguration: {Prefix: '123/'},
+                    SuffixConfiguration: {Suffix: '.jpg'}
+                }
+            },
+            RulePriority: 1
+        }]
+    },function(err, data){
+        console.log(err || data);
+    });
+}
+
+function getBucketOrigin() {
+    cos.putBucketOrigin({
+        Bucket: config.Bucket,
+        Region: config.Region,
+    },function(err, data){
+        console.log(err || data);
+    });
+}
+
+function deleteBucketOrigin() {
+    cos.deleteBucketOrigin({
+        Bucket: config.Bucket,
+        Region: config.Region,
+    },function(err, data){
+        console.log(err || data);
+    });
+}
+
 function putBucketLogging() {
     var AppId = config.Bucket.substr(config.Bucket.lastIndexOf('-') + 1);
     cos.putBucketLogging({
@@ -679,6 +725,27 @@ function listBucketInventory() {
         Region: config.Region
     }, function(err, data) {
         console.log(err || JSON.stringify(data));
+    });
+}
+
+function putBucketAccelerate() {
+    cos.putBucketAccelerate({
+        Bucket: config.Bucket,
+        Region: config.Region,
+        AccelerateConfiguration: {
+            Status: 'Enabled'
+        }
+    }, function (err, data) {
+        console.log(err || data);
+    });
+}
+
+function getBucketAccelerate() {
+    cos.getBucketAccelerate({
+        Bucket: config.Bucket,
+        Region: config.Region,
+    }, function(err, data) {
+        console.log(err || data);
     });
 }
 
@@ -1060,6 +1127,40 @@ function sliceCopyFile() {
     });
 }
 
+function putObjectTagging() {
+    cos.putObjectTagging({
+        Bucket: config.Bucket,
+        Region: config.Region,
+        Key: '1mb.zip',
+        Tags: [
+            {Key: 'k1', Value: 'v1'},
+            {Key: 'k2', Value: 'v2'},
+        ],
+    }, function (err, data) {
+        console.log(err || data);
+    });
+}
+
+function getObjectTagging() {
+    cos.getObjectTagging({
+        Bucket: config.Bucket,
+        Region: config.Region,
+        Key: '1mb.zip',
+    }, function (err, data) {
+        console.log(err || data);
+    });
+}
+
+function deleteObjectTagging() {
+    cos.getObjectTagging({
+        Bucket: config.Bucket,
+        Region: config.Region,
+        Key: '1mb.zip',
+    }, function (err, data) {
+        console.log(err || data);
+    });
+}
+
 function uploadFolder() {
     var localFolder = path.resolve(__dirname, '../test/');
     var remotePrefix = 'folder/';
@@ -1215,16 +1316,21 @@ function deleteFolder() {
 // deleteBucketWebsite();
 // putBucketReferer();
 // getBucketReferer();
-// putBucketDomain()
-// getBucketDomain()
-// deleteBucketDomain()
-// putBucketLogging()
-// getBucketLogging()
-// deleteBucketLogging()
-// putBucketInventory()
-// getBucketInventory()
-// deleteBucketInventory()
-// listBucketInventory()
+// putBucketDomain();
+// getBucketDomain();
+// deleteBucketDomain();
+// putBucketOrigin();
+// getBucketOrigin();
+// deleteBucketOrigin();
+// putBucketLogging();
+// getBucketLogging();
+// deleteBucketLogging();
+// putBucketInventory();
+// getBucketInventory();
+// deleteBucketInventory();
+// listBucketInventory();
+// putBucketAccelerate();
+// getBucketAccelerate();
 // deleteBucket();
 // putObjectCopy();
 // getObjectStream();
@@ -1245,6 +1351,9 @@ function deleteFolder() {
 // restartTask();
 // putObject();
 // sliceCopyFile();
+// putObjectTagging();
+// getObjectTagging();
+// deleteObjectTagging();
 // uploadFolder();
 // listFolder();
 // deleteFolder();

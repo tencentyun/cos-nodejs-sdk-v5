@@ -18,19 +18,30 @@ declare namespace COS {
 
   // 外部类型
   // API 相关
+  type Bucket = string;
+  type Region = string;
+  type Key = string;
+  type Delimiter = '/' | string;
+  type Location = string;
+  type CreationDate = string;
   type UploadBody = Buffer | String | Stream;
   type DownloadBody = Buffer | String | Stream;
+  type BodyType = 'text' | 'blob' | 'arraybuffer';
   type Query = Record<string, any>;
   type Headers = Record<string, any>;
   type Method = | 'get' | 'GET' | 'delete' | 'DELETE' | 'post' | 'POST' | 'put' | 'PUT' | 'patch' | 'PATCH';
   type Params = Record<string, any>;
-  type Scope = { action: string, bucket: string, region: string, prefix: string }[];
-  type Owner = Record<string, any>;
+  type Scope = { action: string, bucket: Bucket, region: Region, prefix: string }[];
+  type Owner = { ID: string, DisplayName: string };
+  type ACL = 'private' | 'public-read' | 'public-read-write' | 'default';
+  type Grant = string;
   type Grants = any[];
   type CORSRules = Record<string, any>[];
-  type LocationConstraint = any;
   type Policy = any;
-  type Tag = any;
+  type Tags = {
+    Key: Key,
+    Value: string,
+  }[]
   type LifecycleRule = any;
   type VersioningConfiguration = Record<string, any>;
   type ReplicationConfiguration = Record<string, any>;
@@ -39,12 +50,6 @@ declare namespace COS {
   type ObjectVersion = any;
   type WriteStream = any;
   type AccessControlPolicy = any;
-  type WebsiteConfiguration = {
-    IndexDocument: Record<string, any>;
-    ErrorDocument?: Record<string, any>;
-    RedirectAllRequestsTo?: Record<string, any>;
-    RoutingRules?: any[];
-  };
   type CopyPartResult = any;
   type COSObject = any;
   type RestoreRequest = any;
@@ -60,13 +65,13 @@ declare namespace COS {
   }
   type Credentials = {
     tmpSecretId: string;
-    tmpSecretKey: string;
+    tmpSecretKey: Key;
     sessionToken: string;
   };
   type AuthResData = {
     credentials: {
       tmpSecretId: string;
-      tmpSecretKey: string;
+      tmpSecretKey: Key;
       sessionToken: string;
     };
     startTime: number;
@@ -112,26 +117,26 @@ declare namespace COS {
      * 获取临时密钥
      */
     getAuthorization?: (
-      options: {
-        Bucket: string,
-        Region: string,
-        Method: COS.Method,
-        Key: string,
-        Pathname: string,
-        Query: COS.Query,
-        Headers?: COS.Headers,
-        Scope: Scope,
-      },
-      callback: (
-        params: string | {
-          TmpSecretId: string,
-          TmpSecretKey: string,
-          XCosSecurityToken: string,
-          StartTime: number,
-          ExpiredTime: number,
-          ScopeLimit?: boolean,
-        }
-      ) => void
+        options: {
+          Bucket: Bucket,
+          Region: Region,
+          Method: Method,
+          Key: Key,
+          Pathname: string,
+          Query: Query,
+          Headers?: Headers,
+          Scope: Scope,
+        },
+        callback: (
+            params: string | {
+              TmpSecretId: string,
+              TmpSecretKey: Key,
+              XCosSecurityToken: string,
+              StartTime: number,
+              ExpiredTime: number,
+              ScopeLimit?: boolean,
+            }
+        ) => void
     ) => void,
   }
 
@@ -141,9 +146,8 @@ declare namespace COS {
     KeyTime?: string,
     Method?: Method,
     method?: Method,
-    Query?: COS.Query,
+    Query?: Query,
     params?: Params,
-    Headers?: Headers,
     headers?: Headers,
     Key?: string,
     UseRawKey?: boolean,
@@ -159,68 +163,71 @@ declare namespace COS {
     headers?: Headers,
     error: string | Error | { Code: string, Message: string }
   }
-  interface GeneralParams {
-    Headers?: COS.Headers,
-  }
   interface GeneralResult {
     statusCode?: number,
     headers?: Headers,
   }
+  interface GeneralParams {
+    Headers?: Headers,
+  }
+  interface GeneralBucketParams extends GeneralParams  {
+    Bucket: Bucket,
+    Region: Region,
+  }
+  interface GeneralObjectParams extends GeneralBucketParams {
+    Key: Key,
+  }
 
   // getService
   type GetServiceParams = COS.GeneralParams
-  interface GetServiceResult extends COS.GeneralResult {
-    Buckets: object,
-    Owner: object,
+  interface GetServiceResult extends GeneralResult {
+    Buckets: {
+      Name: Bucket,
+      Location: Location,
+      CreationDate: CreationDate,
+    }[],
+    Owner: Owner,
   }
 
   // putBucket
-  interface PutBucketParams {
-    Bucket: string,
-    Region: string,
-    ACL?: string,
-    GrantRead?: string,
-    GrantWrite?: string,
-    GrantReadAcp?: string,
-    GrantWriteAcp?: string,
-    GrantFullControl?: string,
-    Headers?: COS.Headers,
+  interface PutBucketParams extends GeneralBucketParams {
+    ACL?: ACL,
+    GrantRead?: Grant,
+    GrantWrite?: Grant,
+    GrantReadAcp?: Grant,
+    GrantWriteAcp?: Grant,
+    GrantFullControl?: Grant,
+    BucketAZConfig?: 'MAZ' | string,
   }
-  interface PutBucketResult extends COS.GeneralResult {
+  interface PutBucketResult extends GeneralResult {
     Location: string
   }
 
   // headBucket
-  interface HeadBucketParams {
-    Bucket: string,
-    Region: string,
-    Headers?: COS.Headers,
+  interface HeadBucketParams extends GeneralBucketParams {
   }
-  interface HeadBucketResult extends COS.GeneralResult {
+  interface HeadBucketResult extends GeneralResult {
     BucketExist: boolean,
     BucketAuth: boolean,
   }
 
   // getBucket
-  interface GetBucketParams {
-    Bucket: string,
-    Region: string,
+  interface GetBucketParams extends GeneralBucketParams {
     Prefix: string,
-    Delimiter?: '/' | string,
+    Delimiter?: Delimiter,
     Marker?: string,
     MaxKeys?: string,
     EncodingType?: string,
-    Headers?: COS.Headers,
   }
-  interface GetBucketResult extends COS.GeneralResult {
+  interface GetBucketResult extends GeneralResult {
     Contents: {
-      Key: string,
+      Key: Key,
       LastModified: string,
       ETag: string,
       Size: string,
       StorageClass: string,
       StorageTier?: string,
-      Owner: object,
+      Owner: Owner,
     }[]
     CommonPrefixes: {
       Prefix: string,
@@ -230,28 +237,25 @@ declare namespace COS {
   }
 
   // listObjectVersions
-  interface ListObjectVersionsParams {
-    Bucket: string,
-    Region: string,
+  interface ListObjectVersionsParams extends GeneralBucketParams {
     Prefix: string,
-    Delimiter?: '/' | string,
+    Delimiter?: Delimiter,
     Marker?: string,
     MaxKeys?: string,
     VersionIdMarker?: string,
     EncodingType?: string,
-    Headers?: COS.Headers,
   }
-  interface ListObjectVersionsResult extends COS.GeneralResult {
+  interface ListObjectVersionsResult extends GeneralResult {
     Contents: {
-      Key: string,
+      Key: Key,
       VersionId: string,
       IsLatest: 'false' | 'true',
       LastModified: string,
       ETag: string,
       Size: string,
+      Owner: Owner,
       StorageClass: string,
       StorageTier?: string,
-      Owner: string,
     }[]
     CommonPrefixes: {
       Prefix: string,
@@ -262,46 +266,35 @@ declare namespace COS {
   }
 
   // deleteBucket
-  interface DeleteBucketParams {
-    Bucket: string,
-    Region: string,
-    Headers?: COS.Headers,
+  interface DeleteBucketParams extends GeneralBucketParams {
   }
 
   // putBucketAcl
-  interface PutBucketAclParams {
-    Bucket: string,
-    Region: string,
-    ACL?: string,
-    GrantRead?: string,
-    GrantWrite: string,
-    GrantReadAcp?: string,
-    GrantWriteAcp?: string,
-    GrantFullControl?: string,
-    Headers?: COS.Headers,
+  interface PutBucketAclParams extends GeneralBucketParams {
+    ACL?: ACL,
+    GrantRead?: Grant,
+    GrantWrite: Grant,
+    GrantReadAcp?: Grant,
+    GrantWriteAcp?: Grant,
+    GrantFullControl?: Grant,
   }
 
   // getBucketAcl
-  interface GetBucketAclParams {
-    Bucket: string,
-    Region: string,
-    Headers?: COS.Headers,
+  interface GetBucketAclParams extends GeneralBucketParams {
   }
-  interface GetBucketAclResult extends COS.GeneralResult {
-    GrantFullControl: object,
-    GrantWrite: object,
-    GrantRead: object,
-    GrantReadAcp: object,
-    GrantWriteAcp: object,
-    ACL: string,
-    Owner: object,
-    Grants: object
+  interface GetBucketAclResult extends GeneralResult {
+    ACL: ACL,
+    GrantRead: Grant,
+    GrantWrite: Grant,
+    GrantReadAcp: Grant,
+    GrantWriteAcp: Grant,
+    GrantFullControl: Grant,
+    Owner: Owner,
+    Grants: Grants
   }
 
   // putBucketCors
-  interface PutBucketCorsParams {
-    Bucket: string,
-    Region: string,
+  interface PutBucketCorsParams extends GeneralBucketParams {
     CORSRules: {
       AllowedOrigin: string[],
       AllowedMethod: string[],
@@ -309,40 +302,29 @@ declare namespace COS {
       ExposeHeader?: string[],
       MaxAgeSeconds?: number,
     }[]
-    Headers: COS.Headers
+    Headers: Headers
   }
-  interface PutBucketCorsResult extends COS.GeneralResult {
+  interface PutBucketCorsResult extends GeneralResult {
     CORSRules: object,
   }
 
   // getBucketCors
-  interface GetBucketCorsParams {
-    Bucket: string,
-    Region: string,
-    Headers?: COS.Headers,
+  interface GetBucketCorsParams extends GeneralBucketParams {
   }
 
   // deleteBucketCors
-  interface DeleteBucketCorsParams {
-    Bucket: string,
-    Region: string,
-    Headers?: COS.Headers,
+  interface DeleteBucketCorsParams extends GeneralBucketParams {
   }
 
   // getBucketLocation
-  interface GetBucketLocationParams {
-    Bucket: string,
-    Region: string,
-    Headers?: COS.Headers,
+  interface GetBucketLocationParams extends GeneralBucketParams {
   }
   interface GetBucketLocationResult {
-    LocationConstraint,
+    LocationConstraint: Region,
   }
 
   // putBucketPolicy
-  interface PutBucketPolicyParams {
-    Bucket: string,
-    Region: string,
+  interface PutBucketPolicyParams extends GeneralBucketParams {
     Policy: {
       version?: string,
       statement: {
@@ -353,19 +335,15 @@ declare namespace COS {
         condition?: object,
       }[] | object,
     },
-    Headers?: COS.Headers,
   }
-  interface PutBucketPolicyResult extends COS.GeneralResult {
+  interface PutBucketPolicyResult extends GeneralResult {
     Policy: object
   }
 
   // getBucketPolicy
-  interface GetBucketPolicyParams {
-    Bucket: string,
-    Region: string,
-    Headers?: COS.Headers,
+  interface GetBucketPolicyParams extends GeneralBucketParams {
   }
-  interface GetBucketPolicyResult extends COS.GeneralResult {
+  interface GetBucketPolicyResult extends GeneralResult {
     Policy: {
       version: string,
       Statement: {
@@ -379,103 +357,72 @@ declare namespace COS {
   }
 
   // deleteBucketPolicy
-  interface DeleteBucketPolicyParams {
-    Bucket: string,
-    Region: string,
-    Headers?: COS.Headers,
+  interface DeleteBucketPolicyParams extends GeneralBucketParams {
   }
 
   // putBucketTagging
-  interface PutBucketTaggingParams {
-    Bucket: string,
-    Region: string,
-    Tags: {
-      Key: string,
-      Value: string,
-    }[],
-    Headers?: COS.Headers,
+  interface PutBucketTaggingParams extends GeneralBucketParams {
+    Tags: Tags,
   }
-  interface PutBucketTaggingResult extends COS.GeneralResult {
-    Tags: {
-      Key: string,
-      Value: string,
-    }[]
+  interface PutBucketTaggingResult extends GeneralResult {
+    Tags: Tags
   }
 
   // getBucketTagging
-  interface GetBucketTaggingParams {
-    Bucket: string,
-    Region: string,
-    Headers?: COS.Headers,
+  interface GetBucketTaggingParams extends GeneralBucketParams {
   }
-  interface GetBucketTaggingResult extends COS.GeneralResult {
-    Tags: {
-      Key: string,
-      Value: string,
-    }[]
+  interface GetBucketTaggingResult extends GeneralResult {
+    Tags: Tags
   }
 
   // deleteBucketTagging
-  interface DeleteBucketTaggingParams {
-    Bucket: string,
-    Region: string,
-    Headers?: COS.Headers,
+  interface DeleteBucketTaggingParams extends GeneralBucketParams {
   }
 
   // putBucketWebsite
-  interface PutBucketWebsiteParams {
-    Bucket: string,
-    Region: string,
-    WebsiteConfiguration: {
-      IndexDocument: {
-        Suffix: string,
-      },
-      RedirectAllRequestsTo?: {
-        Protocol: "https" | string
-      },
-      AutoAddressing?: {
-        Status: 'Disabled' | 'Enabled'
-      },
-      ErrorDocument?: {
-        Key: string,
-        OriginalHttpStatus?: string
-      },
-      RoutingRules?: {
-        Condition: {
-          HttpErrorCodeReturnedEquals?: string | number,
-          KeyPrefixEquals?: 'Enabled' | 'Disabled',
-        },
-        Redirect: {
-          Protocol?: 'https' | string,
-          ReplaceKeyWith?: string,
-          ReplaceKeyPrefixWith?: string,
-        },
-      }[],
+  interface WebsiteConfiguration {
+    IndexDocument: {
+      Suffix: string,
     },
-    Headers?: COS.Headers,
+    RedirectAllRequestsTo?: {
+      Protocol: "https" | string
+    },
+    AutoAddressing?: {
+      Status: 'Disabled' | 'Enabled'
+    },
+    ErrorDocument?: {
+      Key: Key,
+      OriginalHttpStatus?: string
+    },
+    RoutingRules?: {
+      Condition: {
+        HttpErrorCodeReturnedEquals?: string | number,
+        KeyPrefixEquals?: 'Enabled' | 'Disabled',
+      },
+      Redirect: {
+        Protocol?: 'https' | string,
+        ReplaceKeyWith?: string,
+        ReplaceKeyPrefixWith?: string,
+      },
+    }[],
+  }
+  interface PutBucketWebsiteParams extends GeneralBucketParams {
+    WebsiteConfiguration: WebsiteConfiguration,
   }
 
   // getBucketWebsite
-  interface GetBucketWebsiteParams {
-    Bucket: string,
-    Region: string,
-    Headers?: COS.Headers,
+  interface GetBucketWebsiteParams extends GeneralBucketParams {
   }
-  interface GetBucketWebsiteResult extends COS.GeneralResult {
-    WebsiteConfiguration: object
+  interface GetBucketWebsiteResult extends GeneralResult {
+    WebsiteConfiguration: WebsiteConfiguration
   }
 
   // deleteBucketWebsite
-  interface DeleteBucketWebsiteParams {
-    Bucket: string,
-    Region: string,
-    Headers?: COS.Headers,
+  interface DeleteBucketWebsiteParams extends GeneralBucketParams {
   }
 
   // putBucketReferer
-  interface PutBucketRefererParams {
-    Bucket: string,
-    Region: string,
+  interface PutBucketRefererParams extends GeneralBucketParams {
     RefererConfiguration: {
       Status: 'Enabled' | 'Disabled',
       RefererType: 'Black-List' | 'White-List',
@@ -484,36 +431,26 @@ declare namespace COS {
       },
       EmptyReferConfiguration: 'Allow' | 'Deny',
     },
-    Headers?: COS.Headers,
   }
 
   // getBucketReferer
-  interface GetBucketRefererParams {
-    Bucket: string,
-    Region: string,
-    Headers?: COS.Headers,
+  interface GetBucketRefererParams extends GeneralBucketParams {
   }
-  interface GetBucketRefererResult extends COS.GeneralResult {}
+  interface GetBucketRefererResult extends GeneralResult {}
 
   // putBucketDomain
-  interface PutBucketDomainParams {
-    Bucket: string,
-    Region: string,
+  interface PutBucketDomainParams extends GeneralBucketParams {
     DomainRule: {
       Status: 'DISABLED' | 'ENABLED',
       Name: string,
       Type: 'REST' | 'WEBSITE'
     },
-    Headers?: COS.Headers,
   }
 
   // getBucketDomain
-  interface GetBucketDomainParams {
-    Bucket: string,
-    Region: string,
-    Headers?: COS.Headers,
+  interface GetBucketDomainParams extends GeneralBucketParams {
   }
-  interface GetBucketDomainResult extends COS.GeneralResult {
+  interface GetBucketDomainResult extends GeneralResult {
     DomainRule: {
       Status: 'DISABLED' | 'ENABLED',
       Name: string,
@@ -522,113 +459,80 @@ declare namespace COS {
   }
 
   // deleteBucketDomain
-  interface DeleteBucketDomainParams {
-    Bucket: string,
-    Region: string,
-    Headers?: COS.Headers,
+  interface DeleteBucketDomainParams extends GeneralBucketParams {
   }
 
   // putBucketOrigin
-  interface PutBucketOriginParams {
-    Bucket: string,
-    Region: string,
+  interface PutBucketOriginParams extends GeneralBucketParams {
     OriginRule: object[],
-    Headers?: COS.Headers,
   }
 
   // getBucketOrigin
-  interface GetBucketOriginParams {
-    Bucket: string,
-    Region: string,
-    Headers?: COS.Headers,
+  interface GetBucketOriginParams extends GeneralBucketParams {
   }
-  interface GetBucketOriginResult extends COS.GeneralResult {
+  interface GetBucketOriginResult extends GeneralResult {
     OriginRule: object[]
   }
 
   // deleteBucketOrigin
-  interface DeleteBucketOriginParams {
-    Bucket: string,
-    Region: string,
-    Headers?: COS.Headers,
+  interface DeleteBucketOriginParams extends GeneralBucketParams {
   }
 
   // putBucketLogging
-  interface PutBucketLoggingParams {
-    Bucket: string,
-    Region: string,
+  interface PutBucketLoggingParams extends GeneralBucketParams {
     BucketLoggingStatus: {
       LoggingEnabled?: {
-        TargetBucket: string,
+        TargetBucket: Bucket,
         TargetPrefix: string,
       }
     },
-    Headers?: COS.Headers,
   }
 
   // getBucketLogging
-  interface GetBucketLoggingParams {
-    Bucket: string,
-    Region: string,
-    Headers?: COS.Headers,
+  interface GetBucketLoggingParams extends GeneralBucketParams {
   }
-  interface GetBucketLoggingResult extends COS.GeneralResult {
+  interface GetBucketLoggingResult extends GeneralResult {
     BucketLoggingStatus: {
       LoggingEnabled?: {
-        TargetBucket: string,
+        TargetBucket: Bucket,
         TargetPrefix: string,
       }
     },
   }
 
   // putBucketInventory
-  interface PutBucketInventoryParams {
-    Bucket: string,
-    Region: string,
+  interface PutBucketInventoryParams extends GeneralBucketParams {
     Id: string,
     InventoryConfiguration: object,
-    Headers?: COS.Headers,
   }
 
   // getBucketInventory
-  interface GetBucketInventoryParams {
-    Bucket: string,
-    Region: string,
+  interface GetBucketInventoryParams extends GeneralBucketParams {
     Id: string,
-    Headers?: COS.Headers,
   }
-  interface GetBucketInventoryResult extends COS.GeneralResult {
+  interface GetBucketInventoryResult extends GeneralResult {
     InventoryConfiguration: object
   }
 
   // listBucketInventory
-  interface ListBucketInventoryParams {
-    Bucket: string,
-    Region: string,
+  interface ListBucketInventoryParams extends GeneralBucketParams {
     ContinuationToken: string,
-    Headers?: COS.Headers,
   }
-  interface ListBucketInventoryResult extends COS.GeneralResult {
+  interface ListBucketInventoryResult extends GeneralResult {
     ListInventoryConfigurationResult: object
   }
 
   // deleteBucketInventory
-  interface DeleteBucketInventoryParams {
-    Bucket: string,
-    Region: string,
+  interface DeleteBucketInventoryParams extends GeneralBucketParams {
     Id: string,
-    Headers?: COS.Headers,
   }
-  interface DeleteBucketInventoryResult extends COS.GeneralResult {}
+  interface DeleteBucketInventoryResult extends GeneralResult {}
 
   // putBucketAccelerate
-  interface PutBucketAccelerateParams {
-    Bucket: string,
-    Region: string,
+  interface PutBucketAccelerateParams extends GeneralBucketParams {
     AccelerateConfiguration: {
       Status: 'Enabled' | 'Suspended'
     },
-    Headers?: COS.Headers,
   }
   interface PutBucketAccelerateResult {
     statusCode: string,
@@ -639,35 +543,26 @@ declare namespace COS {
   }
 
   // getBucketAccelerate
-  interface GetBucketAccelerateParams {
-    Bucket: string,
-    Region: string,
+  interface GetBucketAccelerateParams extends GeneralBucketParams {
     Id: string,
-    Headers?: COS.Headers,
   }
-  interface GetBucketAccelerateResult extends COS.GeneralResult {
+  interface GetBucketAccelerateResult extends GeneralResult {
     InventoryConfiguration: {
       Status: 'Enabled' | 'Suspended'
     }
   }
 
   // headObject
-  interface HeadObjectParams {
-    Bucket: string,
-    Region: string,
-    Key: string,
-    Headers?: COS.Headers,
+  interface HeadObjectParams extends GeneralObjectParams {
   }
-  interface HeadObjectResult extends COS.GeneralResult {
+  interface HeadObjectResult extends GeneralResult {
     ETag: string,
     VersionId?: string,
   }
 
   // getObject、getObjectStream
-  interface GetObjectParams {
-    Bucket: string,
-    Region: string,
-    Key: string,
+  interface GetObjectParams extends GeneralObjectParams {
+    BodyType?: BodyType,
     Output?: File,
     IfModifiedSince?: string,
     IfUnmodifiedSince?: string,
@@ -679,18 +574,15 @@ declare namespace COS {
     ResponseCacheControl?: string,
     ResponseContentDisposition?: string,
     ResponseContentEncoding?: string,
-    Headers?: COS.Headers,
+    Query?: Query,
   }
-  interface GetObjectResult extends COS.GeneralResult {
+  interface GetObjectResult extends GeneralResult {
     Body: object
   }
 
   // putObject
-  interface PutObjectParams {
-    Bucket: string,
-    Region: string,
-    Key: string,
-    Body: COS.UploadBody,
+  interface PutObjectParams extends GeneralObjectParams {
+    Body: UploadBody,
     Query?: string,
     CacheControl?: string,
     ContentDisposition?: string,
@@ -699,79 +591,69 @@ declare namespace COS {
     ContentType?: string,
     Expires?: string,
     Expect?: string,
-    ACL?: string,
-    GrantRead?: string,
-    GrantReadAcp?: string,
-    GrantWriteAcp?: string,
-    GrantFullControl?: string,
+    ACL?: ACL,
+    GrantRead?: Grant,
+    GrantReadAcp?: Grant,
+    GrantWriteAcp?: Grant,
+    GrantFullControl?: Grant,
     StorageClass?: string,
     'x-cos-meta-*'?: string,
     ContentSha1?: string,
     ServerSideEncryption?: string,
     onTaskReady?: Function,
-    onProgress?: COS.onProgress,
-    Headers?: COS.Headers,
+    onProgress?: onProgress,
   }
-  interface PutObjectResult extends COS.GeneralResult {
+  interface PutObjectResult extends GeneralResult {
     ETag: string,
     Location: string,
   }
 
   // deleteObject
-  interface DeleteObjectParams {
-    Bucket: string,
-    Region: string,
-    Key: string,
-    Headers?: COS.Headers,
+  interface DeleteObjectParams extends GeneralObjectParams {
   }
 
   // deleteMultipleObject
-  interface DeleteMultipleObjectParams {
-    Bucket: string,
-    Region: string,
+  interface DeleteMultipleObjectParams extends GeneralObjectParams {
     Objects: {
-      Key: string,
+      Key: Key,
       VersionId?: string
     }[]
-    Headers?: COS.Headers,
   }
-  interface DeleteMultipleObjectResult extends COS.GeneralResult {
+  interface DeleteMultipleObjectResult extends GeneralResult {
     Deleted: {
-      Key: string,
+      Key: Key,
       VersionId?: string,
       DeleteMarker?: 'false' | 'true',
       DeleteMarkerVersionId?: string,
     }[],
     Error: {
-      Key: string,
+      Key: Key,
       VersionId?: string
     }[],
   }
 
   // getObjectAcl
-  interface GetObjectAclParams {
-    Bucket: string,
-    Region: string,
-    Key: string,
-    Headers?: COS.Headers,
+  interface GetObjectAclParams extends GeneralObjectParams {
+  }
+  interface GetObjectAclResult extends GeneralResult {
+    ACL: ACL,
+    GrantRead: Grant,
+    GrantWrite: Grant,
+    GrantReadAcp: Grant,
+    GrantWriteAcp: Grant,
+    GrantFullControl: Grant,
+    Owner: Owner,
+    Grants: Grants,
   }
 
   // putObjectAcl
-  interface PutObjectAclParams {
-    Bucket: string,
-    Region: string,
-    Key: string,
-    Headers?: COS.Headers,
+  interface PutObjectAclParams extends GeneralObjectParams {
   }
 
   // optionsObject
-  interface OptionsObjectParams {
-    Bucket: string,
-    Region: string,
-    Key: string,
-    Headers?: COS.Headers,
+  interface OptionsObjectParams extends GeneralObjectParams {
   }
-  interface OptionsObjectResult extends COS.GeneralResult {
+  interface OptionsObjectResult extends GeneralResult {
     AccessControlAllowOrigin: string,
     AccessControlAllowMethods: string,
     AccessControlAllowHeaders: string,
@@ -780,43 +662,32 @@ declare namespace COS {
   }
 
   // restoreObject
-  interface RestoreObjectParams {
-    Bucket: string,
-    Region: string,
-    Key: string,
+  interface RestoreObjectParams extends GeneralObjectParams {
     RestoreRequest: {
       Days: number | string,
       CASJobParameters: {
         Tier: 'Expedited' | 'Standard' | 'Bulk'
       }
     },
-    Headers?: COS.Headers,
   }
-  interface RestoreObjectResult extends COS.GeneralResult {}
+  interface RestoreObjectResult extends GeneralResult {}
 
   // selectObjectContent、selectObjectContentStream
-  interface SelectObjectContentParams {
-    Bucket: string,
-    Region: string,
-    Key: string,
+  interface SelectObjectContentParams extends GeneralObjectParams {
     SelectType: number,
     SelectRequest: object,
-    Headers?: COS.Headers,
   }
-  interface SelectObjectContentResult extends COS.GeneralResult {}
+  interface SelectObjectContentResult extends GeneralResult {}
 
   // putObjectCopy
-  interface PutObjectCopyParams {
-    Bucket: string
-    Region: string,
-    Key: string,
+  interface PutObjectCopyParams extends GeneralObjectParams {
     CopySource: string,
     MetadataDirective?: 'Copy' | 'Replaced',
     ACL?: string,
-    GrantRead?: string,
-    GrantReadAcp?: string,
-    GrantWriteAcp?: string,
-    GrantFullControl?: string,
+    GrantRead?: Grant,
+    GrantReadAcp?: Grant,
+    GrantWriteAcp?: Grant,
+    GrantFullControl?: Grant,
     CopySourceIfModifiedSince?: string,
     CopySourceIfUnmodifiedSince?: string,
     CopySourceIfMatch?: string,
@@ -834,76 +705,51 @@ declare namespace COS {
   }
 
   // putObjectTagging
-  interface PutObjectTaggingParams {
-    Bucket: string,
-    Region: string,
-    Key: string,
-    Tags: {
-      Key: string,
-      Value: string,
-    }[],
-    Headers?: COS.Headers,
+  interface PutObjectTaggingParams extends GeneralObjectParams {
+    Tags: Tags,
   }
 
   // getObjectTagging
-  interface GetObjectTaggingParams {
-    Bucket: string,
-    Region: string,
-    Key: string,
-    Headers?: COS.Headers,
+  interface GetObjectTaggingParams extends GeneralObjectParams {
   }
 
   // deleteObjectTagging
-  interface DeleteObjectTaggingParams {
-    Bucket: string,
-    Region: string,
-    Key: string,
-    Headers?: COS.Headers,
+  interface DeleteObjectTaggingParams extends GeneralObjectParams {
   }
 
   // multipartInit
-  interface MultipartInitParams {
-    Bucket: string,
-    Region: string,
-    Key: string,
+  interface MultipartInitParams extends GeneralObjectParams {
     CacheControl?: string,
     ContentDisposition?: string,
     ContentEncoding?: string,
     ContentType?: string,
     Expires?: string,
     ACL?: string,
-    GrantRead?: string,
-    GrantReadAcp?: string,
-    GrantWriteAcp?: string,
-    GrantFullControl?: string,
+    GrantRead?: Grant,
+    GrantReadAcp?: Grant,
+    GrantWriteAcp?: Grant,
+    GrantFullControl?: Grant,
     StorageClass?: string,
-    Headers?: COS.Headers,
+    Query?: Query,
   }
-  interface MultipartInitResult extends COS.GeneralResult{
+  interface MultipartInitResult extends GeneralResult {
     UploadId: string,
   }
 
   // multipartUpload
-  interface MultipartUploadParams {
-    Bucket: string,
-    Region: string,
-    Key: string,
-    Body: COS.UploadBody,
+  interface MultipartUploadParams extends GeneralObjectParams {
+    Body: UploadBody,
     ContentLength?: string,
     Expect?: string,
     ServerSideEncryption?: string,
     ContentSha1?: string,
-    Headers?: COS.Headers,
   }
-  interface MultipartUploadResult extends COS.GeneralResult {
+  interface MultipartUploadResult extends GeneralResult {
     ETag: string
   }
 
   // uploadPartCopy
-  interface UploadPartCopyParams {
-    Bucket: string,
-    Region: string,
-    Key: string,
+  interface UploadPartCopyParams extends GeneralObjectParams {
     CopySource: string,
     UploadId: string,
     PartNumber: string,
@@ -912,66 +758,52 @@ declare namespace COS {
     CopySourceIfNoneMatch?: string,
     CopySourceIfUnmodifiedSince?: string,
     CopySourceIfModifiedSince?: string,
-    Headers?: COS.Headers,
   }
-  interface UploadPartCopyResult extends COS.GeneralResult {
+  interface UploadPartCopyResult extends GeneralResult {
     ETag: string
   }
 
   // multipartComplete
-  interface MultipartCompleteParams {
-    Bucket: string,
-    Region: string,
-    Key: string,
+  interface MultipartCompleteParams extends GeneralObjectParams {
     Parts: object,
-    Headers?: COS.Headers,
   }
-  interface MultipartCompleteResult extends COS.GeneralResult {}
+  interface MultipartCompleteResult extends GeneralResult {}
 
   // multipartList
-  interface MultipartListParams {
-    Bucket: string,
-    Region: string,
+  interface MultipartListParams extends GeneralObjectParams {
     Prefix: string,
-    Delimiter?: '/' | string,
+    Delimiter?: Delimiter,
     EncodingType?: string,
     MaxUploads?: string,
     KeyMarker?: string,
     UploadIdMarker?: string,
-    Headers?: COS.Headers,
   }
-  interface MultipartListResult extends COS.GeneralResult {
+  interface MultipartListResult extends GeneralResult {
     ListMultipartUploadsResult: object
   }
 
   // multipartListPart
-  interface MultipartListPartParams {
-    Bucket: string,
-    Region: string,
-    Key: string,
+  interface MultipartListPartParams extends GeneralObjectParams {
+    Bucket: Bucket,
+    Region: Region,
+    Key: Key,
     UploadId: string,
     EncodingType?: string,
     MaxParts?: string,
     PartNumberMarker?: string,
-    Headers?: COS.Headers,
   }
 
   // multipartAbort
-  interface MultipartAbortParams {
-    Bucket: string,
-    Region: string,
-    Key: string,
+  interface MultipartAbortParams extends GeneralObjectParams {
+    Bucket: Bucket,
+    Region: Region,
+    Key: Key,
     UploadId: string,
-    Headers?: COS.Headers,
   }
 
   // sliceUploadFile
-  interface SliceUploadFileParams {
-    Bucket: string,
-    Region: string,
-    Key: string,
+  interface SliceUploadFileParams extends GeneralObjectParams {
     FilePath: string,
-    Query?: string,
     CacheControl?: string,
     ContentDisposition?: string,
     ContentEncoding?: string,
@@ -980,59 +812,52 @@ declare namespace COS {
     Expires?: string,
     Expect?: string,
     ACL?: string,
-    GrantRead?: string,
-    GrantReadAcp?: string,
-    GrantWriteAcp?: string,
-    GrantFullControl?: string,
+    GrantRead?: Grant,
+    GrantReadAcp?: Grant,
+    GrantWriteAcp?: Grant,
+    GrantFullControl?: Grant,
+    Query?: string,
     StorageClass?: string,
     'x-cos-meta-*'?: string,
     onTaskReady?: Function,
-    onHashProgress?: COS.onProgress,
-    onProgress?: COS.onProgress,
-    Headers?: COS.Headers,
+    onHashProgress?: onProgress,
+    onProgress?: onProgress,
   }
-  interface SliceUploadFileResult extends COS.GeneralResult {}
+  interface SliceUploadFileResult extends GeneralResult {}
 
   // abortUploadTask
-  interface AbortUploadTaskParams {
-    Bucket: string,
-    Region: string,
-    Key: string,
+  interface AbortUploadTaskParams extends GeneralObjectParams {
+    Bucket: Bucket,
+    Region: Region,
+    Key: Key,
     Level?: 'task' | 'file' | 'bucket',
     UploadId?: string,
   }
 
   // uploadFiles
+  type UploadFileItemParams = (PutObjectParams | SliceUploadFileParams) & {
+    FilePath: string,
+    onProgress?: Function,
+    onFileFinish?: (err: Error, data?: object) => void,
+  }
   interface UploadFilesParams {
-    files: {
-      Bucket: string,
-      Region: string,
-      Key: string,
-      FilePath: string,
-      onProgress?: Function,
-      onFileFinish?: (err: COS.Error, data?: object) => void,
-      Headers?: COS.Headers,
-    }[],
+    files: UploadFileItemParams[],
   }
 
   // sliceCopyFile
-  interface SliceCopyFileParams {
-    Bucket: string,
-    Region: string,
-    Key: string,
+  interface SliceCopyFileParams extends GeneralObjectParams {
     CopySource: string,
     CopySliceSize?: number,
     CopyChunkSize?: number,
-    Headers?: COS.Headers,
   }
 
   // getTaskList
   type TaskId = string
   type Task = {
     id: TaskId,
-    Bucket: string,
-    Region: string,
-    Key: string,
+    Bucket: Bucket,
+    Region: Region,
+    Key: Key,
     FilePath: string,
     state: string,
     error: string,
@@ -1045,15 +870,11 @@ declare namespace COS {
   type TaskList = Task[]
 
   // getObjectUrl
-  interface GetObjectUrlParams {
-    Bucket: string,
-    Region: string,
-    Key: string,
+  interface GetObjectUrlParams extends GeneralObjectParams {
     Method: string,
     Sign?: boolean,
     Expires?: number,
-    Headers?: Headers,
-    Query?: COS.Query,
+    Query?: Query,
   }
   interface GetObjectUrlResult {
     Url: string
@@ -1073,8 +894,8 @@ declare namespace COS {
     Method?: string,
     Key?: string,
     Expires?: number,
-    Query?: COS.Query,
-    Headers?: COS.Headers,
+    Query?: Query,
+    Headers?: Headers,
     SecretId?: string,
     SecretKey?: string,
   }
@@ -1686,7 +1507,7 @@ declare class COS {
    * @returns data                          返回的数据
    * @returns data.AccessControlPolicy  权限列表
    */
-  getObjectAcl: ServiceMethod<COS.GetObjectAclParams, COS.GeneralResult>
+  getObjectAcl: ServiceMethod<COS.GetObjectAclParams, COS.GetObjectAclResult>
 
   /**
    * 设置 object 的 权限列表

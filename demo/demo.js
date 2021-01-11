@@ -859,7 +859,8 @@ function putObjectAcl() {
         Region: config.Region,
         Key: '1mb.zip',
         // GrantFullControl: 'id="qcs::cam::uin/1001:uin/1001",id="qcs::cam::uin/1002:uin/1002"',
-        // GrantWrite: 'id="qcs::cam::uin/1001:uin/1001",id="qcs::cam::uin/1002:uin/1002"',
+        // GrantWriteAcp: 'id="qcs::cam::uin/1001:uin/1001",id="qcs::cam::uin/1002:uin/1002"',
+        // GrantReadAcp: 'id="qcs::cam::uin/1001:uin/1001",id="qcs::cam::uin/1002:uin/1002"',
         // GrantRead: 'id="qcs::cam::uin/1001:uin/1001",id="qcs::cam::uin/1002:uin/1002"',
         // ACL: 'public-read-write',
         // ACL: 'public-read',
@@ -1000,6 +1001,78 @@ function selectObjectContent() {
     // 查询 JSON
     cos.selectObjectContent(selectJsonOpt, function (err, data) {
         console.log(err || data);
+    });
+}
+
+function multipartList() {
+    cos.multipartList({
+        Bucket: config.Bucket,
+        Region: config.Region,
+        Prefix: '',
+        MaxUploads: 1,
+        Delimiter: '/'
+    }, function (err, data) {
+        console.log(err || JSON.stringify(data, null, 2));
+    });
+}
+
+function multipartListPart() {
+    cos.multipartListPart({
+        Bucket: config.Bucket,
+        Region: config.Region,
+        Key: "10mb.zip",
+        MaxParts: 1,
+        UploadId: 'xxx',
+    }, function (err, data) {
+        console.log(err || JSON.stringify(data, null, 2));
+    });
+}
+
+function multipartInit() {
+    cos.multipartInit({
+        Bucket: config.Bucket,
+        Region: config.Region,
+        Key: "10mb.zip",
+    }, function (err, data) {
+        console.log(err || JSON.stringify(data, null, 2));
+    });
+}
+
+function multipartUpload() {
+    cos.multipartUpload({
+        Bucket: config.Bucket,
+        Region: config.Region,
+        Key: "10mb.zip",
+        UploadId: 'xxx',
+        PartNumber: 1,
+        Body: '123',
+    }, function (err, data) {
+        console.log(err || JSON.stringify(data, null, 2));
+    });
+}
+
+function multipartCom() {
+    cos.multipartComplete({
+        Bucket: config.Bucket,
+        Region: config.Region,
+        UploadId: 'xxx',
+        Parts: [{
+            PartNumber: '1',
+            ETag: 'xxx',
+        }],
+    }, function (err, data) {
+        console.log(err || JSON.stringify(data, null, 2));
+    });
+}
+
+function multipartAbort() {
+    cos.multipartAbort({
+        Bucket: config.Bucket,
+        Region: config.Region,
+        Key: "10mb.zip",
+        UploadId: 'xxx',
+    }, function (err, data) {
+        console.log(err || JSON.stringify(data, null, 2));
     });
 }
 

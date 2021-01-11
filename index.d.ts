@@ -21,38 +21,39 @@ declare namespace COS {
   type Bucket = string;
   type Region = string;
   type Key = string;
+  type Pathname = string;
+  type VersionId = string;
+  type Prefix = string;
+  type UploadId = string;
   type Delimiter = '/' | string;
+  type EncodingType = 'url' | string;
+  type StorageClass = string;
+  type BooleanString = 'true' | 'false';
   type Location = string;
-  type CreationDate = string;
+  type IsoDateTime = string;
   type UploadBody = Buffer | String | Stream;
-  type DownloadBody = Buffer | String | Stream;
+  type GetObjectBody = Buffer | String | Stream;
   type BodyType = 'text' | 'blob' | 'arraybuffer';
   type Query = Record<string, any>;
   type Headers = Record<string, any>;
-  type Method = | 'get' | 'GET' | 'delete' | 'DELETE' | 'post' | 'POST' | 'put' | 'PUT' | 'patch' | 'PATCH';
-  type Params = Record<string, any>;
-  type Scope = { action: string, bucket: Bucket, region: Region, prefix: string }[];
-  type Owner = { ID: string, DisplayName: string };
+  type Method = 'GET' | 'DELETE' | 'POST' | 'PUT' | 'OPTIONS' | 'get' | 'delete' | 'post' | 'put' | 'options';
+  type Scope = { action: string, bucket: Bucket, region: Region, prefix: Prefix }[];
   type ACL = 'private' | 'public-read' | 'public-read-write' | 'default';
+  type Owner = { ID: string, DisplayName: string };
+  type Initiator = Owner;
   type Grant = string;
-  type Grants = any[];
-  type CORSRules = Record<string, any>[];
-  type Policy = any;
-  type Tags = {
+  type Grants = {
+    Grantee: Owner,
+    Permission: 'READ' | 'WRITE' | 'READ_ACP' | 'WRITE_ACP' | 'FULL_CONTROL'
+  };
+  type Tag = {
     Key: Key,
     Value: string,
-  }[]
-  type LifecycleRule = any;
-  type VersioningConfiguration = Record<string, any>;
-  type ReplicationConfiguration = Record<string, any>;
-  type ReplicationRule = any;
-  type DeleteMarker = any;
-  type ObjectVersion = any;
+  }
+  type DeleteMarkerVersionId = VersionId;
   type WriteStream = any;
   type AccessControlPolicy = any;
   type CopyPartResult = any;
-  type COSObject = any;
-  type RestoreRequest = any;
   type InitiateMultipartUploadResult = Record<string, any>;
   type Part = {
     PartNumber: string;
@@ -63,20 +64,6 @@ declare namespace COS {
     CommonPrefixes: any[];
     Upload: any[];
   }
-  type Credentials = {
-    tmpSecretId: string;
-    tmpSecretKey: Key;
-    sessionToken: string;
-  };
-  type AuthResData = {
-    credentials: {
-      tmpSecretId: string;
-      tmpSecretKey: Key;
-      sessionToken: string;
-    };
-    startTime: number;
-    expiredTime: number;
-  };
   type onProgress = (params: {
     loaded: number,
     total: number,
@@ -117,45 +104,43 @@ declare namespace COS {
      * 获取临时密钥
      */
     getAuthorization?: (
-        options: {
-          Bucket: Bucket,
-          Region: Region,
-          Method: Method,
-          Key: Key,
-          Pathname: string,
-          Query: Query,
-          Headers?: Headers,
-          Scope: Scope,
-        },
+        options: GetAuthorizationOptions,
         callback: (
-            params: string | {
-              TmpSecretId: string,
-              TmpSecretKey: Key,
-              XCosSecurityToken: string,
-              StartTime: number,
-              ExpiredTime: number,
-              ScopeLimit?: boolean,
-            }
+            params: GetAuthorizationCallbackParams
         ) => void
     ) => void,
   }
 
-  interface StaticGetAuthOptions {
-    SecretId?: string,
-    SecretKey?: string,
-    KeyTime?: string,
+  interface StaticGetAuthorizationOptions {
+    SecretId: string,
+    SecretKey: string,
     Method?: Method,
-    method?: Method,
+    Pathname?: Pathname,
     Query?: Query,
-    params?: Params,
-    headers?: Headers,
-    Key?: string,
-    UseRawKey?: boolean,
-    Pathname?: string,
-    pathname?: string,
-    Expires?: number,
-    expires?: number,
+    Headers?: Headers,
+    SystemClockOffset?: number,
   }
+  interface GetAuthorizationOptions {
+    Bucket: Bucket,
+    Region: Region,
+    Method: Method,
+    Key: Key,
+    Pathname: Pathname,
+    Query: Query,
+    Headers: Headers,
+    Scope: Scope,
+    SystemClockOffset: number,
+  }
+  interface Credentials {
+    TmpSecretId: string,
+    TmpSecretKey: string,
+    XCosSecurityToken: string,
+    StartTime: number,
+    ExpiredTime: number,
+    ScopeLimit?: boolean,
+  }
+  type Authorization = string;
+  type GetAuthorizationCallbackParams = Authorization | Credentials;
 
   // 所有接口的入参和出参
   type Error = null | {
@@ -184,7 +169,7 @@ declare namespace COS {
     Buckets: {
       Name: Bucket,
       Location: Location,
-      CreationDate: CreationDate,
+      CreationDate: IsoDateTime,
     }[],
     Owner: Owner,
   }
@@ -203,70 +188,68 @@ declare namespace COS {
     Location: string
   }
 
-  // headBucket
-  interface HeadBucketParams extends GeneralBucketParams {
-  }
-  interface HeadBucketResult extends GeneralResult {
-    BucketExist: boolean,
-    BucketAuth: boolean,
-  }
-
   // getBucket
   interface GetBucketParams extends GeneralBucketParams {
-    Prefix: string,
+    Prefix: Prefix,
     Delimiter?: Delimiter,
-    Marker?: string,
-    MaxKeys?: string,
-    EncodingType?: string,
+    Marker?: Key,
+    MaxKeys?: number,
+    EncodingType?: EncodingType,
+  }
+  interface Object {
+    Key: Key,
+    LastModified: IsoDateTime,
+    ETag: string,
+    Size: string,
+    StorageClass: StorageClass,
+    StorageTier?: string,
+    Owner: Owner,
   }
   interface GetBucketResult extends GeneralResult {
-    Contents: {
-      Key: Key,
-      LastModified: string,
-      ETag: string,
-      Size: string,
-      StorageClass: string,
-      StorageTier?: string,
-      Owner: Owner,
-    }[]
+    Contents: Object[]
     CommonPrefixes: {
-      Prefix: string,
+      Prefix: Prefix,
     }[],
-    IsTruncated: 'false' | 'true',
+    IsTruncated: BooleanString,
     NextMarker?: string,
   }
 
   // listObjectVersions
   interface ListObjectVersionsParams extends GeneralBucketParams {
-    Prefix: string,
+    Prefix: Prefix,
     Delimiter?: Delimiter,
     Marker?: string,
     MaxKeys?: string,
     VersionIdMarker?: string,
-    EncodingType?: string,
+    EncodingType?: EncodingType,
+  }
+  interface DeleteMarker {
+    Key: Key,
+    VersionId: VersionId,
+    IsLatest: string,
+    LastModified: IsoDateTime,
+    Owner: Owner,
+  }
+  interface ObjectVersion {
+    Key: Key,
+    VersionId: VersionId,
+    IsLatest: BooleanString,
+    LastModified: IsoDateTime,
+    ETag: string,
+    Size: string,
+    Owner: Owner,
+    StorageClass: StorageClass,
+    StorageTier?: string,
   }
   interface ListObjectVersionsResult extends GeneralResult {
-    Contents: {
-      Key: Key,
-      VersionId: string,
-      IsLatest: 'false' | 'true',
-      LastModified: string,
-      ETag: string,
-      Size: string,
-      Owner: Owner,
-      StorageClass: string,
-      StorageTier?: string,
-    }[]
     CommonPrefixes: {
-      Prefix: string,
+      Prefix: Prefix,
     }[],
-    IsTruncated: 'false' | 'true',
+    DeleteMarkers: DeleteMarker[],
+    Versions: ObjectVersion[],
+    IsTruncated: BooleanString,
     NextMarker?: string,
     NextVersionIdMarker?: string,
-  }
-
-  // deleteBucket
-  interface DeleteBucketParams extends GeneralBucketParams {
   }
 
   // putBucketAcl
@@ -280,8 +263,6 @@ declare namespace COS {
   }
 
   // getBucketAcl
-  interface GetBucketAclParams extends GeneralBucketParams {
-  }
   interface GetBucketAclResult extends GeneralResult {
     ACL: ACL,
     GrantRead: Grant,
@@ -294,89 +275,111 @@ declare namespace COS {
   }
 
   // putBucketCors
+  type CORSRule = {
+    AllowedOrigin: string[],
+    AllowedMethod: string[],
+    AllowedHeader?: string[],
+    ExposeHeader?: string[],
+    MaxAgeSeconds?: number,
+  };
   interface PutBucketCorsParams extends GeneralBucketParams {
-    CORSRules: {
-      AllowedOrigin: string[],
-      AllowedMethod: string[],
-      AllowedHeader?: string[],
-      ExposeHeader?: string[],
-      MaxAgeSeconds?: number,
-    }[]
+    CORSRules: CORSRule[]
     Headers: Headers
   }
   interface PutBucketCorsResult extends GeneralResult {
     CORSRules: object,
   }
 
-  // getBucketCors
-  interface GetBucketCorsParams extends GeneralBucketParams {
-  }
-
-  // deleteBucketCors
-  interface DeleteBucketCorsParams extends GeneralBucketParams {
-  }
-
   // getBucketLocation
-  interface GetBucketLocationParams extends GeneralBucketParams {
-  }
   interface GetBucketLocationResult {
     LocationConstraint: Region,
   }
 
   // putBucketPolicy
-  interface PutBucketPolicyParams extends GeneralBucketParams {
-    Policy: {
-      version?: string,
-      statement: {
-        effect: 'allow' | 'deny',
-        principal: object,
-        action: string[],
-        resource: string[],
-        condition?: object,
-      }[] | object,
-    },
+  type PolicyStatement = {
+    effect: 'allow' | 'deny',
+    principal: object,
+    action: string[],
+    resource: string[],
+    condition?: object,
   }
-  interface PutBucketPolicyResult extends GeneralResult {
-    Policy: object
+  interface Policy {
+    Statement: PolicyStatement[],
+    version: string,
+  }
+  interface PutBucketPolicyParams extends GeneralBucketParams {
+    Policy: Policy,
   }
 
   // getBucketPolicy
-  interface GetBucketPolicyParams extends GeneralBucketParams {
-  }
   interface GetBucketPolicyResult extends GeneralResult {
-    Policy: {
-      version: string,
-      Statement: {
-        effect: 'allow' | 'deny',
-        principal: object,
-        action: string[],
-        resource: string[],
-        condition?: object,
-      }[],
-    }
-  }
-
-  // deleteBucketPolicy
-  interface DeleteBucketPolicyParams extends GeneralBucketParams {
+    Policy: Policy
   }
 
   // putBucketTagging
   interface PutBucketTaggingParams extends GeneralBucketParams {
-    Tags: Tags,
-  }
-  interface PutBucketTaggingResult extends GeneralResult {
-    Tags: Tags
+    Tags: Tag[],
   }
 
   // getBucketTagging
-  interface GetBucketTaggingParams extends GeneralBucketParams {
-  }
   interface GetBucketTaggingResult extends GeneralResult {
-    Tags: Tags
+    Tags: Tag[]
   }
 
-  // deleteBucketTagging
-  interface DeleteBucketTaggingParams extends GeneralBucketParams {
+  // putBucketLifecycle
+  type LifecycleRule = {
+    ID: '2',
+    Status: 'Enabled' | 'Disabled',
+    Filter?: object,
+    Transition?: object,
+    Expiration?: object,
+    AbortIncompleteMultipartUpload?: object,
+    NoncurrentVersionExpiration?: object,
+    NoncurrentVersionTransition?: object,
+  };
+  interface PutBucketLifecycleParams extends GeneralBucketParams {
+    Rules: LifecycleRule[],
+  }
+
+  // getBucketLifecycle
+  interface GetBucketLifecycleResult extends GeneralResult {
+    Rules: LifecycleRule[]
+  }
+
+  // putBucketVersioning
+  interface VersioningConfiguration {
+    Status: 'Enabled' | 'Suspended',
+  }
+  interface PutBucketVersioningParams extends GeneralBucketParams {
+    VersioningConfiguration,
+  }
+
+  // getBucketVersioning
+  interface GetBucketVersioningResult extends GeneralResult {
+    VersioningConfiguration,
+  }
+
+  // putBucketReplication
+  interface ReplicationRule {
+    ID?: string,
+    Status: 'Enabled' | 'Disabled',
+    Prefix: Prefix,
+    Destination: {
+      Bucket: Bucket,
+      StorageClass?: StorageClass,
+    }
+  }
+  interface ReplicationConfiguration {
+    Role: string,
+    Rules: ReplicationRule[]
+  }
+  interface PutBucketReplicationParams extends GeneralBucketParams {
+    ReplicationConfiguration,
+  }
+
+  // getBucketReplication
+  interface GetBucketReplicationResult extends GeneralResult {
+    ReplicationConfiguration
   }
 
   // putBucketWebsite
@@ -411,32 +414,27 @@ declare namespace COS {
   }
 
   // getBucketWebsite
-  interface GetBucketWebsiteParams extends GeneralBucketParams {
-  }
   interface GetBucketWebsiteResult extends GeneralResult {
     WebsiteConfiguration: WebsiteConfiguration
   }
 
-  // deleteBucketWebsite
-  interface DeleteBucketWebsiteParams extends GeneralBucketParams {
-  }
-
   // putBucketReferer
-  interface PutBucketRefererParams extends GeneralBucketParams {
-    RefererConfiguration: {
-      Status: 'Enabled' | 'Disabled',
-      RefererType: 'Black-List' | 'White-List',
-      DomainList: {
-        Domains: string[]
-      },
-      EmptyReferConfiguration: 'Allow' | 'Deny',
+  interface RefererConfiguration {
+    Status: 'Enabled' | 'Disabled',
+    RefererType: 'Black-List' | 'White-List',
+    DomainList: {
+      Domains: string[]
     },
+    EmptyReferConfiguration?: 'Allow' | 'Deny',
+  }
+  interface PutBucketRefererParams extends GeneralBucketParams {
+    RefererConfiguration: RefererConfiguration,
   }
 
   // getBucketReferer
-  interface GetBucketRefererParams extends GeneralBucketParams {
+  interface GetBucketRefererResult extends GeneralResult {
+    RefererConfiguration: RefererConfiguration,
   }
-  interface GetBucketRefererResult extends GeneralResult {}
 
   // putBucketDomain
   interface PutBucketDomainParams extends GeneralBucketParams {
@@ -448,34 +446,23 @@ declare namespace COS {
   }
 
   // getBucketDomain
-  interface GetBucketDomainParams extends GeneralBucketParams {
+  interface DomainRule {
+    Status: 'DISABLED' | 'ENABLED',
+    Name: string,
+    Type: 'REST' | 'WEBSITE'
   }
   interface GetBucketDomainResult extends GeneralResult {
-    DomainRule: {
-      Status: 'DISABLED' | 'ENABLED',
-      Name: string,
-      Type: 'REST' | 'WEBSITE'
-    }[]
-  }
-
-  // deleteBucketDomain
-  interface DeleteBucketDomainParams extends GeneralBucketParams {
+    DomainRule: DomainRule[]
   }
 
   // putBucketOrigin
   interface PutBucketOriginParams extends GeneralBucketParams {
-    OriginRule: object[],
+    OriginRule: DomainRule[],
   }
 
   // getBucketOrigin
-  interface GetBucketOriginParams extends GeneralBucketParams {
-  }
   interface GetBucketOriginResult extends GeneralResult {
-    OriginRule: object[]
-  }
-
-  // deleteBucketOrigin
-  interface DeleteBucketOriginParams extends GeneralBucketParams {
+    OriginRule: object[],
   }
 
   // putBucketLogging
@@ -483,19 +470,17 @@ declare namespace COS {
     BucketLoggingStatus: {
       LoggingEnabled?: {
         TargetBucket: Bucket,
-        TargetPrefix: string,
+        TargetPrefix: Prefix,
       }
     },
   }
 
   // getBucketLogging
-  interface GetBucketLoggingParams extends GeneralBucketParams {
-  }
   interface GetBucketLoggingResult extends GeneralResult {
     BucketLoggingStatus: {
       LoggingEnabled?: {
         TargetBucket: Bucket,
-        TargetPrefix: string,
+        TargetPrefix: Prefix,
       }
     },
   }
@@ -515,28 +500,19 @@ declare namespace COS {
   }
 
   // listBucketInventory
-  interface ListBucketInventoryParams extends GeneralBucketParams {
-    ContinuationToken: string,
-  }
   interface ListBucketInventoryResult extends GeneralResult {
-    ListInventoryConfigurationResult: object
+    ContinuationToken: string,
+    InventoryConfigurations: object,
+    IsTruncated: BooleanString,
   }
 
   // deleteBucketInventory
   interface DeleteBucketInventoryParams extends GeneralBucketParams {
     Id: string,
   }
-  interface DeleteBucketInventoryResult extends GeneralResult {}
 
   // putBucketAccelerate
   interface PutBucketAccelerateParams extends GeneralBucketParams {
-    AccelerateConfiguration: {
-      Status: 'Enabled' | 'Suspended'
-    },
-  }
-  interface PutBucketAccelerateResult {
-    statusCode: string,
-    headers: string,
     AccelerateConfiguration: {
       Status: 'Enabled' | 'Suspended'
     },
@@ -548,13 +524,12 @@ declare namespace COS {
   }
   interface GetBucketAccelerateResult extends GeneralResult {
     InventoryConfiguration: {
-      Status: 'Enabled' | 'Suspended'
+      Status: 'Enabled' | 'Suspended',
+      Type: 'COS' | string,
     }
   }
 
   // headObject
-  interface HeadObjectParams extends GeneralObjectParams {
-  }
   interface HeadObjectResult extends GeneralResult {
     ETag: string,
     VersionId?: string,
@@ -564,6 +539,7 @@ declare namespace COS {
   interface GetObjectParams extends GeneralObjectParams {
     BodyType?: BodyType,
     Output?: File,
+    Query?: Query,
     IfModifiedSince?: string,
     IfUnmodifiedSince?: string,
     IfMatch?: string,
@@ -574,10 +550,11 @@ declare namespace COS {
     ResponseCacheControl?: string,
     ResponseContentDisposition?: string,
     ResponseContentEncoding?: string,
-    Query?: Query,
   }
   interface GetObjectResult extends GeneralResult {
-    Body: object
+    Body: GetObjectBody,
+    ETag: string,
+    VersionId?: string,
   }
 
   // putObject
@@ -587,7 +564,7 @@ declare namespace COS {
     CacheControl?: string,
     ContentDisposition?: string,
     ContentEncoding?: string,
-    ContentLength?: string,
+    ContentLength?: number,
     ContentType?: string,
     Expires?: string,
     Expect?: string,
@@ -596,7 +573,7 @@ declare namespace COS {
     GrantReadAcp?: Grant,
     GrantWriteAcp?: Grant,
     GrantFullControl?: Grant,
-    StorageClass?: string,
+    StorageClass?: StorageClass,
     'x-cos-meta-*'?: string,
     ContentSha1?: string,
     ServerSideEncryption?: string,
@@ -606,10 +583,7 @@ declare namespace COS {
   interface PutObjectResult extends GeneralResult {
     ETag: string,
     Location: string,
-  }
-
-  // deleteObject
-  interface DeleteObjectParams extends GeneralObjectParams {
+    VersionId?: VersionId,
   }
 
   // deleteMultipleObject
@@ -622,9 +596,9 @@ declare namespace COS {
   interface DeleteMultipleObjectResult extends GeneralResult {
     Deleted: {
       Key: Key,
-      VersionId?: string,
-      DeleteMarker?: 'false' | 'true',
-      DeleteMarkerVersionId?: string,
+      VersionId?: VersionId,
+      DeleteMarker?: DeleteMarker,
+      DeleteMarkerVersionId?: DeleteMarkerVersionId,
     }[],
     Error: {
       Key: Key,
@@ -633,12 +607,9 @@ declare namespace COS {
   }
 
   // getObjectAcl
-  interface GetObjectAclParams extends GeneralObjectParams {
-  }
   interface GetObjectAclResult extends GeneralResult {
     ACL: ACL,
     GrantRead: Grant,
-    GrantWrite: Grant,
     GrantReadAcp: Grant,
     GrantWriteAcp: Grant,
     GrantFullControl: Grant,
@@ -648,10 +619,17 @@ declare namespace COS {
 
   // putObjectAcl
   interface PutObjectAclParams extends GeneralObjectParams {
+    ACL?: ACL,
+    GrantRead?: Grant,
+    GrantReadAcp?: Grant,
+    GrantWriteAcp?: Grant,
+    GrantFullControl?: Grant,
   }
 
   // optionsObject
   interface OptionsObjectParams extends GeneralObjectParams {
+    AccessControlRequestMethod: Method,
+    AccessControlRequestHeaders: string,
   }
   interface OptionsObjectResult extends GeneralResult {
     AccessControlAllowOrigin: string,
@@ -662,22 +640,29 @@ declare namespace COS {
   }
 
   // restoreObject
-  interface RestoreObjectParams extends GeneralObjectParams {
-    RestoreRequest: {
-      Days: number | string,
-      CASJobParameters: {
-        Tier: 'Expedited' | 'Standard' | 'Bulk'
-      }
-    },
+  interface RestoreRequest {
+    Days: number | string,
+    CASJobParameters: {
+      Tier: 'Expedited' | 'Standard' | 'Bulk'
+    }
   }
-  interface RestoreObjectResult extends GeneralResult {}
+  interface RestoreObjectParams extends GeneralObjectParams {
+    RestoreRequest: RestoreRequest,
+  }
 
   // selectObjectContent、selectObjectContentStream
   interface SelectObjectContentParams extends GeneralObjectParams {
     SelectType: number,
     SelectRequest: object,
   }
-  interface SelectObjectContentResult extends GeneralResult {}
+  interface SelectObjectContentResult extends GeneralResult {
+    Stats: {
+      BytesScanned: number,
+      BytesProcessed: number,
+      BytesReturned: number,
+    },
+    Payload?: Buffer,
+  }
 
   // putObjectCopy
   interface PutObjectCopyParams extends GeneralObjectParams {
@@ -692,11 +677,11 @@ declare namespace COS {
     CopySourceIfUnmodifiedSince?: string,
     CopySourceIfMatch?: string,
     CopySourceIfNoneMatch?: string,
-    StorageClass?: string,
+    StorageClass?: StorageClass,
     CacheControl?: string,
     ContentDisposition?: string,
     ContentEncoding?: string,
-    ContentLength?: string,
+    ContentLength?: number,
     ContentType?: string,
     Expires?: string,
     Expect?: string,
@@ -706,15 +691,12 @@ declare namespace COS {
 
   // putObjectTagging
   interface PutObjectTaggingParams extends GeneralObjectParams {
-    Tags: Tags,
+    Tags: Tag[],
   }
 
   // getObjectTagging
-  interface GetObjectTaggingParams extends GeneralObjectParams {
-  }
-
-  // deleteObjectTagging
-  interface DeleteObjectTaggingParams extends GeneralObjectParams {
+  interface GetObjectTaggingResult extends GeneralResult {
+    Tags: Tag[],
   }
 
   // multipartInit
@@ -729,8 +711,9 @@ declare namespace COS {
     GrantReadAcp?: Grant,
     GrantWriteAcp?: Grant,
     GrantFullControl?: Grant,
-    StorageClass?: string,
     Query?: Query,
+    StorageClass?: StorageClass,
+    'x-cos-meta-*'?: string,
   }
   interface MultipartInitResult extends GeneralResult {
     UploadId: string,
@@ -739,7 +722,7 @@ declare namespace COS {
   // multipartUpload
   interface MultipartUploadParams extends GeneralObjectParams {
     Body: UploadBody,
-    ContentLength?: string,
+    ContentLength?: number,
     Expect?: string,
     ServerSideEncryption?: string,
     ContentSha1?: string,
@@ -765,39 +748,61 @@ declare namespace COS {
 
   // multipartComplete
   interface MultipartCompleteParams extends GeneralObjectParams {
-    Parts: object,
+    UploadId: UploadId,
+    Parts: Part[],
   }
-  interface MultipartCompleteResult extends GeneralResult {}
+  interface MultipartCompleteResult extends GeneralResult {
+    ETag: string,
+    Location: string,
+    VersionId?: VersionId,
+  }
 
   // multipartList
-  interface MultipartListParams extends GeneralObjectParams {
-    Prefix: string,
-    Delimiter?: Delimiter,
-    EncodingType?: string,
-    MaxUploads?: string,
-    KeyMarker?: string,
-    UploadIdMarker?: string,
+  interface MultipartListParams extends GeneralBucketParams {
+    Prefix: Prefix,
+    MaxUploads?: number,
+    KeyMarker?: Key,
+    UploadIdMarker?: UploadId,
+    EncodingType?: EncodingType,
   }
   interface MultipartListResult extends GeneralResult {
-    ListMultipartUploadsResult: object
+    Upload: {
+      Key: Key,
+      UploadId: UploadId,
+      Initiator: Initiator,
+      Owner: Owner,
+      StorageClass: StorageClass,
+      Initiated: IsoDateTime
+    }[],
+    IsTruncated: BooleanString,
+    NextKeyMarker: Key,
+    NextUploadIdMarker: UploadId,
   }
 
   // multipartListPart
   interface MultipartListPartParams extends GeneralObjectParams {
-    Bucket: Bucket,
-    Region: Region,
     Key: Key,
-    UploadId: string,
-    EncodingType?: string,
+    UploadId: UploadId,
     MaxParts?: string,
     PartNumberMarker?: string,
+    EncodingType?: EncodingType,
+  }
+  interface MultipartListPartResult extends GeneralResult {
+    Part: {
+      PartNumber: number,
+      LastModified: IsoDateTime,
+      ETag: string,
+      Size: number,
+    }[],
+    Owner: Owner,
+    Initiator: Initiator
+    NextPartNumberMarker: number,
+    StorageClass: StorageClass,
+    IsTruncated: BooleanString,
   }
 
   // multipartAbort
   interface MultipartAbortParams extends GeneralObjectParams {
-    Bucket: Bucket,
-    Region: Region,
-    Key: Key,
     UploadId: string,
   }
 
@@ -807,7 +812,7 @@ declare namespace COS {
     CacheControl?: string,
     ContentDisposition?: string,
     ContentEncoding?: string,
-    ContentLength?: string,
+    ContentLength?: number,
     ContentType?: string,
     Expires?: string,
     Expect?: string,
@@ -817,19 +822,20 @@ declare namespace COS {
     GrantWriteAcp?: Grant,
     GrantFullControl?: Grant,
     Query?: string,
-    StorageClass?: string,
+    StorageClass?: StorageClass,
     'x-cos-meta-*'?: string,
     onTaskReady?: Function,
     onHashProgress?: onProgress,
     onProgress?: onProgress,
   }
-  interface SliceUploadFileResult extends GeneralResult {}
+  interface SliceUploadFileResult extends GeneralResult {
+    ETag: string,
+    Location: string,
+    VersionId?: VersionId,
+  }
 
   // abortUploadTask
   interface AbortUploadTaskParams extends GeneralObjectParams {
-    Bucket: Bucket,
-    Region: Region,
-    Key: Key,
     Level?: 'task' | 'file' | 'bucket',
     UploadId?: string,
   }
@@ -871,10 +877,10 @@ declare namespace COS {
 
   // getObjectUrl
   interface GetObjectUrlParams extends GeneralObjectParams {
-    Method: string,
     Sign?: boolean,
-    Expires?: number,
+    Method: string,
     Query?: Query,
+    Expires?: number,
   }
   interface GetObjectUrlResult {
     Url: string
@@ -911,7 +917,7 @@ declare class COS {
   static version: string;
 
   // 静态方法
-  static getAuthorization: (options: COS.StaticGetAuthOptions) => string;
+  static getAuthorization: (options: COS.StaticGetAuthorizationOptions) => string;
 
   /**
    * 获取用户的 bucket 列表
@@ -950,7 +956,7 @@ declare class COS {
    * @returns data.BucketExist     Bucket是否存在
    * @returns data.BucketAuth      是否有 Bucket 的访问权限
    */
-  headBucket: ServiceMethod<COS.HeadBucketParams, COS.HeadBucketResult>
+  headBucket: ServiceMethod<COS.GeneralBucketParams, COS.GeneralResult>
 
   /**
    * 获取 Bucket 下的 object 列表
@@ -1004,7 +1010,7 @@ declare class COS {
    * @returns data                  返回的数据
    * @returns data.Location     操作地址
    */
-  deleteBucket: ServiceMethod<COS.DeleteBucketParams, COS.GeneralResult>
+  deleteBucket: ServiceMethod<COS.GeneralBucketParams, COS.GeneralResult>
 
   /**
    * 设置 Bucket 的 权限列表
@@ -1033,7 +1039,7 @@ declare class COS {
    * @returns data                          返回的数据
    * @returns data.AccessControlPolicy  访问权限信息
    */
-  getBucketAcl: ServiceMethod<COS.GetBucketAclParams, COS.GetBucketAclResult>
+  getBucketAcl: ServiceMethod<COS.GeneralBucketParams, COS.GetBucketAclResult>
 
   /**
    * 设置 Bucket 的 跨域设置
@@ -1058,7 +1064,7 @@ declare class COS {
    * @returns data                          返回的数据
    * @returns data.CORSRules            Bucket的跨域设置
    */
-  getBucketCors: ServiceMethod<COS.GetBucketCorsParams, COS.PutBucketCorsResult>
+  getBucketCors: ServiceMethod<COS.GeneralBucketParams, COS.PutBucketCorsResult>
 
   /**
    * 删除 Bucket 的 跨域设置
@@ -1069,7 +1075,7 @@ declare class COS {
    * @returns err                   请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
    * @returns data                  返回的数据
    */
-  deleteBucketCors: ServiceMethod<COS.DeleteBucketCorsParams, COS.GeneralResult>
+  deleteBucketCors: ServiceMethod<COS.GeneralBucketParams, COS.GeneralResult>
 
   /**
    * 获取 Bucket 的 地域信息
@@ -1080,7 +1086,7 @@ declare class COS {
    * @returns err               请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
    * @returns data              返回数据，包含地域信息 LocationConstraint
    */
-  getBucketLocation: ServiceMethod<COS.GetBucketLocationParams, COS.GetBucketLocationResult>
+  getBucketLocation: ServiceMethod<COS.GeneralBucketParams, COS.GetBucketLocationResult>
 
   /**
    * 获取 Bucket 的读取权限策略
@@ -1091,7 +1097,7 @@ declare class COS {
    * @returns err               请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
    * @returns data              返回数据
    */
-  putBucketPolicy: ServiceMethod<COS.PutBucketPolicyParams, COS.PutBucketPolicyResult>
+  putBucketPolicy: ServiceMethod<COS.PutBucketPolicyParams, COS.GeneralResult>
 
   /**
    * 获取 Bucket 的读取权限策略
@@ -1102,7 +1108,7 @@ declare class COS {
    * @returns err               请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
    * @returns data              返回数据
    */
-  getBucketPolicy: ServiceMethod<COS.GetBucketPolicyParams, COS.GetBucketPolicyResult>
+  getBucketPolicy: ServiceMethod<COS.GeneralBucketParams, COS.GetBucketPolicyResult>
 
   /**
    * 删除 Bucket 的 跨域设置
@@ -1113,7 +1119,7 @@ declare class COS {
    * @returns err                   请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
    * @returns data                  返回的数据
    */
-  deleteBucketPolicy: ServiceMethod<COS.DeleteBucketPolicyParams, COS.GeneralResult>
+  deleteBucketPolicy: ServiceMethod<COS.GeneralBucketParams, COS.GeneralResult>
 
   /**
    * 设置 Bucket 的标签
@@ -1136,7 +1142,7 @@ declare class COS {
    * @returns err               请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
    * @returns data              返回数据
    */
-  getBucketTagging: ServiceMethod<COS.GetBucketTaggingParams, COS.PutBucketTaggingResult>
+  getBucketTagging: ServiceMethod<COS.GetBucketTaggingResult, COS.GeneralResult>
 
   /**
    * 删除 Bucket 的 标签设置
@@ -1147,7 +1153,96 @@ declare class COS {
    * @returns err               请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
    * @returns data              返回的数据
    */
-  deleteBucketTagging: ServiceMethod<COS.DeleteBucketTaggingParams, COS.GeneralResult>
+  deleteBucketTagging: ServiceMethod<COS.GeneralBucketParams, COS.GeneralResult>
+
+
+  /**
+   * 设置 Bucket 生命周期
+   * @param params - 参数对象，必须
+   * @param params.Bucket - Bucket名称，必须
+   * @param params.Region - 地域名称，必须
+   * @param callback - 回调函数，如果不传会返回 Promise 实例，可选
+   * @returns err               请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
+   * @returns data              返回的数据
+   */
+  putBucketLifecycle: ServiceMethod<COS.PutBucketLifecycleParams, COS.GeneralResult>
+
+  /**
+   *  获取 Bucket 生命周期
+   * @param params - 参数对象，必须
+   * @param params.Bucket - Bucket名称，必须
+   * @param params.Region - 地域名称，必须
+   * @param callback - 回调函数，如果不传会返回 Promise 实例，可选
+   * @returns err               请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
+   * @returns data              返回的数据
+   */
+  getBucketLifecycle: ServiceMethod<COS.GeneralBucketParams, COS.GetBucketLifecycleResult>
+
+  /**
+   * 删除 Bucket 生命周期
+   * @param params - 参数对象，必须
+   * @param params.Bucket - Bucket名称，必须
+   * @param params.Region - 地域名称，必须
+   * @param callback - 回调函数，如果不传会返回 Promise 实例，可选
+   * @returns err               请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
+   * @returns data              返回的数据
+   */
+  deleteBucketLifecycle: ServiceMethod<COS.GeneralBucketParams, COS.GeneralResult>
+
+  /**
+   * 设置 Bucket 版本
+   * @param params - 参数对象，必须
+   * @param params.Bucket - Bucket名称，必须
+   * @param params.Region - 地域名称，必须
+   * @param callback - 回调函数，如果不传会返回 Promise 实例，可选
+   * @returns err               请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
+   * @returns data              返回的数据
+   */
+  putBucketVersioning: ServiceMethod<COS.PutBucketVersioningParams, COS.GeneralResult>
+
+  /**
+   * 获取 Bucket 版本
+   * @param params - 参数对象，必须
+   * @param params.Bucket - Bucket名称，必须
+   * @param params.Region - 地域名称，必须
+   * @param callback - 回调函数，如果不传会返回 Promise 实例，可选
+   * @returns err               请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
+   * @returns data              返回的数据
+   */
+  getBucketVersioning: ServiceMethod<COS.GeneralBucketParams, COS.GetBucketVersioningResult>
+
+  /**
+   * 设置 Bucket 副本
+   * @param params - 参数对象，必须
+   * @param params.Bucket - Bucket名称，必须
+   * @param params.Region - 地域名称，必须
+   * @param callback - 回调函数，如果不传会返回 Promise 实例，可选
+   * @returns err               请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
+   * @returns data              返回的数据
+   */
+  putBucketReplication: ServiceMethod<COS.PutBucketReplicationParams, COS.GeneralResult>
+
+  /**
+   * 获取 Bucket 副本
+   * @param params - 参数对象，必须
+   * @param params.Bucket - Bucket名称，必须
+   * @param params.Region - 地域名称，必须
+   * @param callback - 回调函数，如果不传会返回 Promise 实例，可选
+   * @returns err               请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
+   * @returns data              返回的数据
+   */
+  getBucketReplication: ServiceMethod<COS.GeneralBucketParams, COS.GetBucketReplicationResult>
+
+  /**
+   * 删除 Bucket 副本
+   * @param params - 参数对象，必须
+   * @param params.Bucket - Bucket名称，必须
+   * @param params.Region - 地域名称，必须
+   * @param callback - 回调函数，如果不传会返回 Promise 实例，可选
+   * @returns err               请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
+   * @returns data              返回的数据
+   */
+  deleteBucketReplication: ServiceMethod<COS.GeneralBucketParams, COS.GeneralResult>
 
   /**
    * 设置 Bucket 静态网站配置信息
@@ -1174,7 +1269,7 @@ declare class COS {
    * @returns err               请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
    * @returns data              返回数据
    */
-  getBucketWebsite: ServiceMethod<COS.GetBucketWebsiteParams, COS.GetBucketWebsiteResult>
+  getBucketWebsite: ServiceMethod<COS.GeneralBucketParams, COS.GetBucketWebsiteResult>
 
   /**
    * 删除 Bucket 的静态网站配置
@@ -1185,7 +1280,7 @@ declare class COS {
    * @returns err               请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
    * @returns data              返回数据
    */
-  deleteBucketWebsite: ServiceMethod<COS.DeleteBucketWebsiteParams, COS.GeneralResult>
+  deleteBucketWebsite: ServiceMethod<COS.GeneralBucketParams, COS.GeneralResult>
 
   /**
    * 设置 Bucket 的防盗链白名单或者黑名单
@@ -1212,7 +1307,7 @@ declare class COS {
    * @returns err               请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
    * @returns data              返回数据
    */
-  getBucketReferer: ServiceMethod<COS.GetBucketRefererParams, COS.GetBucketRefererResult>
+  getBucketReferer: ServiceMethod<COS.GeneralBucketParams, COS.GetBucketRefererResult>
 
   /**
    * 设置 Bucket 自定义域名
@@ -1234,7 +1329,7 @@ declare class COS {
    * @returns err               请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
    * @returns data              返回数据
    */
-  getBucketDomain: ServiceMethod<COS.GetBucketDomainParams, COS.GetBucketDomainResult>
+  getBucketDomain: ServiceMethod<COS.GeneralBucketParams, COS.GetBucketDomainResult>
 
   /**
    * 删除 Bucket 自定义域名
@@ -1245,7 +1340,7 @@ declare class COS {
    * @returns err               请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
    * @returns data              返回数据
    */
-  deleteBucketDomain: ServiceMethod<COS.DeleteBucketDomainParams, COS.GeneralResult>
+  deleteBucketDomain: ServiceMethod<COS.GeneralBucketParams, COS.GeneralResult>
 
   /**
    * 设置 Bucket 的回源
@@ -1267,7 +1362,7 @@ declare class COS {
    * @returns err               请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
    * @returns data              返回数据
    */
-  getBucketOrigin: ServiceMethod<COS.GetBucketOriginParams, COS.GetBucketOriginResult>
+  getBucketOrigin: ServiceMethod<COS.GeneralBucketParams, COS.GetBucketOriginResult>
 
   /**
    * 删除 Bucket 的回源
@@ -1278,7 +1373,7 @@ declare class COS {
    * @returns err               请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
    * @returns data              返回数据
    */
-  deleteBucketOrigin: ServiceMethod<COS.DeleteBucketOriginParams, COS.GeneralResult>
+  deleteBucketOrigin: ServiceMethod<COS.GeneralBucketParams, COS.GeneralResult>
 
   /**
    * 设置 Bucket 的日志记录
@@ -1301,7 +1396,7 @@ declare class COS {
    * @returns err               请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
    * @returns data              返回数据
    */
-  getBucketLogging: ServiceMethod<COS.GetBucketLoggingParams, COS.GetBucketLoggingResult>
+  getBucketLogging: ServiceMethod<COS.GeneralBucketParams, COS.GetBucketLoggingResult>
 
   /**
    * 创建/编辑 Bucket 的清单任务
@@ -1338,7 +1433,7 @@ declare class COS {
    * @returns err                               请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
    * @returns data                              返回数据
    */
-  listBucketInventory: ServiceMethod<COS.ListBucketInventoryParams, COS.ListBucketInventoryResult>
+  listBucketInventory: ServiceMethod<COS.GeneralBucketParams, COS.ListBucketInventoryResult>
 
   /**
    * 删除 Bucket 的清单任务
@@ -1363,7 +1458,7 @@ declare class COS {
    * @returns err                                                   请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
    * @returns data                                                  返回数据
    */
-  putBucketAccelerate: ServiceMethod<COS.PutBucketAccelerateParams, COS.PutBucketAccelerateResult>
+  putBucketAccelerate: ServiceMethod<COS.PutBucketAccelerateParams, COS.GeneralResult>
 
   /**
    * 查询存储桶的全球加速功能配置
@@ -1389,7 +1484,7 @@ declare class COS {
    * @returns data                          为指定 object 的元数据，如果设置了 IfModifiedSince ，且文件未修改，则返回一个对象，NotModified 属性为 true
    * @returns data.NotModified         是否在 IfModifiedSince 时间点之后未修改该 object，则为 true
    */
-  headObject: ServiceMethod<COS.HeadObjectParams, COS.HeadObjectResult>
+  headObject: ServiceMethod<COS.GeneralObjectParams, COS.HeadObjectResult>
 
   /**
    * 下载 object
@@ -1482,7 +1577,7 @@ declare class COS {
    * @returns err - 请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
    * @returns data - 删除操作成功之后返回的数据
    */
-  deleteObject: ServiceMethod<COS.DeleteObjectParams, COS.GeneralResult>
+  deleteObject: ServiceMethod<COS.GeneralObjectParams, COS.GeneralResult>
 
   /**
    * 批量删除 object
@@ -1507,7 +1602,7 @@ declare class COS {
    * @returns data                          返回的数据
    * @returns data.AccessControlPolicy  权限列表
    */
-  getObjectAcl: ServiceMethod<COS.GetObjectAclParams, COS.GetObjectAclResult>
+  getObjectAcl: ServiceMethod<COS.GeneralObjectParams, COS.GetObjectAclResult>
 
   /**
    * 设置 object 的 权限列表
@@ -1546,7 +1641,7 @@ declare class COS {
    * @returns err               请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
    * @returns data              返回的数据
    */
-  restoreObject: ServiceMethod<COS.RestoreObjectParams, COS.RestoreObjectResult>
+  restoreObject: ServiceMethod<COS.RestoreObjectParams, COS.GeneralResult>
 
   /**
    * 检索对象内容
@@ -1634,7 +1729,7 @@ declare class COS {
    * @returns data              返回的数据
    * @returns data.Tags         返回的标签列表 [{Key: 'k1', Value: 'v1'}]
    */
-  getObjectTagging: ServiceMethod<COS.GetObjectTaggingParams, COS.GetBucketTaggingResult>
+  getObjectTagging: ServiceMethod<COS.GeneralObjectParams, COS.GetObjectTaggingResult>
 
   /**
    * 删除对象标签
@@ -1646,7 +1741,7 @@ declare class COS {
    * @returns err               请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
    * @returns data              返回的数据
    */
-  deleteObjectTagging: ServiceMethod<COS.DeleteObjectTaggingParams, COS.GeneralResult>
+  deleteObjectTagging: ServiceMethod<COS.GeneralObjectParams, COS.GeneralResult>
 
   /**
    * 初始化分块上传
@@ -1742,7 +1837,7 @@ declare class COS {
    * @returns data                                  返回的数据
    * @returns data.ListMultipartUploadsResult   分块上传任务信息
    */
-  multipartList: ServiceMethod<COS.MultipartListParams, COS.GeneralResult>
+  multipartList: ServiceMethod<COS.MultipartListParams, COS.MultipartListResult>
 
   /**
    * 上传的分块列表查询
@@ -1759,7 +1854,7 @@ declare class COS {
    * @returns data                                  返回的数据
    * @returns data.ListMultipartUploadsResult   分块信息
    */
-  multipartListPart: ServiceMethod<COS.MultipartListPartParams, COS.MultipartListResult>
+  multipartListPart: ServiceMethod<COS.MultipartListPartParams, COS.MultipartListPartResult>
 
   /**
    * 抛弃分块上传

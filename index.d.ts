@@ -5,15 +5,6 @@
  */
 import { Stream } from 'stream';
 
-interface ServiceMethod<Params, Result> {
-  (params: Params, callback: (err: COS.Error, data: Result) => void): void;
-  (params: Params): Promise<Result>;
-}
-
-interface StreamMethod<Params, Result> {
-  (params: Params, callback?: (err: COS.Error, data: Result) => void): Stream;
-}
-
 declare namespace COS {
 
   // 外部类型
@@ -155,7 +146,7 @@ declare namespace COS {
   interface GeneralParams {
     Headers?: Headers,
   }
-  interface GeneralBucketParams extends GeneralParams  {
+  interface GeneralBucketParams extends GeneralParams {
     Bucket: Bucket,
     Region: Region,
   }
@@ -164,7 +155,7 @@ declare namespace COS {
   }
 
   // getService
-  type GetServiceParams = COS.GeneralParams
+  interface GetServiceParams extends GeneralParams {}
   interface GetServiceResult extends GeneralResult {
     Buckets: {
       Name: Bucket,
@@ -187,6 +178,10 @@ declare namespace COS {
   interface PutBucketResult extends GeneralResult {
     Location: string
   }
+
+  // headBucket
+  interface HeadBucketParams extends GeneralBucketParams {}
+  interface HeadBucketResult extends GeneralResult {}
 
   // getBucket
   interface GetBucketParams extends GeneralBucketParams {
@@ -252,6 +247,10 @@ declare namespace COS {
     NextVersionIdMarker?: string,
   }
 
+  // deleteBucket
+  interface DeleteBucketParams extends GeneralBucketParams {}
+  interface DeleteBucketResult extends GeneralResult {}
+
   // putBucketAcl
   interface PutBucketAclParams extends GeneralBucketParams {
     ACL?: ACL,
@@ -261,8 +260,10 @@ declare namespace COS {
     GrantWriteAcp?: Grant,
     GrantFullControl?: Grant,
   }
+  interface PutBucketAclResult extends GeneralResult {}
 
   // getBucketAcl
+  interface GetBucketAclParams extends GeneralBucketParams {}
   interface GetBucketAclResult extends GeneralResult {
     ACL: ACL,
     GrantRead: Grant,
@@ -290,10 +291,19 @@ declare namespace COS {
     CORSRules: object,
   }
 
+  // getBucketCors
+  interface GetBucketCorsParams extends GeneralBucketParams {}
+  interface GetBucketCorsResult extends GeneralResult {}
+
+  // deleteBucketCors
+  interface DeleteBucketCorsParams extends GeneralBucketParams {}
+  interface DeleteBucketCorsResult extends GeneralResult {}
+
   // getBucketLocation
   interface GetBucketLocationResult {
     LocationConstraint: Region,
   }
+  interface GetBucketLocationParams extends GeneralBucketParams {}
 
   // putBucketPolicy
   type PolicyStatement = {
@@ -310,21 +320,32 @@ declare namespace COS {
   interface PutBucketPolicyParams extends GeneralBucketParams {
     Policy: Policy,
   }
+  interface PutBucketPolicyResult extends GeneralResult {}
 
   // getBucketPolicy
+  interface GetBucketPolicyParams extends GeneralBucketParams {}
   interface GetBucketPolicyResult extends GeneralResult {
     Policy: Policy
   }
+
+  // deleteBucketPolicy
+  interface DeleteBucketPolicyParams extends GeneralBucketParams {}
+  interface DeleteBucketPolicyResult extends GeneralResult {}
 
   // putBucketTagging
   interface PutBucketTaggingParams extends GeneralBucketParams {
     Tags: Tag[],
   }
+  interface PutBucketTaggingResult extends GeneralResult {}
 
   // getBucketTagging
   interface GetBucketTaggingResult extends GeneralResult {
     Tags: Tag[]
   }
+
+  // deleteBucketTagging
+  interface DeleteBucketTaggingParams extends GeneralBucketParams {}
+  interface DeleteBucketTaggingResult extends GeneralResult {}
 
   // putBucketLifecycle
   type LifecycleRule = {
@@ -340,11 +361,17 @@ declare namespace COS {
   interface PutBucketLifecycleParams extends GeneralBucketParams {
     Rules: LifecycleRule[],
   }
+  interface PutBucketLifecycleResult extends GeneralResult {}
 
   // getBucketLifecycle
+  interface GetBucketLifecycleParams extends GeneralBucketParams {}
   interface GetBucketLifecycleResult extends GeneralResult {
     Rules: LifecycleRule[]
   }
+
+  // deleteBucketLifecycle
+  interface DeleteBucketLifecycleParams extends GeneralBucketParams {}
+  interface DeleteBucketLifecycleResult extends GeneralResult {}
 
   // putBucketVersioning
   interface VersioningConfiguration {
@@ -353,8 +380,10 @@ declare namespace COS {
   interface PutBucketVersioningParams extends GeneralBucketParams {
     VersioningConfiguration,
   }
+  interface PutBucketVersioningResult extends GeneralResult {}
 
   // getBucketVersioning
+  interface GetBucketVersioningParams extends GeneralBucketParams {}
   interface GetBucketVersioningResult extends GeneralResult {
     VersioningConfiguration,
   }
@@ -376,11 +405,17 @@ declare namespace COS {
   interface PutBucketReplicationParams extends GeneralBucketParams {
     ReplicationConfiguration,
   }
+  interface PutBucketReplicationResult extends GeneralResult {}
 
   // getBucketReplication
+  interface GetBucketReplicationParams extends GeneralBucketParams {}
   interface GetBucketReplicationResult extends GeneralResult {
     ReplicationConfiguration
   }
+
+  // deleteBucketReplication
+  interface DeleteBucketReplicationParams extends GeneralBucketParams {}
+  interface DeleteBucketReplicationResult extends GeneralResult {}
 
   // putBucketWebsite
   interface WebsiteConfiguration {
@@ -412,11 +447,17 @@ declare namespace COS {
   interface PutBucketWebsiteParams extends GeneralBucketParams {
     WebsiteConfiguration: WebsiteConfiguration,
   }
+  interface PutBucketWebsiteResult extends GeneralResult {}
 
   // getBucketWebsite
+  interface GetBucketWebsiteParams extends GeneralBucketParams {}
   interface GetBucketWebsiteResult extends GeneralResult {
     WebsiteConfiguration: WebsiteConfiguration
   }
+
+  // deleteBucketWebsite
+  interface DeleteBucketWebsiteParams extends GeneralBucketParams {}
+  interface DeleteBucketWebsiteResult extends GeneralResult {}
 
   // putBucketReferer
   interface RefererConfiguration {
@@ -430,8 +471,10 @@ declare namespace COS {
   interface PutBucketRefererParams extends GeneralBucketParams {
     RefererConfiguration: RefererConfiguration,
   }
+  interface PutBucketRefererResult extends GeneralResult {}
 
   // getBucketReferer
+  interface GetBucketRefererParams extends GeneralBucketParams {}
   interface GetBucketRefererResult extends GeneralResult {
     RefererConfiguration: RefererConfiguration,
   }
@@ -444,6 +487,7 @@ declare namespace COS {
       Type: 'REST' | 'WEBSITE'
     },
   }
+  interface PutBucketDomainResult extends GeneralResult {}
 
   // getBucketDomain
   interface DomainRule {
@@ -451,19 +495,30 @@ declare namespace COS {
     Name: string,
     Type: 'REST' | 'WEBSITE'
   }
+  interface GetBucketDomainParams extends GeneralBucketParams {}
   interface GetBucketDomainResult extends GeneralResult {
     DomainRule: DomainRule[]
   }
+
+  // deleteBucketDomain
+  interface DeleteBucketDomainParams extends GeneralBucketParams {}
+  interface DeleteBucketDomainResult extends GeneralResult {}
 
   // putBucketOrigin
   interface PutBucketOriginParams extends GeneralBucketParams {
     OriginRule: DomainRule[],
   }
+  interface PutBucketOriginResult extends GeneralResult {}
 
   // getBucketOrigin
+  interface GetBucketOriginParams extends GeneralBucketParams {}
   interface GetBucketOriginResult extends GeneralResult {
     OriginRule: object[],
   }
+
+  // deleteBucketOrigin
+  interface DeleteBucketOriginParams extends GeneralBucketParams {}
+  interface DeleteBucketOriginResult extends GeneralResult {}
 
   // putBucketLogging
   interface PutBucketLoggingParams extends GeneralBucketParams {
@@ -474,8 +529,10 @@ declare namespace COS {
       }
     },
   }
+  interface PutBucketLoggingResult extends GeneralResult {}
 
   // getBucketLogging
+  interface GetBucketLoggingParams extends GeneralBucketParams {}
   interface GetBucketLoggingResult extends GeneralResult {
     BucketLoggingStatus: {
       LoggingEnabled?: {
@@ -490,6 +547,7 @@ declare namespace COS {
     Id: string,
     InventoryConfiguration: object,
   }
+  interface PutBucketInventoryResult extends GeneralResult {}
 
   // getBucketInventory
   interface GetBucketInventoryParams extends GeneralBucketParams {
@@ -500,6 +558,7 @@ declare namespace COS {
   }
 
   // listBucketInventory
+  interface ListBucketInventoryParams extends GeneralBucketParams {}
   interface ListBucketInventoryResult extends GeneralResult {
     ContinuationToken: string,
     InventoryConfigurations: object,
@@ -510,6 +569,7 @@ declare namespace COS {
   interface DeleteBucketInventoryParams extends GeneralBucketParams {
     Id: string,
   }
+  interface DeleteBucketInventoryResult extends GeneralResult {}
 
   // putBucketAccelerate
   interface PutBucketAccelerateParams extends GeneralBucketParams {
@@ -517,6 +577,7 @@ declare namespace COS {
       Status: 'Enabled' | 'Suspended'
     },
   }
+  interface PutBucketAccelerateResult extends GeneralResult {}
 
   // getBucketAccelerate
   interface GetBucketAccelerateParams extends GeneralBucketParams {
@@ -530,12 +591,14 @@ declare namespace COS {
   }
 
   // headObject
+  interface HeadObjectParams extends GeneralObjectParams {}
   interface HeadObjectResult extends GeneralResult {
     ETag: string,
     VersionId?: string,
   }
 
-  // getObject、getObjectStream
+  // getObject
+  // getObjectStream
   interface GetObjectParams extends GeneralObjectParams {
     BodyType?: BodyType,
     Output?: File,
@@ -586,6 +649,10 @@ declare namespace COS {
     VersionId?: VersionId,
   }
 
+  // deleteObject
+  interface DeleteObjectParams extends GeneralObjectParams {}
+  interface DeleteObjectResult extends GeneralResult {}
+
   // deleteMultipleObject
   interface DeleteMultipleObjectParams extends GeneralObjectParams {
     Objects: {
@@ -607,6 +674,7 @@ declare namespace COS {
   }
 
   // getObjectAcl
+  interface GetObjectAclParams extends GeneralObjectParams {}
   interface GetObjectAclResult extends GeneralResult {
     ACL: ACL,
     GrantRead: Grant,
@@ -625,6 +693,7 @@ declare namespace COS {
     GrantWriteAcp?: Grant,
     GrantFullControl?: Grant,
   }
+  interface PutObjectAclResult extends GeneralResult {}
 
   // optionsObject
   interface OptionsObjectParams extends GeneralObjectParams {
@@ -649,8 +718,10 @@ declare namespace COS {
   interface RestoreObjectParams extends GeneralObjectParams {
     RestoreRequest: RestoreRequest,
   }
+  interface RestoreObjectResult extends GeneralResult {}
 
-  // selectObjectContent、selectObjectContentStream
+  // selectObjectContent
+  // selectObjectContentStream
   interface SelectObjectContentParams extends GeneralObjectParams {
     SelectType: number,
     SelectRequest: object,
@@ -688,16 +759,23 @@ declare namespace COS {
     ContentLanguage?: string,
     'x-cos-meta-*'?: string
   }
+  interface PutObjectCopyResult extends GeneralResult {}
 
   // putObjectTagging
   interface PutObjectTaggingParams extends GeneralObjectParams {
     Tags: Tag[],
   }
+  interface PutObjectTaggingResult extends GeneralResult {}
 
   // getObjectTagging
+  interface GetObjectTaggingParams extends GeneralObjectParams {}
   interface GetObjectTaggingResult extends GeneralResult {
     Tags: Tag[],
   }
+
+  // deleteObjectTagging
+  interface DeleteObjectTaggingParams extends GeneralObjectParams {}
+  interface DeleteObjectTaggingResult extends GeneralResult {}
 
   // multipartInit
   interface MultipartInitParams extends GeneralObjectParams {
@@ -805,6 +883,7 @@ declare namespace COS {
   interface MultipartAbortParams extends GeneralObjectParams {
     UploadId: string,
   }
+  interface MultipartAbortResult extends GeneralResult {}
 
   // sliceUploadFile
   interface SliceUploadFileParams extends GeneralObjectParams {
@@ -839,15 +918,29 @@ declare namespace COS {
     Level?: 'task' | 'file' | 'bucket',
     UploadId?: string,
   }
+  interface AbortUploadTaskResult extends GeneralResult {}
 
   // uploadFiles
   type UploadFileItemParams = (PutObjectParams | SliceUploadFileParams) & {
     FilePath: string,
-    onProgress?: Function,
+    onProgress?: onProgress,
     onFileFinish?: (err: Error, data?: object) => void,
+  }
+  interface UploadFileItemResult extends GeneralResult {
+    ETag: string,
+    Location: string,
+    VersionId?: VersionId,
   }
   interface UploadFilesParams {
     files: UploadFileItemParams[],
+    SliceSize: number,
+    onProgress?: onProgress,
+    onFileFinish?: (err: Error, data?: object) => void,
+  }
+  interface UploadFilesResult extends GeneralResult {
+    files: {
+      options: UploadFileItemParams, error: Error, data: UploadFileItemResult,
+    }[],
   }
 
   // sliceCopyFile
@@ -856,6 +949,7 @@ declare namespace COS {
     CopySliceSize?: number,
     CopyChunkSize?: number,
   }
+  interface SliceCopyFileResult extends GeneralResult {}
 
   // getTaskList
   type TaskId = string
@@ -925,7 +1019,8 @@ declare class COS {
    * 无特殊参数
    * @param callback - 回调函数，如果不传会返回 Promise 实例，可选
    */
-  getService: ServiceMethod<COS.GetServiceParams, COS.GetServiceResult>
+  getService(params: COS.GetServiceParams, callback: (err: COS.Error, data: COS.GetServiceResult) => void): void;
+  getService(params: COS.GetServiceParams): Promise<COS.GetServiceResult>;
 
   /**
    * 创建 Bucket，并初始化访问权限
@@ -943,7 +1038,8 @@ declare class COS {
    * @returns data                          返回的数据
    * @returns data.Location             操作地址
    */
-  putBucket: ServiceMethod<COS.PutBucketParams, COS.PutBucketResult>
+  putBucket(params: COS.PutBucketParams, callback: (err: COS.Error, data: COS.PutBucketResult) => void): void;
+  putBucket(params: COS.PutBucketParams): Promise<COS.PutBucketResult>;
 
   /**
    * 查看是否存在该Bucket，是否有权限访问
@@ -956,7 +1052,8 @@ declare class COS {
    * @returns data.BucketExist     Bucket是否存在
    * @returns data.BucketAuth      是否有 Bucket 的访问权限
    */
-  headBucket: ServiceMethod<COS.GeneralBucketParams, COS.GeneralResult>
+  headBucket(params: COS.HeadBucketParams, callback: (err: COS.Error, data: COS.HeadBucketResult) => void): void;
+  headBucket(params: COS.HeadBucketParams): Promise<COS.HeadBucketResult>;
 
   /**
    * 获取 Bucket 下的 object 列表
@@ -976,7 +1073,8 @@ declare class COS {
    * @returns data.NextMarker     继续列出文件的时候要传入的 Marker
    * @returns data.NextVersionIdMarker     继续列出文件的时候要传入的 VersionIdMarker
    */
-  getBucket: ServiceMethod<COS.GetBucketParams, COS.GetBucketResult>
+  getBucket(params: COS.GetBucketParams, callback: (err: COS.Error, data: COS.GetBucketResult) => void): void;
+  getBucket(params: COS.GetBucketParams): Promise<COS.GetBucketResult>;
 
   /**
    * 获取 Bucket 下的 object 版本列表
@@ -998,7 +1096,8 @@ declare class COS {
    * @returns data.NextMarker     继续列出文件的时候要传入的 Marker
    * @returns data.NextVersionIdMarker     继续列出文件的时候要传入的 VersionIdMarker
    */
-  listObjectVersions: ServiceMethod<COS.ListObjectVersionsParams, COS.ListObjectVersionsResult>
+  listObjectVersions(params: COS.ListObjectVersionsParams, callback: (err: COS.Error, data: COS.ListObjectVersionsResult) => void): void;
+  listObjectVersions(params: COS.ListObjectVersionsParams): Promise<COS.ListObjectVersionsResult>;
 
   /**
    * 删除 Bucket
@@ -1010,7 +1109,8 @@ declare class COS {
    * @returns data                  返回的数据
    * @returns data.Location     操作地址
    */
-  deleteBucket: ServiceMethod<COS.GeneralBucketParams, COS.GeneralResult>
+  deleteBucket(params: COS.DeleteBucketParams, callback: (err: COS.Error, data: COS.DeleteBucketResult) => void): void;
+  deleteBucket(params: COS.DeleteBucketParams): Promise<COS.DeleteBucketResult>;
 
   /**
    * 设置 Bucket 的 权限列表
@@ -1027,7 +1127,8 @@ declare class COS {
    * @returns err                           请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
    * @returns data                          返回的数据
    */
-  putBucketAcl: ServiceMethod<COS.PutBucketAclParams, COS.GeneralResult>
+  putBucketAcl(params: COS.PutBucketAclParams, callback: (err: COS.Error, data: COS.PutBucketAclResult) => void): void;
+  putBucketAcl(params: COS.PutBucketAclParams): Promise<COS.PutBucketAclResult>;
 
   /**
    * 获取 Bucket 的 权限列表
@@ -1039,7 +1140,8 @@ declare class COS {
    * @returns data                          返回的数据
    * @returns data.AccessControlPolicy  访问权限信息
    */
-  getBucketAcl: ServiceMethod<COS.GeneralBucketParams, COS.GetBucketAclResult>
+  getBucketAcl(params: COS.GetBucketAclParams, callback: (err: COS.Error, data: COS.GetBucketAclResult) => void): void;
+  getBucketAcl(params: COS.GetBucketAclParams): Promise<COS.GetBucketAclResult>;
 
   /**
    * 设置 Bucket 的 跨域设置
@@ -1052,7 +1154,8 @@ declare class COS {
    * @returns err                               请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
    * @returns data                              返回的数据
    */
-  putBucketCors: ServiceMethod<COS.PutBucketCorsParams, COS.GeneralResult>
+  putBucketCors(params: COS.PutBucketCorsParams, callback: (err: COS.Error, data: COS.PutBucketCorsResult) => void): void;
+  putBucketCors(params: COS.PutBucketCorsParams): Promise<COS.PutBucketCorsResult>;
 
   /**
    * 获取 Bucket 的 跨域设置
@@ -1064,7 +1167,8 @@ declare class COS {
    * @returns data                          返回的数据
    * @returns data.CORSRules            Bucket的跨域设置
    */
-  getBucketCors: ServiceMethod<COS.GeneralBucketParams, COS.PutBucketCorsResult>
+  getBucketCors(params: COS.GetBucketCorsParams, callback: (err: COS.Error, data: COS.PutBucketCorsResult) => void): void;
+  getBucketCors(params: COS.GetBucketCorsParams): Promise<COS.PutBucketCorsResult>;
 
   /**
    * 删除 Bucket 的 跨域设置
@@ -1075,7 +1179,8 @@ declare class COS {
    * @returns err                   请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
    * @returns data                  返回的数据
    */
-  deleteBucketCors: ServiceMethod<COS.GeneralBucketParams, COS.GeneralResult>
+  deleteBucketCors(params: COS.DeleteBucketCorsParams, callback: (err: COS.Error, data: COS.DeleteBucketCorsResult) => void): void;
+  deleteBucketCors(params: COS.DeleteBucketCorsParams): Promise<COS.DeleteBucketCorsResult>;
 
   /**
    * 获取 Bucket 的 地域信息
@@ -1086,7 +1191,8 @@ declare class COS {
    * @returns err               请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
    * @returns data              返回数据，包含地域信息 LocationConstraint
    */
-  getBucketLocation: ServiceMethod<COS.GeneralBucketParams, COS.GetBucketLocationResult>
+  getBucketLocation(params: COS.GetBucketLocationParams, callback: (err: COS.Error, data: COS.GetBucketLocationResult) => void): void;
+  getBucketLocation(params: COS.GetBucketLocationParams): Promise<COS.GetBucketLocationResult>;
 
   /**
    * 获取 Bucket 的读取权限策略
@@ -1097,7 +1203,8 @@ declare class COS {
    * @returns err               请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
    * @returns data              返回数据
    */
-  putBucketPolicy: ServiceMethod<COS.PutBucketPolicyParams, COS.GeneralResult>
+  putBucketPolicy(params: COS.PutBucketPolicyParams, callback: (err: COS.Error, data: COS.PutBucketPolicyResult) => void): void;
+  putBucketPolicy(params: COS.PutBucketPolicyParams): Promise<COS.PutBucketPolicyResult>;
 
   /**
    * 获取 Bucket 的读取权限策略
@@ -1108,7 +1215,8 @@ declare class COS {
    * @returns err               请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
    * @returns data              返回数据
    */
-  getBucketPolicy: ServiceMethod<COS.GeneralBucketParams, COS.GetBucketPolicyResult>
+  getBucketPolicy(params: COS.GetBucketPolicyParams, callback: (err: COS.Error, data: COS.GetBucketPolicyResult) => void): void;
+  getBucketPolicy(params: COS.GetBucketPolicyParams): Promise<COS.GetBucketPolicyResult>;
 
   /**
    * 删除 Bucket 的 跨域设置
@@ -1119,7 +1227,8 @@ declare class COS {
    * @returns err                   请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
    * @returns data                  返回的数据
    */
-  deleteBucketPolicy: ServiceMethod<COS.GeneralBucketParams, COS.GeneralResult>
+  deleteBucketPolicy(params: COS.DeleteBucketPolicyParams, callback: (err: COS.Error, data: COS.DeleteBucketPolicyResult) => void): void;
+  deleteBucketPolicy(params: COS.DeleteBucketPolicyParams): Promise<COS.DeleteBucketPolicyResult>;
 
   /**
    * 设置 Bucket 的标签
@@ -1131,7 +1240,8 @@ declare class COS {
    * @returns err               请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
    * @returns data              返回数据
    */
-  putBucketTagging: ServiceMethod<COS.PutBucketTaggingParams, COS.GeneralResult>
+  putBucketTagging(params: COS.PutBucketTaggingParams, callback: (err: COS.Error, data: COS.PutBucketTaggingResult) => void): void;
+  putBucketTagging(params: COS.PutBucketTaggingParams): Promise<COS.PutBucketTaggingResult>;
 
   /**
    * 获取 Bucket 的标签设置
@@ -1142,7 +1252,8 @@ declare class COS {
    * @returns err               请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
    * @returns data              返回数据
    */
-  getBucketTagging: ServiceMethod<COS.GetBucketTaggingResult, COS.GeneralResult>
+  getBucketTagging(params: COS.GetBucketTaggingResult, callback: (err: COS.Error, data: COS.GetBucketTaggingResult) => void): void;
+  getBucketTagging(params: COS.GetBucketTaggingResult): Promise<COS.GetBucketTaggingResult>;
 
   /**
    * 删除 Bucket 的 标签设置
@@ -1153,7 +1264,8 @@ declare class COS {
    * @returns err               请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
    * @returns data              返回的数据
    */
-  deleteBucketTagging: ServiceMethod<COS.GeneralBucketParams, COS.GeneralResult>
+  deleteBucketTagging(params: COS.DeleteBucketTaggingParams, callback: (err: COS.Error, data: COS.DeleteBucketTaggingResult) => void): void;
+  deleteBucketTagging(params: COS.DeleteBucketTaggingParams): Promise<COS.DeleteBucketTaggingResult>;
 
 
   /**
@@ -1165,7 +1277,8 @@ declare class COS {
    * @returns err               请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
    * @returns data              返回的数据
    */
-  putBucketLifecycle: ServiceMethod<COS.PutBucketLifecycleParams, COS.GeneralResult>
+  putBucketLifecycle(params: COS.PutBucketLifecycleParams, callback: (err: COS.Error, data: COS.PutBucketLifecycleResult) => void): void;
+  putBucketLifecycle(params: COS.PutBucketLifecycleParams): Promise<COS.PutBucketLifecycleResult>;
 
   /**
    *  获取 Bucket 生命周期
@@ -1176,7 +1289,8 @@ declare class COS {
    * @returns err               请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
    * @returns data              返回的数据
    */
-  getBucketLifecycle: ServiceMethod<COS.GeneralBucketParams, COS.GetBucketLifecycleResult>
+  getBucketLifecycle(params: COS.GetBucketLifecycleParams, callback: (err: COS.Error, data: COS.GetBucketLifecycleResult) => void): void;
+  getBucketLifecycle(params: COS.GetBucketLifecycleParams): Promise<COS.GetBucketLifecycleResult>;
 
   /**
    * 删除 Bucket 生命周期
@@ -1187,7 +1301,8 @@ declare class COS {
    * @returns err               请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
    * @returns data              返回的数据
    */
-  deleteBucketLifecycle: ServiceMethod<COS.GeneralBucketParams, COS.GeneralResult>
+  deleteBucketLifecycle(params: COS.DeleteBucketLifecycleParams, callback: (err: COS.Error, data: COS.DeleteBucketLifecycleResult) => void): void;
+  deleteBucketLifecycle(params: COS.DeleteBucketLifecycleParams): Promise<COS.DeleteBucketLifecycleResult>;
 
   /**
    * 设置 Bucket 版本
@@ -1198,7 +1313,8 @@ declare class COS {
    * @returns err               请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
    * @returns data              返回的数据
    */
-  putBucketVersioning: ServiceMethod<COS.PutBucketVersioningParams, COS.GeneralResult>
+  putBucketVersioning(params: COS.PutBucketVersioningParams, callback: (err: COS.Error, data: COS.PutBucketVersioningResult) => void): void;
+  putBucketVersioning(params: COS.PutBucketVersioningParams): Promise<COS.PutBucketVersioningResult>;
 
   /**
    * 获取 Bucket 版本
@@ -1209,7 +1325,8 @@ declare class COS {
    * @returns err               请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
    * @returns data              返回的数据
    */
-  getBucketVersioning: ServiceMethod<COS.GeneralBucketParams, COS.GetBucketVersioningResult>
+  getBucketVersioning(params: COS.GetBucketVersioningParams, callback: (err: COS.Error, data: COS.GetBucketVersioningResult) => void): void;
+  getBucketVersioning(params: COS.GetBucketVersioningParams): Promise<COS.GetBucketVersioningResult>;
 
   /**
    * 设置 Bucket 副本
@@ -1220,7 +1337,8 @@ declare class COS {
    * @returns err               请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
    * @returns data              返回的数据
    */
-  putBucketReplication: ServiceMethod<COS.PutBucketReplicationParams, COS.GeneralResult>
+  putBucketReplication(params: COS.PutBucketReplicationParams, callback: (err: COS.Error, data: COS.PutBucketReplicationResult) => void): void;
+  putBucketReplication(params: COS.PutBucketReplicationParams): Promise<COS.PutBucketReplicationResult>;
 
   /**
    * 获取 Bucket 副本
@@ -1231,7 +1349,8 @@ declare class COS {
    * @returns err               请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
    * @returns data              返回的数据
    */
-  getBucketReplication: ServiceMethod<COS.GeneralBucketParams, COS.GetBucketReplicationResult>
+  getBucketReplication(params: COS.GetBucketReplicationParams, callback: (err: COS.Error, data: COS.GetBucketReplicationResult) => void): void;
+  getBucketReplication(params: COS.GetBucketReplicationParams): Promise<COS.GetBucketReplicationResult>;
 
   /**
    * 删除 Bucket 副本
@@ -1242,7 +1361,8 @@ declare class COS {
    * @returns err               请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
    * @returns data              返回的数据
    */
-  deleteBucketReplication: ServiceMethod<COS.GeneralBucketParams, COS.GeneralResult>
+  deleteBucketReplication(params: COS.DeleteBucketReplicationParams, callback: (err: COS.Error, data: COS.DeleteBucketReplicationResult) => void): void;
+  deleteBucketReplication(params: COS.DeleteBucketReplicationParams): Promise<COS.DeleteBucketReplicationResult>;
 
   /**
    * 设置 Bucket 静态网站配置信息
@@ -1258,7 +1378,8 @@ declare class COS {
    * @returns err                                                   请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
    * @returns data                                                  返回数据
    */
-  putBucketWebsite: ServiceMethod<COS.PutBucketWebsiteParams, COS.GeneralResult>
+  putBucketWebsite(params: COS.PutBucketWebsiteParams, callback: (err: COS.Error, data: COS.PutBucketWebsiteResult) => void): void;
+  putBucketWebsite(params: COS.PutBucketWebsiteParams): Promise<COS.PutBucketWebsiteResult>;
 
   /**
    * 获取 Bucket 的静态网站配置信息
@@ -1269,7 +1390,8 @@ declare class COS {
    * @returns err               请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
    * @returns data              返回数据
    */
-  getBucketWebsite: ServiceMethod<COS.GeneralBucketParams, COS.GetBucketWebsiteResult>
+  getBucketWebsite(params: COS.GetBucketWebsiteParams, callback: (err: COS.Error, data: COS.GetBucketWebsiteResult) => void): void;
+  getBucketWebsite(params: COS.GetBucketWebsiteParams): Promise<COS.GetBucketWebsiteResult>;
 
   /**
    * 删除 Bucket 的静态网站配置
@@ -1280,7 +1402,8 @@ declare class COS {
    * @returns err               请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
    * @returns data              返回数据
    */
-  deleteBucketWebsite: ServiceMethod<COS.GeneralBucketParams, COS.GeneralResult>
+  deleteBucketWebsite(params: COS.DeleteBucketWebsiteParams, callback: (err: COS.Error, data: COS.DeleteBucketWebsiteResult) => void): void;
+  deleteBucketWebsite(params: COS.DeleteBucketWebsiteParams): Promise<COS.DeleteBucketWebsiteResult>;
 
   /**
    * 设置 Bucket 的防盗链白名单或者黑名单
@@ -1296,7 +1419,8 @@ declare class COS {
    * @returns err                                                   请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
    * @returns data                                                  返回数据
    */
-  putBucketReferer: ServiceMethod<COS.PutBucketRefererParams, COS.GeneralResult>
+  putBucketReferer(params: COS.PutBucketRefererParams, callback: (err: COS.Error, data: COS.PutBucketRefererResult) => void): void;
+  putBucketReferer(params: COS.PutBucketRefererParams): Promise<COS.PutBucketRefererResult>;
 
   /**
    * 获取 Bucket 的防盗链白名单或者黑名单
@@ -1307,7 +1431,8 @@ declare class COS {
    * @returns err               请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
    * @returns data              返回数据
    */
-  getBucketReferer: ServiceMethod<COS.GeneralBucketParams, COS.GetBucketRefererResult>
+  getBucketReferer(params: COS.GetBucketRefererParams, callback: (err: COS.Error, data: COS.GetBucketRefererResult) => void): void;
+  getBucketReferer(params: COS.GetBucketRefererParams): Promise<COS.GetBucketRefererResult>;
 
   /**
    * 设置 Bucket 自定义域名
@@ -1318,7 +1443,8 @@ declare class COS {
    * @returns err                                                   请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
    * @returns data                                                  返回数据
    */
-  putBucketDomain: ServiceMethod<COS.PutBucketDomainParams, COS.GeneralResult>
+  putBucketDomain(params: COS.PutBucketDomainParams, callback: (err: COS.Error, data: COS.PutBucketDomainResult) => void): void;
+  putBucketDomain(params: COS.PutBucketDomainParams): Promise<COS.PutBucketDomainResult>;
 
   /**
    * 获取 Bucket 的自定义域名
@@ -1329,7 +1455,8 @@ declare class COS {
    * @returns err               请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
    * @returns data              返回数据
    */
-  getBucketDomain: ServiceMethod<COS.GeneralBucketParams, COS.GetBucketDomainResult>
+  getBucketDomain(params: COS.GetBucketDomainParams, callback: (err: COS.Error, data: COS.GetBucketDomainResult) => void): void;
+  getBucketDomain(params: COS.GetBucketDomainParams): Promise<COS.GetBucketDomainResult>;
 
   /**
    * 删除 Bucket 自定义域名
@@ -1340,7 +1467,8 @@ declare class COS {
    * @returns err               请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
    * @returns data              返回数据
    */
-  deleteBucketDomain: ServiceMethod<COS.GeneralBucketParams, COS.GeneralResult>
+  deleteBucketDomain(params: COS.DeleteBucketDomainParams, callback: (err: COS.Error, data: COS.DeleteBucketDomainResult) => void): void;
+  deleteBucketDomain(params: COS.DeleteBucketDomainParams): Promise<COS.DeleteBucketDomainResult>;
 
   /**
    * 设置 Bucket 的回源
@@ -1351,7 +1479,8 @@ declare class COS {
    * @returns err                                                   请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
    * @returns data                                                  返回数据
    */
-  putBucketOrigin: ServiceMethod<COS.PutBucketOriginParams, COS.GeneralResult>
+  putBucketOrigin(params: COS.PutBucketOriginParams, callback: (err: COS.Error, data: COS.PutBucketOriginResult) => void): void;
+  putBucketOrigin(params: COS.PutBucketOriginParams): Promise<COS.PutBucketOriginResult>;
 
   /**
    * 获取 Bucket 的回源
@@ -1362,7 +1491,8 @@ declare class COS {
    * @returns err               请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
    * @returns data              返回数据
    */
-  getBucketOrigin: ServiceMethod<COS.GeneralBucketParams, COS.GetBucketOriginResult>
+  getBucketOrigin(params: COS.GetBucketOriginParams, callback: (err: COS.Error, data: COS.GetBucketOriginResult) => void): void;
+  getBucketOrigin(params: COS.GetBucketOriginParams): Promise<COS.GetBucketOriginResult>;
 
   /**
    * 删除 Bucket 的回源
@@ -1373,7 +1503,8 @@ declare class COS {
    * @returns err               请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
    * @returns data              返回数据
    */
-  deleteBucketOrigin: ServiceMethod<COS.GeneralBucketParams, COS.GeneralResult>
+  deleteBucketOrigin(params: COS.DeleteBucketOriginParams, callback: (err: COS.Error, data: COS.DeleteBucketOriginResult) => void): void;
+  deleteBucketOrigin(params: COS.DeleteBucketOriginParams): Promise<COS.DeleteBucketOriginResult>;
 
   /**
    * 设置 Bucket 的日志记录
@@ -1385,7 +1516,8 @@ declare class COS {
    * @returns err                                                   请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
    * @returns data                                                  返回数据
    */
-  putBucketLogging: ServiceMethod<COS.PutBucketLoggingParams, COS.GeneralResult>
+  putBucketLogging(params: COS.PutBucketLoggingParams, callback: (err: COS.Error, data: COS.PutBucketLoggingResult) => void): void;
+  putBucketLogging(params: COS.PutBucketLoggingParams): Promise<COS.PutBucketLoggingResult>;
 
   /**
    * 获取 Bucket 的日志记录
@@ -1396,7 +1528,8 @@ declare class COS {
    * @returns err               请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
    * @returns data              返回数据
    */
-  getBucketLogging: ServiceMethod<COS.GeneralBucketParams, COS.GetBucketLoggingResult>
+  getBucketLogging(params: COS.GetBucketLoggingParams, callback: (err: COS.Error, data: COS.GetBucketLoggingResult) => void): void;
+  getBucketLogging(params: COS.GetBucketLoggingParams): Promise<COS.GetBucketLoggingResult>;
 
   /**
    * 创建/编辑 Bucket 的清单任务
@@ -1409,7 +1542,8 @@ declare class COS {
    * @returns err                                                   请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
    * @returns data                                                  返回数据
    */
-  putBucketInventory: ServiceMethod<COS.PutBucketInventoryParams, COS.GeneralResult>
+  putBucketInventory(params: COS.PutBucketInventoryParams, callback: (err: COS.Error, data: COS.PutBucketInventoryResult) => void): void;
+  putBucketInventory(params: COS.PutBucketInventoryParams): Promise<COS.PutBucketInventoryResult>;
 
   /**
    * 获取 Bucket 的清单任务信息
@@ -1421,7 +1555,8 @@ declare class COS {
    * @returns err               请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
    * @returns data              返回数据
    */
-  getBucketInventory: ServiceMethod<COS.GetBucketInventoryParams, COS.GetBucketInventoryResult>
+  getBucketInventory(params: COS.GetBucketInventoryParams, callback: (err: COS.Error, data: COS.GetBucketInventoryResult) => void): void;
+  getBucketInventory(params: COS.GetBucketInventoryParams): Promise<COS.GetBucketInventoryResult>;
 
   /**
    * 获取 Bucket 的清单任务信息
@@ -1433,7 +1568,8 @@ declare class COS {
    * @returns err                               请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
    * @returns data                              返回数据
    */
-  listBucketInventory: ServiceMethod<COS.GeneralBucketParams, COS.ListBucketInventoryResult>
+  listBucketInventory(params: COS.ListBucketInventoryParams, callback: (err: COS.Error, data: COS.ListBucketInventoryResult) => void): void;
+  listBucketInventory(params: COS.ListBucketInventoryParams): Promise<COS.ListBucketInventoryResult>;
 
   /**
    * 删除 Bucket 的清单任务
@@ -1445,7 +1581,8 @@ declare class COS {
    * @returns err               请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
    * @returns data              返回数据
    */
-  deleteBucketInventory: ServiceMethod<COS.DeleteBucketInventoryParams, COS.GeneralResult>
+  deleteBucketInventory(params: COS.DeleteBucketInventoryParams, callback: (err: COS.Error, data: COS.DeleteBucketInventoryResult) => void): void;
+  deleteBucketInventory(params: COS.DeleteBucketInventoryParams): Promise<COS.DeleteBucketInventoryResult>;
 
   /**
    * 启用或者暂停存储桶的全球加速功能
@@ -1458,7 +1595,8 @@ declare class COS {
    * @returns err                                                   请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
    * @returns data                                                  返回数据
    */
-  putBucketAccelerate: ServiceMethod<COS.PutBucketAccelerateParams, COS.GeneralResult>
+  putBucketAccelerate(params: COS.PutBucketAccelerateParams, callback: (err: COS.Error, data: COS.PutBucketAccelerateResult) => void): void;
+  putBucketAccelerate(params: COS.PutBucketAccelerateParams): Promise<COS.PutBucketAccelerateResult>;
 
   /**
    * 查询存储桶的全球加速功能配置
@@ -1470,7 +1608,8 @@ declare class COS {
    * @returns err               请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
    * @returns data              返回数据
    */
-  getBucketAccelerate: ServiceMethod<COS.GetBucketAccelerateParams, COS.GetBucketAccelerateResult>
+  getBucketAccelerate(params: COS.GetBucketAccelerateParams, callback: (err: COS.Error, data: COS.GetBucketAccelerateResult) => void): void;
+  getBucketAccelerate(params: COS.GetBucketAccelerateParams): Promise<COS.GetBucketAccelerateResult>;
 
   /**
    * 取回对应Object的元数据，Head的权限与Get的权限一致
@@ -1484,7 +1623,8 @@ declare class COS {
    * @returns data                          为指定 object 的元数据，如果设置了 IfModifiedSince ，且文件未修改，则返回一个对象，NotModified 属性为 true
    * @returns data.NotModified         是否在 IfModifiedSince 时间点之后未修改该 object，则为 true
    */
-  headObject: ServiceMethod<COS.GeneralObjectParams, COS.HeadObjectResult>
+  headObject(params: COS.HeadObjectParams, callback: (err: COS.Error, data: COS.HeadObjectResult) => void): void;
+  headObject(params: COS.HeadObjectParams): Promise<COS.HeadObjectResult>;
 
   /**
    * 下载 object
@@ -1508,7 +1648,8 @@ declare class COS {
    * @returns data                          为指定 object 的元数据，如果设置了 IfModifiedSince ，且文件未修改，则返回一个对象，NotModified 属性为 true
    * @returns data - 为对应的 object 数据，包括 body 和 headers
    */
-  getObject: ServiceMethod<COS.GetObjectParams, COS.GetObjectResult>
+  getObject(params: COS.GetObjectParams, callback: (err: COS.Error, data: COS.GetObjectResult) => void): void;
+  getObject(params: COS.GetObjectParams): Promise<COS.GetObjectResult>;
 
   /**
    * 下载 object，返回 Stream 对象
@@ -1532,7 +1673,7 @@ declare class COS {
    * @returns data                          为指定 object 的元数据，如果设置了 IfModifiedSince ，且文件未修改，则返回一个对象，NotModified 属性为 true
    * @returns data - 为对应的 object 数据，包括 body 和 headers
    */
-  getObjectStream: StreamMethod<COS.GetObjectParams, COS.GetObjectResult>
+  getObjectStream(params: COS.GetObjectParams, callback?: (err: COS.Error, data: COS.GetObjectResult) => void): Stream;
 
   /**
    * 上传 object
@@ -1565,7 +1706,8 @@ declare class COS {
    * @returns data.ETag                                 为对应上传文件的 ETag 值
    * @returns data.Location                                 为对应上传文件不带 https:// 的 url 值，例如 testbucket-1250000000.cos.ap-beijing.myqcloud.com/folder/1.jpg
    */
-  putObject: ServiceMethod<COS.PutObjectParams, COS.PutObjectResult>
+  putObject(params: COS.PutObjectParams, callback: (err: COS.Error, data: COS.PutObjectResult) => void): void;
+  putObject(params: COS.PutObjectParams): Promise<COS.PutObjectResult>;
 
   /**
    * 删除 object
@@ -1577,7 +1719,8 @@ declare class COS {
    * @returns err - 请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
    * @returns data - 删除操作成功之后返回的数据
    */
-  deleteObject: ServiceMethod<COS.GeneralObjectParams, COS.GeneralResult>
+  deleteObject(params: COS.DeleteObjectParams, callback: (err: COS.Error, data: COS.DeleteObjectResult) => void): void;
+  deleteObject(params: COS.DeleteObjectParams): Promise<COS.DeleteObjectResult>;
 
   /**
    * 批量删除 object
@@ -1589,7 +1732,8 @@ declare class COS {
    * @returns err - 请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
    * @returns data - 删除操作成功之后返回的数据
    */
-  deleteMultipleObject: ServiceMethod<COS.DeleteMultipleObjectParams, COS.DeleteMultipleObjectResult>
+  deleteMultipleObject(params: COS.DeleteMultipleObjectParams, callback: (err: COS.Error, data: COS.DeleteMultipleObjectResult) => void): void;
+  deleteMultipleObject(params: COS.DeleteMultipleObjectParams): Promise<COS.DeleteMultipleObjectResult>;
 
   /**
    * 获取 object 的 权限列表
@@ -1602,7 +1746,8 @@ declare class COS {
    * @returns data                          返回的数据
    * @returns data.AccessControlPolicy  权限列表
    */
-  getObjectAcl: ServiceMethod<COS.GeneralObjectParams, COS.GetObjectAclResult>
+  getObjectAcl(params: COS.GetObjectAclParams, callback: (err: COS.Error, data: COS.GetObjectAclResult) => void): void;
+  getObjectAcl(params: COS.GetObjectAclParams): Promise<COS.GetObjectAclResult>;
 
   /**
    * 设置 object 的 权限列表
@@ -1614,7 +1759,8 @@ declare class COS {
    * @returns err               请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
    * @returns data              返回的数据
    */
-  putObjectAcl: ServiceMethod<COS.PutObjectAclParams, COS.GeneralResult>
+  putObjectAcl(params: COS.PutObjectAclParams, callback: (err: COS.Error, data: COS.PutObjectAclResult) => void): void;
+  putObjectAcl(params: COS.PutObjectAclParams): Promise<COS.PutObjectAclResult>;
 
   /**
    * Options Object请求实现跨域访问的预请求。即发出一个 OPTIONS 请求给服务器以确认是否可以进行跨域操作。
@@ -1626,7 +1772,8 @@ declare class COS {
    * @returns err               请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
    * @returns data              返回的数据
    */
-  optionsObject: ServiceMethod<COS.OptionsObjectParams, COS.OptionsObjectResult>
+  optionsObject(params: COS.OptionsObjectParams, callback: (err: COS.Error, data: COS.OptionsObjectResult) => void): void;
+  optionsObject(params: COS.OptionsObjectParams): Promise<COS.OptionsObjectResult>;
 
   /**
    * 恢复归档对象
@@ -1641,7 +1788,8 @@ declare class COS {
    * @returns err               请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
    * @returns data              返回的数据
    */
-  restoreObject: ServiceMethod<COS.RestoreObjectParams, COS.GeneralResult>
+  restoreObject(params: COS.RestoreObjectParams, callback: (err: COS.Error, data: COS.RestoreObjectResult) => void): void;
+  restoreObject(params: COS.RestoreObjectParams): Promise<COS.RestoreObjectResult>;
 
   /**
    * 检索对象内容
@@ -1655,7 +1803,8 @@ declare class COS {
    * @returns err               请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
    * @returns data              返回的数据
    */
-  selectObjectContent: ServiceMethod<COS.SelectObjectContentParams, COS.SelectObjectContentResult>
+  selectObjectContent(params: COS.SelectObjectContentParams, callback: (err: COS.Error, data: COS.SelectObjectContentResult) => void): void;
+  selectObjectContent(params: COS.SelectObjectContentParams): Promise<COS.SelectObjectContentResult>;
 
   /**
    * 检索对象内容，返回 Stream 对象
@@ -1669,7 +1818,7 @@ declare class COS {
    * @returns err               请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
    * @returns data              返回的数据
    */
-  selectObjectContentStream: StreamMethod<COS.SelectObjectContentParams, COS.SelectObjectContentResult>
+  selectObjectContentStream(params: COS.SelectObjectContentParams, callback?: (err: COS.Error, data: COS.SelectObjectContentResult) => void): Stream;
 
   /**
    * 复制对象
@@ -1703,7 +1852,8 @@ declare class COS {
    * @returns err                                       请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
    * @returns data                                      返回的数据
    */
-  putObjectCopy: ServiceMethod<COS.PutObjectCopyParams, COS.GeneralResult>
+  putObjectCopy(params: COS.PutObjectCopyParams, callback: (err: COS.Error, data: COS.PutObjectCopyResult) => void): void;
+  putObjectCopy(params: COS.PutObjectCopyParams): Promise<COS.PutObjectCopyResult>;
 
   /**
    * 设置对象标签
@@ -1716,7 +1866,8 @@ declare class COS {
    * @returns err               请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
    * @returns data              返回的数据
    */
-  putObjectTagging: ServiceMethod<COS.PutObjectTaggingParams, COS.GeneralResult>
+  putObjectTagging(params: COS.PutObjectTaggingParams, callback: (err: COS.Error, data: COS.PutObjectTaggingResult) => void): void;
+  putObjectTagging(params: COS.PutObjectTaggingParams): Promise<COS.PutObjectTaggingResult>;
 
   /**
    * 查询对象标签
@@ -1729,7 +1880,8 @@ declare class COS {
    * @returns data              返回的数据
    * @returns data.Tags         返回的标签列表 [{Key: 'k1', Value: 'v1'}]
    */
-  getObjectTagging: ServiceMethod<COS.GeneralObjectParams, COS.GetObjectTaggingResult>
+  getObjectTagging(params: COS.GetObjectTaggingParams, callback: (err: COS.Error, data: COS.GetObjectTaggingResult) => void): void;
+  getObjectTagging(params: COS.GetObjectTaggingParams): Promise<COS.GetObjectTaggingResult>;
 
   /**
    * 删除对象标签
@@ -1741,7 +1893,8 @@ declare class COS {
    * @returns err               请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
    * @returns data              返回的数据
    */
-  deleteObjectTagging: ServiceMethod<COS.GeneralObjectParams, COS.GeneralResult>
+  deleteObjectTagging(params: COS.DeleteObjectTaggingParams, callback: (err: COS.Error, data: COS.DeleteObjectTaggingResult) => void): void;
+  deleteObjectTagging(params: COS.DeleteObjectTaggingParams): Promise<COS.DeleteObjectTaggingResult>;
 
   /**
    * 初始化分块上传
@@ -1765,7 +1918,8 @@ declare class COS {
    * @returns err                                       请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
    * @returns data                                      返回的数据
    */
-  multipartInit: ServiceMethod<COS.MultipartInitParams, COS.MultipartInitResult>
+  multipartInit(params: COS.MultipartInitParams, callback: (err: COS.Error, data: COS.MultipartInitResult) => void): void;
+  multipartInit(params: COS.MultipartInitParams): Promise<COS.MultipartInitResult>;
 
   /**
    * 分块上传
@@ -1782,7 +1936,8 @@ declare class COS {
    * @returns data                              返回的数据
    * @returns data.ETag                         返回的文件分块 sha1 值
    */
-  multipartUpload: ServiceMethod<COS.MultipartUploadParams, COS.MultipartUploadResult>
+  multipartUpload(params: COS.MultipartUploadParams, callback: (err: COS.Error, data: COS.MultipartUploadResult) => void): void;
+  multipartUpload(params: COS.MultipartUploadParams): Promise<COS.MultipartUploadResult>;
 
   /**
    * 分块上传
@@ -1803,7 +1958,8 @@ declare class COS {
    * @returns data                              返回的数据
    * @returns data.ETag                         返回的文件分块 sha1 值
    */
-  uploadPartCopy: ServiceMethod<COS.UploadPartCopyParams, COS.UploadPartCopyResult>
+  uploadPartCopy(params: COS.UploadPartCopyParams, callback: (err: COS.Error, data: COS.UploadPartCopyResult) => void): void;
+  uploadPartCopy(params: COS.UploadPartCopyParams): Promise<COS.UploadPartCopyResult>;
 
   /**
    * 完成分块上传
@@ -1819,7 +1975,8 @@ declare class COS {
    * @returns data                              返回的数据
    * @returns data.CompleteMultipartUpload  完成分块上传后的文件信息，包括Location, Bucket, Key 和 ETag
    */
-  multipartComplete: ServiceMethod<COS.MultipartCompleteParams, COS.MultipartCompleteResult>
+  multipartComplete(params: COS.MultipartCompleteParams, callback: (err: COS.Error, data: COS.MultipartCompleteResult) => void): void;
+  multipartComplete(params: COS.MultipartCompleteParams): Promise<COS.MultipartCompleteResult>;
 
   /**
    * 分块上传任务列表查询
@@ -1837,7 +1994,8 @@ declare class COS {
    * @returns data                                  返回的数据
    * @returns data.ListMultipartUploadsResult   分块上传任务信息
    */
-  multipartList: ServiceMethod<COS.MultipartListParams, COS.MultipartListResult>
+  multipartList(params: COS.MultipartListParams, callback: (err: COS.Error, data: COS.MultipartListResult) => void): void;
+  multipartList(params: COS.MultipartListParams): Promise<COS.MultipartListResult>;
 
   /**
    * 上传的分块列表查询
@@ -1854,7 +2012,8 @@ declare class COS {
    * @returns data                                  返回的数据
    * @returns data.ListMultipartUploadsResult   分块信息
    */
-  multipartListPart: ServiceMethod<COS.MultipartListPartParams, COS.MultipartListPartResult>
+  multipartListPart(params: COS.MultipartListPartParams, callback: (err: COS.Error, data: COS.MultipartListPartResult) => void): void;
+  multipartListPart(params: COS.MultipartListPartParams): Promise<COS.MultipartListPartResult>;
 
   /**
    * 抛弃分块上传
@@ -1867,7 +2026,8 @@ declare class COS {
    * @returns err             请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
    * @returns data            返回的数据
    */
-  multipartAbort: ServiceMethod<COS.MultipartAbortParams, COS.GeneralResult>
+  multipartAbort(params: COS.MultipartAbortParams, callback: (err: COS.Error, data: COS.MultipartAbortResult) => void): void;
+  multipartAbort(params: COS.MultipartAbortParams): Promise<COS.MultipartAbortResult>;
 
   /**
    * 分片上传文件，封装好分片上传的多个步骤的上传方法。
@@ -1898,7 +2058,8 @@ declare class COS {
    * @returns err             请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
    * @returns data            返回的数据
    */
-  sliceUploadFile: ServiceMethod<COS.SliceUploadFileParams, COS.SliceUploadFileResult>
+  sliceUploadFile(params: COS.SliceUploadFileParams, callback: (err: COS.Error, data: COS.SliceUploadFileResult) => void): void;
+  sliceUploadFile(params: COS.SliceUploadFileParams): Promise<COS.SliceUploadFileResult>;
 
   /**
    * 分片上传文件，封装好分片上传的多个步骤的上传方法。
@@ -1912,7 +2073,8 @@ declare class COS {
    * @returns err             请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
    * @returns data            返回的数据
    */
-  abortUploadTask: ServiceMethod<COS.AbortUploadTaskParams, COS.GeneralResult>
+  abortUploadTask(params: COS.AbortUploadTaskParams, callback: (err: COS.Error, data: COS.AbortUploadTaskResult) => void): void;
+  abortUploadTask(params: COS.AbortUploadTaskParams): Promise<COS.AbortUploadTaskResult>;
 
   /**
    * 分片复制文件
@@ -1927,13 +2089,15 @@ declare class COS {
    * @returns err             请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
    * @returns data            返回的数据
    */
-  uploadFiles: ServiceMethod<COS.UploadFilesParams, COS.GeneralResult>
+  uploadFiles(params: COS.UploadFilesParams, callback: (err: COS.Error, data: COS.UploadFilesResult) => void): void;
+  uploadFiles(params: COS.UploadFilesParams): Promise<COS.UploadFilesResult>;
 
   /**
    * 分片复制文件
    * @returns taskList  返回上传任务列表
    */
-  sliceCopyFile: ServiceMethod<COS.SliceCopyFileParams, COS.GeneralResult>
+  sliceCopyFile(params: COS.SliceCopyFileParams, callback: (err: COS.Error, data: COS.SliceCopyFileResult) => void): void;
+  sliceCopyFile(params: COS.SliceCopyFileParams): Promise<COS.SliceCopyFileResult>;
 
   /**
    * 获取上传任务列表
@@ -1979,7 +2143,8 @@ declare class COS {
    * @returns err             请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
    * @returns data            返回的数据
    */
-  getObjectUrl: ServiceMethod<COS.GetObjectUrlParams, COS.GetObjectUrlResult>
+  getObjectUrl(params: COS.GetObjectUrlParams, callback: (err: COS.Error, data: COS.GetObjectUrlResult) => void): void;
+  getObjectUrl(params: COS.GetObjectUrlParams): Promise<COS.GetObjectUrlResult>;
 
   /**
    * 获取 COS JSON API (v4) 签名

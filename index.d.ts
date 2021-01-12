@@ -136,19 +136,24 @@ declare namespace COS {
     statusCode?: number,
     headers?: Headers,
   }
-  interface GeneralParams {
-    Headers?: Headers,
-  }
-  interface GeneralBucketParams extends GeneralParams {
+  interface BucketParams {
     Bucket: Bucket,
     Region: Region,
-  }
-  interface GeneralObjectParams extends GeneralBucketParams {
     Key: Key,
+    Headers?: Headers,
+  }
+  interface ObjectParams extends BucketParams {
+    Bucket: Bucket,
+    Region: Region,
+    Key: Key,
+    Headers?: Headers,
   }
 
   // getService
-  interface GetServiceParams extends GeneralParams {}
+  interface GetServiceParams {
+    Region?: Region,
+    Headers?: Headers,
+  }
   interface GetServiceResult extends GeneralResult {
     Buckets: {
       Name: Bucket,
@@ -159,7 +164,7 @@ declare namespace COS {
   }
 
   // putBucket
-  interface PutBucketParams extends GeneralBucketParams {
+  interface PutBucketParams extends BucketParams {
     ACL?: BucketACL,
     GrantRead?: Grant,
     GrantWrite?: Grant,
@@ -173,11 +178,11 @@ declare namespace COS {
   }
 
   // headBucket
-  interface HeadBucketParams extends GeneralBucketParams {}
+  interface HeadBucketParams extends BucketParams {}
   interface HeadBucketResult extends GeneralResult {}
 
   // getBucket
-  interface GetBucketParams extends GeneralBucketParams {
+  interface GetBucketParams extends BucketParams {
     Prefix: Prefix,
     Delimiter?: Delimiter,
     Marker?: Key,
@@ -203,7 +208,7 @@ declare namespace COS {
   }
 
   // listObjectVersions
-  interface ListObjectVersionsParams extends GeneralBucketParams {
+  interface ListObjectVersionsParams extends BucketParams {
     Prefix: Prefix,
     Delimiter?: Delimiter,
     Marker?: string,
@@ -241,11 +246,11 @@ declare namespace COS {
   }
 
   // deleteBucket
-  interface DeleteBucketParams extends GeneralBucketParams {}
+  interface DeleteBucketParams extends BucketParams {}
   interface DeleteBucketResult extends GeneralResult {}
 
   // putBucketAcl
-  interface PutBucketAclParams extends GeneralBucketParams {
+  interface PutBucketAclParams extends BucketParams {
     ACL?: BucketACL,
     GrantRead?: Grant,
     GrantWrite: Grant,
@@ -256,7 +261,7 @@ declare namespace COS {
   interface PutBucketAclResult extends GeneralResult {}
 
   // getBucketAcl
-  interface GetBucketAclParams extends GeneralBucketParams {}
+  interface GetBucketAclParams extends BucketParams {}
   interface GetBucketAclResult extends GeneralResult {
     ACL: BucketACL,
     GrantRead: Grant,
@@ -276,7 +281,7 @@ declare namespace COS {
     ExposeHeader?: string[],
     MaxAgeSeconds?: number,
   };
-  interface PutBucketCorsParams extends GeneralBucketParams {
+  interface PutBucketCorsParams extends BucketParams {
     CORSRules: CORSRule[]
     Headers: Headers
   }
@@ -285,18 +290,18 @@ declare namespace COS {
   }
 
   // getBucketCors
-  interface GetBucketCorsParams extends GeneralBucketParams {}
+  interface GetBucketCorsParams extends BucketParams {}
   interface GetBucketCorsResult extends GeneralResult {}
 
   // deleteBucketCors
-  interface DeleteBucketCorsParams extends GeneralBucketParams {}
+  interface DeleteBucketCorsParams extends BucketParams {}
   interface DeleteBucketCorsResult extends GeneralResult {}
 
   // getBucketLocation
   interface GetBucketLocationResult {
     LocationConstraint: Region,
   }
-  interface GetBucketLocationParams extends GeneralBucketParams {}
+  interface GetBucketLocationParams extends BucketParams {}
 
   // putBucketPolicy
   type PolicyStatement = {
@@ -310,23 +315,23 @@ declare namespace COS {
     Statement: PolicyStatement[],
     version: string,
   }
-  interface PutBucketPolicyParams extends GeneralBucketParams {
+  interface PutBucketPolicyParams extends BucketParams {
     Policy: Policy,
   }
   interface PutBucketPolicyResult extends GeneralResult {}
 
   // getBucketPolicy
-  interface GetBucketPolicyParams extends GeneralBucketParams {}
+  interface GetBucketPolicyParams extends BucketParams {}
   interface GetBucketPolicyResult extends GeneralResult {
     Policy: Policy
   }
 
   // deleteBucketPolicy
-  interface DeleteBucketPolicyParams extends GeneralBucketParams {}
+  interface DeleteBucketPolicyParams extends BucketParams {}
   interface DeleteBucketPolicyResult extends GeneralResult {}
 
   // putBucketTagging
-  interface PutBucketTaggingParams extends GeneralBucketParams {
+  interface PutBucketTaggingParams extends BucketParams {
     Tags: Tag[],
   }
   interface PutBucketTaggingResult extends GeneralResult {}
@@ -337,7 +342,7 @@ declare namespace COS {
   }
 
   // deleteBucketTagging
-  interface DeleteBucketTaggingParams extends GeneralBucketParams {}
+  interface DeleteBucketTaggingParams extends BucketParams {}
   interface DeleteBucketTaggingResult extends GeneralResult {}
 
   // putBucketLifecycle
@@ -351,32 +356,32 @@ declare namespace COS {
     NoncurrentVersionExpiration?: object,
     NoncurrentVersionTransition?: object,
   };
-  interface PutBucketLifecycleParams extends GeneralBucketParams {
+  interface PutBucketLifecycleParams extends BucketParams {
     Rules: LifecycleRule[],
   }
   interface PutBucketLifecycleResult extends GeneralResult {}
 
   // getBucketLifecycle
-  interface GetBucketLifecycleParams extends GeneralBucketParams {}
+  interface GetBucketLifecycleParams extends BucketParams {}
   interface GetBucketLifecycleResult extends GeneralResult {
     Rules: LifecycleRule[]
   }
 
   // deleteBucketLifecycle
-  interface DeleteBucketLifecycleParams extends GeneralBucketParams {}
+  interface DeleteBucketLifecycleParams extends BucketParams {}
   interface DeleteBucketLifecycleResult extends GeneralResult {}
 
   // putBucketVersioning
   interface VersioningConfiguration {
     Status: 'Enabled' | 'Suspended',
   }
-  interface PutBucketVersioningParams extends GeneralBucketParams {
+  interface PutBucketVersioningParams extends BucketParams {
     VersioningConfiguration,
   }
   interface PutBucketVersioningResult extends GeneralResult {}
 
   // getBucketVersioning
-  interface GetBucketVersioningParams extends GeneralBucketParams {}
+  interface GetBucketVersioningParams extends BucketParams {}
   interface GetBucketVersioningResult extends GeneralResult {
     VersioningConfiguration,
   }
@@ -395,19 +400,19 @@ declare namespace COS {
     Role: string,
     Rules: ReplicationRule[]
   }
-  interface PutBucketReplicationParams extends GeneralBucketParams {
+  interface PutBucketReplicationParams extends BucketParams {
     ReplicationConfiguration,
   }
   interface PutBucketReplicationResult extends GeneralResult {}
 
   // getBucketReplication
-  interface GetBucketReplicationParams extends GeneralBucketParams {}
+  interface GetBucketReplicationParams extends BucketParams {}
   interface GetBucketReplicationResult extends GeneralResult {
     ReplicationConfiguration
   }
 
   // deleteBucketReplication
-  interface DeleteBucketReplicationParams extends GeneralBucketParams {}
+  interface DeleteBucketReplicationParams extends BucketParams {}
   interface DeleteBucketReplicationResult extends GeneralResult {}
 
   // putBucketWebsite
@@ -437,19 +442,19 @@ declare namespace COS {
       },
     }[],
   }
-  interface PutBucketWebsiteParams extends GeneralBucketParams {
+  interface PutBucketWebsiteParams extends BucketParams {
     WebsiteConfiguration: WebsiteConfiguration,
   }
   interface PutBucketWebsiteResult extends GeneralResult {}
 
   // getBucketWebsite
-  interface GetBucketWebsiteParams extends GeneralBucketParams {}
+  interface GetBucketWebsiteParams extends BucketParams {}
   interface GetBucketWebsiteResult extends GeneralResult {
     WebsiteConfiguration: WebsiteConfiguration
   }
 
   // deleteBucketWebsite
-  interface DeleteBucketWebsiteParams extends GeneralBucketParams {}
+  interface DeleteBucketWebsiteParams extends BucketParams {}
   interface DeleteBucketWebsiteResult extends GeneralResult {}
 
   // putBucketReferer
@@ -461,19 +466,19 @@ declare namespace COS {
     },
     EmptyReferConfiguration?: 'Allow' | 'Deny',
   }
-  interface PutBucketRefererParams extends GeneralBucketParams {
+  interface PutBucketRefererParams extends BucketParams {
     RefererConfiguration: RefererConfiguration,
   }
   interface PutBucketRefererResult extends GeneralResult {}
 
   // getBucketReferer
-  interface GetBucketRefererParams extends GeneralBucketParams {}
+  interface GetBucketRefererParams extends BucketParams {}
   interface GetBucketRefererResult extends GeneralResult {
     RefererConfiguration: RefererConfiguration,
   }
 
   // putBucketDomain
-  interface PutBucketDomainParams extends GeneralBucketParams {
+  interface PutBucketDomainParams extends BucketParams {
     DomainRule: {
       Status: 'DISABLED' | 'ENABLED',
       Name: string,
@@ -488,33 +493,33 @@ declare namespace COS {
     Name: string,
     Type: 'REST' | 'WEBSITE'
   }
-  interface GetBucketDomainParams extends GeneralBucketParams {}
+  interface GetBucketDomainParams extends BucketParams {}
   interface GetBucketDomainResult extends GeneralResult {
     DomainRule: DomainRule[]
   }
 
   // deleteBucketDomain
-  interface DeleteBucketDomainParams extends GeneralBucketParams {}
+  interface DeleteBucketDomainParams extends BucketParams {}
   interface DeleteBucketDomainResult extends GeneralResult {}
 
   // putBucketOrigin
-  interface PutBucketOriginParams extends GeneralBucketParams {
+  interface PutBucketOriginParams extends BucketParams {
     OriginRule: DomainRule[],
   }
   interface PutBucketOriginResult extends GeneralResult {}
 
   // getBucketOrigin
-  interface GetBucketOriginParams extends GeneralBucketParams {}
+  interface GetBucketOriginParams extends BucketParams {}
   interface GetBucketOriginResult extends GeneralResult {
     OriginRule: object[],
   }
 
   // deleteBucketOrigin
-  interface DeleteBucketOriginParams extends GeneralBucketParams {}
+  interface DeleteBucketOriginParams extends BucketParams {}
   interface DeleteBucketOriginResult extends GeneralResult {}
 
   // putBucketLogging
-  interface PutBucketLoggingParams extends GeneralBucketParams {
+  interface PutBucketLoggingParams extends BucketParams {
     BucketLoggingStatus: {
       LoggingEnabled?: {
         TargetBucket: Bucket,
@@ -525,7 +530,7 @@ declare namespace COS {
   interface PutBucketLoggingResult extends GeneralResult {}
 
   // getBucketLogging
-  interface GetBucketLoggingParams extends GeneralBucketParams {}
+  interface GetBucketLoggingParams extends BucketParams {}
   interface GetBucketLoggingResult extends GeneralResult {
     BucketLoggingStatus: {
       LoggingEnabled?: {
@@ -536,14 +541,14 @@ declare namespace COS {
   }
 
   // putBucketInventory
-  interface PutBucketInventoryParams extends GeneralBucketParams {
+  interface PutBucketInventoryParams extends BucketParams {
     Id: string,
     InventoryConfiguration: object,
   }
   interface PutBucketInventoryResult extends GeneralResult {}
 
   // getBucketInventory
-  interface GetBucketInventoryParams extends GeneralBucketParams {
+  interface GetBucketInventoryParams extends BucketParams {
     Id: string,
   }
   interface GetBucketInventoryResult extends GeneralResult {
@@ -551,7 +556,7 @@ declare namespace COS {
   }
 
   // listBucketInventory
-  interface ListBucketInventoryParams extends GeneralBucketParams {}
+  interface ListBucketInventoryParams extends BucketParams {}
   interface ListBucketInventoryResult extends GeneralResult {
     ContinuationToken: string,
     InventoryConfigurations: object,
@@ -559,13 +564,13 @@ declare namespace COS {
   }
 
   // deleteBucketInventory
-  interface DeleteBucketInventoryParams extends GeneralBucketParams {
+  interface DeleteBucketInventoryParams extends BucketParams {
     Id: string,
   }
   interface DeleteBucketInventoryResult extends GeneralResult {}
 
   // putBucketAccelerate
-  interface PutBucketAccelerateParams extends GeneralBucketParams {
+  interface PutBucketAccelerateParams extends BucketParams {
     AccelerateConfiguration: {
       Status: 'Enabled' | 'Suspended'
     },
@@ -573,7 +578,7 @@ declare namespace COS {
   interface PutBucketAccelerateResult extends GeneralResult {}
 
   // getBucketAccelerate
-  interface GetBucketAccelerateParams extends GeneralBucketParams {
+  interface GetBucketAccelerateParams extends BucketParams {
     Id: string,
   }
   interface GetBucketAccelerateResult extends GeneralResult {
@@ -584,7 +589,7 @@ declare namespace COS {
   }
 
   // headObject
-  interface HeadObjectParams extends GeneralObjectParams {}
+  interface HeadObjectParams extends ObjectParams {}
   interface HeadObjectResult extends GeneralResult {
     ETag: string,
     VersionId?: string,
@@ -592,7 +597,7 @@ declare namespace COS {
 
   // getObject
   // getObjectStream
-  interface GetObjectParams extends GeneralObjectParams {
+  interface GetObjectParams extends ObjectParams {
     BodyType?: BodyType,
     Output?: Stream,
     Query?: Query,
@@ -614,7 +619,7 @@ declare namespace COS {
   }
 
   // putObject
-  interface PutObjectParams extends GeneralObjectParams {
+  interface PutObjectParams extends ObjectParams {
     Body: UploadBody,
     Query?: string,
     CacheControl?: string,
@@ -643,11 +648,11 @@ declare namespace COS {
   }
 
   // deleteObject
-  interface DeleteObjectParams extends GeneralObjectParams {}
+  interface DeleteObjectParams extends ObjectParams {}
   interface DeleteObjectResult extends GeneralResult {}
 
   // deleteMultipleObject
-  interface DeleteMultipleObjectParams extends GeneralObjectParams {
+  interface DeleteMultipleObjectParams extends ObjectParams {
     Objects: {
       Key: Key,
       VersionId?: string
@@ -667,7 +672,7 @@ declare namespace COS {
   }
 
   // getObjectAcl
-  interface GetObjectAclParams extends GeneralObjectParams {}
+  interface GetObjectAclParams extends ObjectParams {}
   interface GetObjectAclResult extends GeneralResult {
     ACL: ObjectACL,
     GrantRead: Grant,
@@ -679,7 +684,7 @@ declare namespace COS {
   }
 
   // putObjectAcl
-  interface PutObjectAclParams extends GeneralObjectParams {
+  interface PutObjectAclParams extends ObjectParams {
     ACL?: ObjectACL,
     GrantRead?: Grant,
     GrantReadAcp?: Grant,
@@ -689,7 +694,7 @@ declare namespace COS {
   interface PutObjectAclResult extends GeneralResult {}
 
   // optionsObject
-  interface OptionsObjectParams extends GeneralObjectParams {
+  interface OptionsObjectParams extends ObjectParams {
     AccessControlRequestMethod: Method,
     AccessControlRequestHeaders: string,
   }
@@ -708,14 +713,14 @@ declare namespace COS {
       Tier: 'Expedited' | 'Standard' | 'Bulk'
     }
   }
-  interface RestoreObjectParams extends GeneralObjectParams {
+  interface RestoreObjectParams extends ObjectParams {
     RestoreRequest: RestoreRequest,
   }
   interface RestoreObjectResult extends GeneralResult {}
 
   // selectObjectContent
   // selectObjectContentStream
-  interface SelectObjectContentParams extends GeneralObjectParams {
+  interface SelectObjectContentParams extends ObjectParams {
     SelectType: number,
     SelectRequest: object,
   }
@@ -729,7 +734,7 @@ declare namespace COS {
   }
 
   // putObjectCopy
-  interface PutObjectCopyParams extends GeneralObjectParams {
+  interface PutObjectCopyParams extends ObjectParams {
     CopySource: string,
     MetadataDirective?: 'Copy' | 'Replaced',
     ACL?: ObjectACL,
@@ -755,23 +760,23 @@ declare namespace COS {
   interface PutObjectCopyResult extends GeneralResult {}
 
   // putObjectTagging
-  interface PutObjectTaggingParams extends GeneralObjectParams {
+  interface PutObjectTaggingParams extends ObjectParams {
     Tags: Tag[],
   }
   interface PutObjectTaggingResult extends GeneralResult {}
 
   // getObjectTagging
-  interface GetObjectTaggingParams extends GeneralObjectParams {}
+  interface GetObjectTaggingParams extends ObjectParams {}
   interface GetObjectTaggingResult extends GeneralResult {
     Tags: Tag[],
   }
 
   // deleteObjectTagging
-  interface DeleteObjectTaggingParams extends GeneralObjectParams {}
+  interface DeleteObjectTaggingParams extends ObjectParams {}
   interface DeleteObjectTaggingResult extends GeneralResult {}
 
   // multipartInit
-  interface MultipartInitParams extends GeneralObjectParams {
+  interface MultipartInitParams extends ObjectParams {
     CacheControl?: string,
     ContentDisposition?: string,
     ContentEncoding?: string,
@@ -791,7 +796,7 @@ declare namespace COS {
   }
 
   // multipartUpload
-  interface MultipartUploadParams extends GeneralObjectParams {
+  interface MultipartUploadParams extends ObjectParams {
     Body: UploadBody,
     ContentLength?: number,
     Expect?: string,
@@ -803,7 +808,7 @@ declare namespace COS {
   }
 
   // uploadPartCopy
-  interface UploadPartCopyParams extends GeneralObjectParams {
+  interface UploadPartCopyParams extends ObjectParams {
     CopySource: string,
     UploadId: string,
     PartNumber: string,
@@ -818,7 +823,7 @@ declare namespace COS {
   }
 
   // multipartComplete
-  interface MultipartCompleteParams extends GeneralObjectParams {
+  interface MultipartCompleteParams extends ObjectParams {
     UploadId: UploadId,
     Parts: Part[],
   }
@@ -829,7 +834,7 @@ declare namespace COS {
   }
 
   // multipartList
-  interface MultipartListParams extends GeneralBucketParams {
+  interface MultipartListParams extends BucketParams {
     Prefix: Prefix,
     MaxUploads?: number,
     KeyMarker?: Key,
@@ -851,7 +856,7 @@ declare namespace COS {
   }
 
   // multipartListPart
-  interface MultipartListPartParams extends GeneralObjectParams {
+  interface MultipartListPartParams extends ObjectParams {
     Key: Key,
     UploadId: UploadId,
     MaxParts?: string,
@@ -873,13 +878,13 @@ declare namespace COS {
   }
 
   // multipartAbort
-  interface MultipartAbortParams extends GeneralObjectParams {
+  interface MultipartAbortParams extends ObjectParams {
     UploadId: string,
   }
   interface MultipartAbortResult extends GeneralResult {}
 
   // sliceUploadFile
-  interface SliceUploadFileParams extends GeneralObjectParams {
+  interface SliceUploadFileParams extends ObjectParams {
     FilePath: string,
     CacheControl?: string,
     ContentDisposition?: string,
@@ -907,7 +912,7 @@ declare namespace COS {
   }
 
   // abortUploadTask
-  interface AbortUploadTaskParams extends GeneralObjectParams {
+  interface AbortUploadTaskParams extends ObjectParams {
     Level?: 'task' | 'file' | 'bucket',
     UploadId?: string,
   }
@@ -926,7 +931,7 @@ declare namespace COS {
   }
   interface UploadFilesParams {
     files: UploadFileItemParams[],
-    SliceSize: number,
+    SliceSize?: number,
     onProgress?: onProgress,
     onFileFinish?: (err: Error, data?: object) => void,
   }
@@ -937,7 +942,7 @@ declare namespace COS {
   }
 
   // sliceCopyFile
-  interface SliceCopyFileParams extends GeneralObjectParams {
+  interface SliceCopyFileParams extends ObjectParams {
     CopySource: string,
     CopySliceSize?: number,
     CopyChunkSize?: number,
@@ -963,7 +968,7 @@ declare namespace COS {
   type TaskList = Task[]
 
   // getObjectUrl
-  interface GetObjectUrlParams extends GeneralObjectParams {
+  interface GetObjectUrlParams extends ObjectParams {
     Sign?: boolean,
     Method: string,
     Query?: Query,

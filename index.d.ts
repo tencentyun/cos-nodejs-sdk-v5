@@ -18,49 +18,42 @@ declare namespace COS {
   type UploadId = string;
   type Delimiter = '/' | string;
   type EncodingType = 'url' | string;
-  type StorageClass = string;
+  type StorageClass = 'STANDARD' | 'STANDARD_IA' | 'ARCHIVE' | 'DEEP_ARCHIVE' | 'INTELLIGENT_TIERING' | 'MAZ_STANDARD' | 'MAZ_STANDARD_IA' | 'MAZ_INTELLIGENT_TIERING';
   type BooleanString = 'true' | 'false';
   type Location = string;
   type IsoDateTime = string;
   type UploadBody = Buffer | String | Stream;
   type GetObjectBody = Buffer | String | Stream;
   type BodyType = 'text' | 'blob' | 'arraybuffer';
-  type Query = Record<string, any>;
-  type Headers = Record<string, any>;
+  type Query = object;
+  type Headers = object;
   type Method = 'GET' | 'DELETE' | 'POST' | 'PUT' | 'OPTIONS' | 'get' | 'delete' | 'post' | 'put' | 'options';
   type Scope = { action: string, bucket: Bucket, region: Region, prefix: Prefix }[];
-  type ACL = 'private' | 'public-read' | 'public-read-write' | 'default';
+  type BucketACL = 'private' | 'public-read' | 'public-read-write';
+  type ObjectACL = 'default' | 'private' | 'public-read';
+  type Permission = 'READ' | 'WRITE' | 'READ_ACP' | 'WRITE_ACP' | 'FULL_CONTROL';
   type Owner = { ID: string, DisplayName: string };
   type Initiator = Owner;
   type Grant = string;
-  type Grants = {
-    Grantee: Owner,
-    Permission: 'READ' | 'WRITE' | 'READ_ACP' | 'WRITE_ACP' | 'FULL_CONTROL'
-  };
-  type Tag = {
-    Key: Key,
-    Value: string,
-  }
-  type DeleteMarkerVersionId = VersionId;
-  type WriteStream = any;
-  type AccessControlPolicy = any;
-  type CopyPartResult = any;
-  type InitiateMultipartUploadResult = Record<string, any>;
-  type Part = {
-    PartNumber: string;
-    ETag: string;
-  }
-  type CompleteMultipartUploadResult = Record<string, any>;
-  interface ListMultipartUploadsResult {
-    CommonPrefixes: any[];
-    Upload: any[];
-  }
-  type onProgress = (params: {
+  interface ProgressInfo {
     loaded: number,
     total: number,
     speed: number,
     percent: number,
-  }) => any;
+  }
+  interface Grants {
+    Grantee: Owner,
+    Permission: Permission,
+  }
+  interface Tag {
+    Key: Key,
+    Value: string,
+  }
+  interface Part {
+    PartNumber: string,
+    ETag: string,
+  }
+  type onProgress = (params: ProgressInfo) => any;
 
   // 实例参数
   interface COSOptions {
@@ -167,7 +160,7 @@ declare namespace COS {
 
   // putBucket
   interface PutBucketParams extends GeneralBucketParams {
-    ACL?: ACL,
+    ACL?: BucketACL,
     GrantRead?: Grant,
     GrantWrite?: Grant,
     GrantReadAcp?: Grant,
@@ -253,7 +246,7 @@ declare namespace COS {
 
   // putBucketAcl
   interface PutBucketAclParams extends GeneralBucketParams {
-    ACL?: ACL,
+    ACL?: BucketACL,
     GrantRead?: Grant,
     GrantWrite: Grant,
     GrantReadAcp?: Grant,
@@ -265,7 +258,7 @@ declare namespace COS {
   // getBucketAcl
   interface GetBucketAclParams extends GeneralBucketParams {}
   interface GetBucketAclResult extends GeneralResult {
-    ACL: ACL,
+    ACL: BucketACL,
     GrantRead: Grant,
     GrantWrite: Grant,
     GrantReadAcp: Grant,
@@ -601,7 +594,7 @@ declare namespace COS {
   // getObjectStream
   interface GetObjectParams extends GeneralObjectParams {
     BodyType?: BodyType,
-    Output?: File,
+    Output?: Stream,
     Query?: Query,
     IfModifiedSince?: string,
     IfUnmodifiedSince?: string,
@@ -631,7 +624,7 @@ declare namespace COS {
     ContentType?: string,
     Expires?: string,
     Expect?: string,
-    ACL?: ACL,
+    ACL?: ObjectACL,
     GrantRead?: Grant,
     GrantReadAcp?: Grant,
     GrantWriteAcp?: Grant,
@@ -665,7 +658,7 @@ declare namespace COS {
       Key: Key,
       VersionId?: VersionId,
       DeleteMarker?: DeleteMarker,
-      DeleteMarkerVersionId?: DeleteMarkerVersionId,
+      DeleteMarkerVersionId?: VersionId,
     }[],
     Error: {
       Key: Key,
@@ -676,7 +669,7 @@ declare namespace COS {
   // getObjectAcl
   interface GetObjectAclParams extends GeneralObjectParams {}
   interface GetObjectAclResult extends GeneralResult {
-    ACL: ACL,
+    ACL: ObjectACL,
     GrantRead: Grant,
     GrantReadAcp: Grant,
     GrantWriteAcp: Grant,
@@ -687,7 +680,7 @@ declare namespace COS {
 
   // putObjectAcl
   interface PutObjectAclParams extends GeneralObjectParams {
-    ACL?: ACL,
+    ACL?: ObjectACL,
     GrantRead?: Grant,
     GrantReadAcp?: Grant,
     GrantWriteAcp?: Grant,
@@ -739,7 +732,7 @@ declare namespace COS {
   interface PutObjectCopyParams extends GeneralObjectParams {
     CopySource: string,
     MetadataDirective?: 'Copy' | 'Replaced',
-    ACL?: string,
+    ACL?: ObjectACL,
     GrantRead?: Grant,
     GrantReadAcp?: Grant,
     GrantWriteAcp?: Grant,
@@ -784,7 +777,7 @@ declare namespace COS {
     ContentEncoding?: string,
     ContentType?: string,
     Expires?: string,
-    ACL?: string,
+    ACL?: ObjectACL,
     GrantRead?: Grant,
     GrantReadAcp?: Grant,
     GrantWriteAcp?: Grant,
@@ -895,7 +888,7 @@ declare namespace COS {
     ContentType?: string,
     Expires?: string,
     Expect?: string,
-    ACL?: string,
+    ACL?: ObjectACL,
     GrantRead?: Grant,
     GrantReadAcp?: Grant,
     GrantWriteAcp?: Grant,

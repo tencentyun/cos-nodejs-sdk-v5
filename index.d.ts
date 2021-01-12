@@ -139,10 +139,9 @@ declare namespace COS {
   interface BucketParams {
     Bucket: Bucket,
     Region: Region,
-    Key: Key,
     Headers?: Headers,
   }
-  interface ObjectParams extends BucketParams {
+  interface ObjectParams {
     Bucket: Bucket,
     Region: Region,
     Key: Key,

@@ -1,5 +1,5 @@
 /**
- * cos-nodejs-sdk-v5 类型声明
+ * 腾讯云 COS Nodejs/JavaScript/小程序 SDK 类型声明
  */
 import { Stream } from 'stream';
 
@@ -1823,7 +1823,7 @@ declare class COS {
   deleteBucketCors(params: COS.DeleteBucketCorsParams, callback: (err: COS.CosError, data: COS.DeleteBucketCorsResult) => void): void;
   deleteBucketCors(params: COS.DeleteBucketCorsParams): Promise<COS.DeleteBucketCorsResult>;
 
-  /** 获取 Bucket 的 地域信息 @see  */
+  /** 获取 Bucket 的 地域信息 */
   getBucketLocation(params: COS.GetBucketLocationParams, callback: (err: COS.CosError, data: COS.GetBucketLocationResult) => void): void;
   getBucketLocation(params: COS.GetBucketLocationParams): Promise<COS.GetBucketLocationResult>;
 
@@ -1904,27 +1904,27 @@ declare class COS {
   getBucketReferer(params: COS.GetBucketRefererParams, callback: (err: COS.CosError, data: COS.GetBucketRefererResult) => void): void;
   getBucketReferer(params: COS.GetBucketRefererParams): Promise<COS.GetBucketRefererResult>;
 
-  /** 设置 Bucket 自定义域名 @see  */
+  /** 设置 Bucket 自定义域名 */
   putBucketDomain(params: COS.PutBucketDomainParams, callback: (err: COS.CosError, data: COS.PutBucketDomainResult) => void): void;
   putBucketDomain(params: COS.PutBucketDomainParams): Promise<COS.PutBucketDomainResult>;
 
-  /** 获取 Bucket 的自定义域名 @see  */
+  /** 获取 Bucket 的自定义域名 */
   getBucketDomain(params: COS.GetBucketDomainParams, callback: (err: COS.CosError, data: COS.GetBucketDomainResult) => void): void;
   getBucketDomain(params: COS.GetBucketDomainParams): Promise<COS.GetBucketDomainResult>;
 
-  /** 删除 Bucket 自定义域名 @see  */
+  /** 删除 Bucket 自定义域名 */
   deleteBucketDomain(params: COS.DeleteBucketDomainParams, callback: (err: COS.CosError, data: COS.DeleteBucketDomainResult) => void): void;
   deleteBucketDomain(params: COS.DeleteBucketDomainParams): Promise<COS.DeleteBucketDomainResult>;
 
-  /** 设置 Bucket 的回源 @see  */
+  /** 设置 Bucket 的回源 */
   putBucketOrigin(params: COS.PutBucketOriginParams, callback: (err: COS.CosError, data: COS.PutBucketOriginResult) => void): void;
   putBucketOrigin(params: COS.PutBucketOriginParams): Promise<COS.PutBucketOriginResult>;
 
-  /** 获取 Bucket 的回源 @see  */
+  /** 获取 Bucket 的回源 */
   getBucketOrigin(params: COS.GetBucketOriginParams, callback: (err: COS.CosError, data: COS.GetBucketOriginResult) => void): void;
   getBucketOrigin(params: COS.GetBucketOriginParams): Promise<COS.GetBucketOriginResult>;
 
-  /** 删除 Bucket 的回源 @see  */
+  /** 删除 Bucket 的回源 */
   deleteBucketOrigin(params: COS.DeleteBucketOriginParams, callback: (err: COS.CosError, data: COS.DeleteBucketOriginResult) => void): void;
   deleteBucketOrigin(params: COS.DeleteBucketOriginParams): Promise<COS.DeleteBucketOriginResult>;
 
@@ -1952,7 +1952,7 @@ declare class COS {
   deleteBucketInventory(params: COS.DeleteBucketInventoryParams, callback: (err: COS.CosError, data: COS.DeleteBucketInventoryResult) => void): void;
   deleteBucketInventory(params: COS.DeleteBucketInventoryParams): Promise<COS.DeleteBucketInventoryResult>;
 
-  /** 启用或者暂停存储桶的全球加速功能 @see  */
+  /** 启用或者暂停存储桶的全球加速功能 */
   putBucketAccelerate(params: COS.PutBucketAccelerateParams, callback: (err: COS.CosError, data: COS.PutBucketAccelerateResult) => void): void;
   putBucketAccelerate(params: COS.PutBucketAccelerateParams): Promise<COS.PutBucketAccelerateResult>;
 
@@ -2050,7 +2050,7 @@ declare class COS {
   multipartAbort(params: COS.MultipartAbortParams, callback: (err: COS.CosError, data: COS.MultipartAbortResult) => void): void;
   multipartAbort(params: COS.MultipartAbortParams): Promise<COS.MultipartAbortResult>;
 
-  /** 分片上传文件，封装好分片上传的多个步骤的上传方法。 @see  */
+  /** 分片上传文件，封装好分片上传的多个步骤的上传方法。 */
   sliceUploadFile(params: COS.SliceUploadFileParams, callback: (err: COS.CosError, data: COS.SliceUploadFileResult) => void): void;
   sliceUploadFile(params: COS.SliceUploadFileParams): Promise<COS.SliceUploadFileResult>;
 
@@ -2058,27 +2058,27 @@ declare class COS {
   abortUploadTask(params: COS.AbortUploadTaskParams, callback: (err: COS.CosError, data: COS.AbortUploadTaskResult) => void): void;
   abortUploadTask(params: COS.AbortUploadTaskParams): Promise<COS.AbortUploadTaskResult>;
 
-  /** 分片复制文件 @see  */
+  /** 分片复制文件 */
   uploadFiles(params: COS.UploadFilesParams, callback: (err: COS.CosError, data: COS.UploadFilesResult) => void): void;
   uploadFiles(params: COS.UploadFilesParams): Promise<COS.UploadFilesResult>;
 
-  /** 分片复制文件 @see  */
+  /** 分片复制文件 */
   sliceCopyFile(params: COS.SliceCopyFileParams, callback: (err: COS.CosError, data: COS.SliceCopyFileResult) => void): void;
   sliceCopyFile(params: COS.SliceCopyFileParams): Promise<COS.SliceCopyFileResult>;
 
-  /** 获取上传任务列表 @see  */
+  /** 获取上传任务列表 */
   getTaskList(): COS.TaskList;
 
-  /** 判断上传队列是否有未完成的任务 @see  */
+  /** 判断上传队列是否有未完成的任务 */
   pauseTask(taskId: COS.TaskId): void;
 
-  /** 判断上传队列是否有未完成的任务 @see  */
+  /** 判断上传队列是否有未完成的任务 */
   restartTask(taskId: COS.TaskId): void;
 
-  /** 判断上传队列是否有未完成的任务 @see  */
+  /** 判断上传队列是否有未完成的任务 */
   cancelTask(taskId: COS.TaskId): void;
 
-  /** 判断上传队列是否有未完成的任务 @see  */
+  /** 判断上传队列是否有未完成的任务 */
   isUploadRunning(): boolean;
 
   /** 获取文件下载链接 @see https://cloud.tencent.com/document/product/436/35651 */

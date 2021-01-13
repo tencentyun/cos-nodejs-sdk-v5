@@ -40,8 +40,6 @@ declare namespace COS {
   type EncodingType = 'url' | string;
   /** 上传的文件内容 */
   type UploadBody = Buffer | String | Stream;
-  /** 下载的文件内容 */
-  type GetObjectBody = Buffer | String | Stream;
   /** 对象存储类型。枚举值 STANDARD | STANDARD_IA | ARCHIVE | DEEP_ARCHIVE | INTELLIGENT_TIERING | MAZ_STANDARD | MAZ_STANDARD_IA | MAZ_INTELLIGENT_TIERING @see https://cloud.tencent.com/document/product/436/33417 */
   type StorageClass = 'STANDARD' | 'STANDARD_IA' | 'ARCHIVE' | 'DEEP_ARCHIVE' | 'INTELLIGENT_TIERING' | 'MAZ_STANDARD' | 'MAZ_STANDARD_IA' | 'MAZ_INTELLIGENT_TIERING';
   /** 请求方法 */
@@ -171,7 +169,6 @@ declare namespace COS {
     ConfCwd?: string,
     /** 获取签名的回调方法，如果没有 SecretId、SecretKey 时，必选 */
     getAuthorization?: (
-      /** 计算签名或获取临时密钥可能需要的参数列表 */
       options: GetAuthorizationOptions,
       /** 获取完签名或临时密钥后，回传给 SDK 的方法 */
       callback: (
@@ -197,6 +194,7 @@ declare namespace COS {
     /** 校正时间的偏移值，单位 ms(毫秒)，计算签名时会用设备当前时间戳加上该偏移值，在设备时间有误时可用于校正签名用的时间参数。 */
     SystemClockOffset?: number,
   }
+  /** 计算签名或获取临时密钥可能需要的参数列表 */
   interface GetAuthorizationOptions {
     /** 存储桶的名称，格式为<bucketname-appid>，例如examplebucket-1250000000 */
     Bucket: Bucket,
@@ -1835,8 +1833,8 @@ declare class COS {
   putBucketCors(params: COS.PutBucketCorsParams): Promise<COS.PutBucketCorsResult>;
 
   /** 获取 Bucket 的 跨域设置 @see https://cloud.tencent.com/document/product/436/8274 */
-  getBucketCors(params: COS.GetBucketCorsParams, callback: (err: COS.CosError, data: COS.PutBucketCorsResult) => void): void;
-  getBucketCors(params: COS.GetBucketCorsParams): Promise<COS.PutBucketCorsResult>;
+  getBucketCors(params: COS.GetBucketCorsParams, callback: (err: COS.CosError, data: COS.GetBucketCorsResult) => void): void;
+  getBucketCors(params: COS.GetBucketCorsParams): Promise<COS.GetBucketCorsResult>;
 
   /** 删除 Bucket 的 跨域设置 @see https://cloud.tencent.com/document/product/436/8283 */
   deleteBucketCors(params: COS.DeleteBucketCorsParams, callback: (err: COS.CosError, data: COS.DeleteBucketCorsResult) => void): void;

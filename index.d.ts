@@ -536,21 +536,10 @@ declare namespace COS {
   interface GetBucketLocationParams extends BucketParams {}
 
   // putBucketPolicy
-  type PolicyStatement = {
-    effect: 'allow' | 'deny',
-    principal: object,
-    action: string[],
-    resource: string[],
-    condition?: object,
-  }
-  interface Policy {
-    Statement: PolicyStatement[],
-    version: string,
-  }
   /** putBucketPolicy 接口参数 */
   interface PutBucketPolicyParams extends BucketParams {
-    /** 存储桶的权限策略 */
-    Policy: Policy,
+    /** 存储桶的权限策略 @see https://cloud.tencent.com/document/product/436/31923 */
+    Policy: object,
   }
   /** putBucketPolicy 接口返回值 */
   interface PutBucketPolicyResult extends GeneralResult {}
@@ -560,8 +549,8 @@ declare namespace COS {
   interface GetBucketPolicyParams extends BucketParams {}
   /** getBucketPolicy 接口返回值 */
   interface GetBucketPolicyResult extends GeneralResult {
-    /** 存储桶的权限策略 */
-    Policy: Policy
+    /** 存储桶的权限策略 @see https://cloud.tencent.com/document/product/436/31923 */
+    Policy: object
   }
 
   // deleteBucketPolicy
@@ -638,6 +627,7 @@ declare namespace COS {
   // putBucketVersioning
   /** 存储桶版本控制开关信息 */
   interface VersioningConfiguration {
+    /** 说明版本是否开启，枚举值：Suspended、Enabled */
     Status: 'Enabled' | 'Suspended',
   }
   /** putBucketVersioning 接口参数 */
@@ -1781,483 +1771,324 @@ declare class COS {
   constructor(options: COS.COSOptions);
 
   // 静态属性
-  /** 版本号 *、
+  /** 当前 SDK 版本号 */
   static version: string;
 
   // 静态方法
+  /** 计算签名 */
   static getAuthorization: (options: COS.StaticGetAuthorizationOptions) => string;
 
-  /**
-   * 获取用户的 bucket 列表
-   * 无特殊参数
-   */
+  // 实例方法
+  /** 获取用户的 bucket 列表 @see https://cloud.tencent.com/document/product/436/8291 */
   getService(params: COS.GetServiceParams, callback: (err: COS.CosError, data: COS.GetServiceResult) => void): void;
   getService(params: COS.GetServiceParams): Promise<COS.GetServiceResult>;
 
-  /**
-   * 创建 Bucket，并初始化访问权限
-   */
+  /** 创建 Bucket，并初始化访问权限 @see https://cloud.tencent.com/document/product/436/7738 */
   putBucket(params: COS.PutBucketParams, callback: (err: COS.CosError, data: COS.PutBucketResult) => void): void;
   putBucket(params: COS.PutBucketParams): Promise<COS.PutBucketResult>;
 
-  /**
-   * 查看是否存在该Bucket，是否有权限访问
-   */
+  /** 查看是否存在该 Bucket，是否有权限访问 @see https://cloud.tencent.com/document/product/436/7735 */
   headBucket(params: COS.HeadBucketParams, callback: (err: COS.CosError, data: COS.HeadBucketResult) => void): void;
   headBucket(params: COS.HeadBucketParams): Promise<COS.HeadBucketResult>;
 
-  /**
-   * 获取 Bucket 下的 object 列表
-   */
+  /** 获取 Bucket 下的 Object 列表 @see https://cloud.tencent.com/document/product/436/7734 */
   getBucket(params: COS.GetBucketParams, callback: (err: COS.CosError, data: COS.GetBucketResult) => void): void;
   getBucket(params: COS.GetBucketParams): Promise<COS.GetBucketResult>;
 
-  /**
-   * 获取 Bucket 下的 object 版本列表
-   */
+  /** 获取 Bucket 下的 Object 版本列表 @see https://cloud.tencent.com/document/product/436/35521 */
   listObjectVersions(params: COS.ListObjectVersionsParams, callback: (err: COS.CosError, data: COS.ListObjectVersionsResult) => void): void;
   listObjectVersions(params: COS.ListObjectVersionsParams): Promise<COS.ListObjectVersionsResult>;
 
-  /**
-   * 删除 Bucket
-   */
+  /** 删除 Bucket @see https://cloud.tencent.com/document/product/436/7732 */
   deleteBucket(params: COS.DeleteBucketParams, callback: (err: COS.CosError, data: COS.DeleteBucketResult) => void): void;
   deleteBucket(params: COS.DeleteBucketParams): Promise<COS.DeleteBucketResult>;
 
-  /**
-   * 设置 Bucket 的 权限列表
-   */
+  /** 设置 Bucket 的 权限列表 @see https://cloud.tencent.com/document/product/436/7737 */
   putBucketAcl(params: COS.PutBucketAclParams, callback: (err: COS.CosError, data: COS.PutBucketAclResult) => void): void;
   putBucketAcl(params: COS.PutBucketAclParams): Promise<COS.PutBucketAclResult>;
 
-  /**
-   * 获取 Bucket 的 权限列表
-   */
+  /** 获取 Bucket 的 权限列表 @see https://cloud.tencent.com/document/product/436/7733 */
   getBucketAcl(params: COS.GetBucketAclParams, callback: (err: COS.CosError, data: COS.GetBucketAclResult) => void): void;
   getBucketAcl(params: COS.GetBucketAclParams): Promise<COS.GetBucketAclResult>;
 
-  /**
-   * 设置 Bucket 的 跨域设置
-   */
+  /** 设置 Bucket 的 跨域设置 @see https://cloud.tencent.com/document/product/436/8279 */
   putBucketCors(params: COS.PutBucketCorsParams, callback: (err: COS.CosError, data: COS.PutBucketCorsResult) => void): void;
   putBucketCors(params: COS.PutBucketCorsParams): Promise<COS.PutBucketCorsResult>;
 
-  /**
-   * 获取 Bucket 的 跨域设置
-   */
+  /** 获取 Bucket 的 跨域设置 @see https://cloud.tencent.com/document/product/436/8274 */
   getBucketCors(params: COS.GetBucketCorsParams, callback: (err: COS.CosError, data: COS.PutBucketCorsResult) => void): void;
   getBucketCors(params: COS.GetBucketCorsParams): Promise<COS.PutBucketCorsResult>;
 
-  /**
-   * 删除 Bucket 的 跨域设置
-   */
+  /** 删除 Bucket 的 跨域设置 @see https://cloud.tencent.com/document/product/436/8283 */
   deleteBucketCors(params: COS.DeleteBucketCorsParams, callback: (err: COS.CosError, data: COS.DeleteBucketCorsResult) => void): void;
   deleteBucketCors(params: COS.DeleteBucketCorsParams): Promise<COS.DeleteBucketCorsResult>;
 
-  /**
-   * 获取 Bucket 的 地域信息
-   */
+  /** 获取 Bucket 的 地域信息 @see  */
   getBucketLocation(params: COS.GetBucketLocationParams, callback: (err: COS.CosError, data: COS.GetBucketLocationResult) => void): void;
   getBucketLocation(params: COS.GetBucketLocationParams): Promise<COS.GetBucketLocationResult>;
 
-  /**
-   * 获取 Bucket 的读取权限策略
-   */
+  /** 获取 Bucket 的读取权限策略 @see https://cloud.tencent.com/document/product/436/8282 */
   putBucketPolicy(params: COS.PutBucketPolicyParams, callback: (err: COS.CosError, data: COS.PutBucketPolicyResult) => void): void;
   putBucketPolicy(params: COS.PutBucketPolicyParams): Promise<COS.PutBucketPolicyResult>;
 
-  /**
-   * 获取 Bucket 的读取权限策略
-   */
+  /** 获取 Bucket 的读取权限策略 @see https://cloud.tencent.com/document/product/436/8276 */
   getBucketPolicy(params: COS.GetBucketPolicyParams, callback: (err: COS.CosError, data: COS.GetBucketPolicyResult) => void): void;
   getBucketPolicy(params: COS.GetBucketPolicyParams): Promise<COS.GetBucketPolicyResult>;
 
-  /**
-   * 删除 Bucket 的 跨域设置
-   */
+  /** 删除 Bucket 的 跨域设置 @see https://cloud.tencent.com/document/product/436/8285 */
   deleteBucketPolicy(params: COS.DeleteBucketPolicyParams, callback: (err: COS.CosError, data: COS.DeleteBucketPolicyResult) => void): void;
   deleteBucketPolicy(params: COS.DeleteBucketPolicyParams): Promise<COS.DeleteBucketPolicyResult>;
 
-  /**
-   * 设置 Bucket 的标签
-   */
+  /** 设置 Bucket 的标签 @see https://cloud.tencent.com/document/product/436/34838 */
   putBucketTagging(params: COS.PutBucketTaggingParams, callback: (err: COS.CosError, data: COS.PutBucketTaggingResult) => void): void;
   putBucketTagging(params: COS.PutBucketTaggingParams): Promise<COS.PutBucketTaggingResult>;
 
-  /**
-   * 获取 Bucket 的标签设置
-   */
+  /** 获取 Bucket 的标签设置 @see https://cloud.tencent.com/document/product/436/34837 */
   getBucketTagging(params: COS.GetBucketTaggingResult, callback: (err: COS.CosError, data: COS.GetBucketTaggingResult) => void): void;
   getBucketTagging(params: COS.GetBucketTaggingResult): Promise<COS.GetBucketTaggingResult>;
 
-  /**
-   * 删除 Bucket 的 标签设置
-   */
+  /** 删除 Bucket 的 标签设置 @see https://cloud.tencent.com/document/product/436/34836 */
   deleteBucketTagging(params: COS.DeleteBucketTaggingParams, callback: (err: COS.CosError, data: COS.DeleteBucketTaggingResult) => void): void;
   deleteBucketTagging(params: COS.DeleteBucketTaggingParams): Promise<COS.DeleteBucketTaggingResult>;
 
 
-  /**
-   * 设置 Bucket 生命周期
-   */
+  /** 设置 Bucket 生命周期 @see https://cloud.tencent.com/document/product/436/8280 */
   putBucketLifecycle(params: COS.PutBucketLifecycleParams, callback: (err: COS.CosError, data: COS.PutBucketLifecycleResult) => void): void;
   putBucketLifecycle(params: COS.PutBucketLifecycleParams): Promise<COS.PutBucketLifecycleResult>;
 
-  /**
-   *  获取 Bucket 生命周期
-   */
+  /**  获取 Bucket 生命周期 @see https://cloud.tencent.com/document/product/436/8280 */
   getBucketLifecycle(params: COS.GetBucketLifecycleParams, callback: (err: COS.CosError, data: COS.GetBucketLifecycleResult) => void): void;
   getBucketLifecycle(params: COS.GetBucketLifecycleParams): Promise<COS.GetBucketLifecycleResult>;
 
-  /**
-   * 删除 Bucket 生命周期
-   */
+  /** 删除 Bucket 生命周期 @see https://cloud.tencent.com/document/product/436/8278 */
   deleteBucketLifecycle(params: COS.DeleteBucketLifecycleParams, callback: (err: COS.CosError, data: COS.DeleteBucketLifecycleResult) => void): void;
   deleteBucketLifecycle(params: COS.DeleteBucketLifecycleParams): Promise<COS.DeleteBucketLifecycleResult>;
 
-  /**
-   * 设置 Bucket 版本
-   */
+  /** 设置 Bucket 版本 @see https://cloud.tencent.com/document/product/436/19889 */
   putBucketVersioning(params: COS.PutBucketVersioningParams, callback: (err: COS.CosError, data: COS.PutBucketVersioningResult) => void): void;
   putBucketVersioning(params: COS.PutBucketVersioningParams): Promise<COS.PutBucketVersioningResult>;
 
-  /**
-   * 获取 Bucket 版本
-   */
+  /** 获取 Bucket 版本 @see https://cloud.tencent.com/document/product/436/19888 */
   getBucketVersioning(params: COS.GetBucketVersioningParams, callback: (err: COS.CosError, data: COS.GetBucketVersioningResult) => void): void;
   getBucketVersioning(params: COS.GetBucketVersioningParams): Promise<COS.GetBucketVersioningResult>;
 
-  /**
-   * 设置 Bucket 副本
-   */
+  /** 设置 Bucket 副本 @see https://cloud.tencent.com/document/product/436/19223 */
   putBucketReplication(params: COS.PutBucketReplicationParams, callback: (err: COS.CosError, data: COS.PutBucketReplicationResult) => void): void;
   putBucketReplication(params: COS.PutBucketReplicationParams): Promise<COS.PutBucketReplicationResult>;
 
-  /**
-   * 获取 Bucket 副本
-   */
+  /** 获取 Bucket 副本 @see https://cloud.tencent.com/document/product/436/19222 */
   getBucketReplication(params: COS.GetBucketReplicationParams, callback: (err: COS.CosError, data: COS.GetBucketReplicationResult) => void): void;
   getBucketReplication(params: COS.GetBucketReplicationParams): Promise<COS.GetBucketReplicationResult>;
 
-  /**
-   * 删除 Bucket 副本
-   */
+  /** 删除 Bucket 副本 @see https://cloud.tencent.com/document/product/436/19221 */
   deleteBucketReplication(params: COS.DeleteBucketReplicationParams, callback: (err: COS.CosError, data: COS.DeleteBucketReplicationResult) => void): void;
   deleteBucketReplication(params: COS.DeleteBucketReplicationParams): Promise<COS.DeleteBucketReplicationResult>;
 
-  /**
-   * 设置 Bucket 静态网站配置信息
-   */
+  /** 设置 Bucket 静态网站配置信息 @see https://cloud.tencent.com/document/product/436/31930 */
   putBucketWebsite(params: COS.PutBucketWebsiteParams, callback: (err: COS.CosError, data: COS.PutBucketWebsiteResult) => void): void;
   putBucketWebsite(params: COS.PutBucketWebsiteParams): Promise<COS.PutBucketWebsiteResult>;
 
-  /**
-   * 获取 Bucket 的静态网站配置信息
-   */
+  /** 获取 Bucket 的静态网站配置信息 @see https://cloud.tencent.com/document/product/436/31929 */
   getBucketWebsite(params: COS.GetBucketWebsiteParams, callback: (err: COS.CosError, data: COS.GetBucketWebsiteResult) => void): void;
   getBucketWebsite(params: COS.GetBucketWebsiteParams): Promise<COS.GetBucketWebsiteResult>;
 
-  /**
-   * 删除 Bucket 的静态网站配置
-   */
+  /** 删除 Bucket 的静态网站配置 @see https://cloud.tencent.com/document/product/436/31928 */
   deleteBucketWebsite(params: COS.DeleteBucketWebsiteParams, callback: (err: COS.CosError, data: COS.DeleteBucketWebsiteResult) => void): void;
   deleteBucketWebsite(params: COS.DeleteBucketWebsiteParams): Promise<COS.DeleteBucketWebsiteResult>;
 
-  /**
-   * 设置 Bucket 的防盗链白名单或者黑名单
-   */
+  /** 设置 Bucket 的防盗链白名单或者黑名单 @see https://cloud.tencent.com/document/product/436/32492 */
   putBucketReferer(params: COS.PutBucketRefererParams, callback: (err: COS.CosError, data: COS.PutBucketRefererResult) => void): void;
   putBucketReferer(params: COS.PutBucketRefererParams): Promise<COS.PutBucketRefererResult>;
 
-  /**
-   * 获取 Bucket 的防盗链白名单或者黑名单
-   */
+  /** 获取 Bucket 的防盗链白名单或者黑名单 @see https://cloud.tencent.com/document/product/436/32493 */
   getBucketReferer(params: COS.GetBucketRefererParams, callback: (err: COS.CosError, data: COS.GetBucketRefererResult) => void): void;
   getBucketReferer(params: COS.GetBucketRefererParams): Promise<COS.GetBucketRefererResult>;
 
-  /**
-   * 设置 Bucket 自定义域名
-   */
+  /** 设置 Bucket 自定义域名 @see  */
   putBucketDomain(params: COS.PutBucketDomainParams, callback: (err: COS.CosError, data: COS.PutBucketDomainResult) => void): void;
   putBucketDomain(params: COS.PutBucketDomainParams): Promise<COS.PutBucketDomainResult>;
 
-  /**
-   * 获取 Bucket 的自定义域名
-   */
+  /** 获取 Bucket 的自定义域名 @see  */
   getBucketDomain(params: COS.GetBucketDomainParams, callback: (err: COS.CosError, data: COS.GetBucketDomainResult) => void): void;
   getBucketDomain(params: COS.GetBucketDomainParams): Promise<COS.GetBucketDomainResult>;
 
-  /**
-   * 删除 Bucket 自定义域名
-   */
+  /** 删除 Bucket 自定义域名 @see  */
   deleteBucketDomain(params: COS.DeleteBucketDomainParams, callback: (err: COS.CosError, data: COS.DeleteBucketDomainResult) => void): void;
   deleteBucketDomain(params: COS.DeleteBucketDomainParams): Promise<COS.DeleteBucketDomainResult>;
 
-  /**
-   * 设置 Bucket 的回源
-   */
+  /** 设置 Bucket 的回源 @see  */
   putBucketOrigin(params: COS.PutBucketOriginParams, callback: (err: COS.CosError, data: COS.PutBucketOriginResult) => void): void;
   putBucketOrigin(params: COS.PutBucketOriginParams): Promise<COS.PutBucketOriginResult>;
 
-  /**
-   * 获取 Bucket 的回源
-   */
+  /** 获取 Bucket 的回源 @see  */
   getBucketOrigin(params: COS.GetBucketOriginParams, callback: (err: COS.CosError, data: COS.GetBucketOriginResult) => void): void;
   getBucketOrigin(params: COS.GetBucketOriginParams): Promise<COS.GetBucketOriginResult>;
 
-  /**
-   * 删除 Bucket 的回源
-   */
+  /** 删除 Bucket 的回源 @see  */
   deleteBucketOrigin(params: COS.DeleteBucketOriginParams, callback: (err: COS.CosError, data: COS.DeleteBucketOriginResult) => void): void;
   deleteBucketOrigin(params: COS.DeleteBucketOriginParams): Promise<COS.DeleteBucketOriginResult>;
 
-  /**
-   * 设置 Bucket 的日志记录
-   */
+  /** 设置 Bucket 的日志记录 @see https://cloud.tencent.com/document/product/436/17054 */
   putBucketLogging(params: COS.PutBucketLoggingParams, callback: (err: COS.CosError, data: COS.PutBucketLoggingResult) => void): void;
   putBucketLogging(params: COS.PutBucketLoggingParams): Promise<COS.PutBucketLoggingResult>;
 
-  /**
-   * 获取 Bucket 的日志记录
-   */
+  /** 获取 Bucket 的日志记录 @see https://cloud.tencent.com/document/product/436/17053 */
   getBucketLogging(params: COS.GetBucketLoggingParams, callback: (err: COS.CosError, data: COS.GetBucketLoggingResult) => void): void;
   getBucketLogging(params: COS.GetBucketLoggingParams): Promise<COS.GetBucketLoggingResult>;
 
-  /**
-   * 创建/编辑 Bucket 的清单任务
-   */
+  /** 创建/编辑 Bucket 的清单任务 @see https://cloud.tencent.com/document/product/436/33707 */
   putBucketInventory(params: COS.PutBucketInventoryParams, callback: (err: COS.CosError, data: COS.PutBucketInventoryResult) => void): void;
   putBucketInventory(params: COS.PutBucketInventoryParams): Promise<COS.PutBucketInventoryResult>;
 
-  /**
-   * 获取 Bucket 的清单任务信息
-   */
+  /** 获取 Bucket 的清单任务信息 @see https://cloud.tencent.com/document/product/436/33705 */
   getBucketInventory(params: COS.GetBucketInventoryParams, callback: (err: COS.CosError, data: COS.GetBucketInventoryResult) => void): void;
   getBucketInventory(params: COS.GetBucketInventoryParams): Promise<COS.GetBucketInventoryResult>;
 
-  /**
-   * 获取 Bucket 的清单任务信息
-   */
+  /** 获取 Bucket 的清单任务信息 @see https://cloud.tencent.com/document/product/436/33706 */
   listBucketInventory(params: COS.ListBucketInventoryParams, callback: (err: COS.CosError, data: COS.ListBucketInventoryResult) => void): void;
   listBucketInventory(params: COS.ListBucketInventoryParams): Promise<COS.ListBucketInventoryResult>;
 
-  /**
-   * 删除 Bucket 的清单任务
-   */
+  /** 删除 Bucket 的清单任务 @see https://cloud.tencent.com/document/product/436/33704 */
   deleteBucketInventory(params: COS.DeleteBucketInventoryParams, callback: (err: COS.CosError, data: COS.DeleteBucketInventoryResult) => void): void;
   deleteBucketInventory(params: COS.DeleteBucketInventoryParams): Promise<COS.DeleteBucketInventoryResult>;
 
-  /**
-   * 启用或者暂停存储桶的全球加速功能
-   */
+  /** 启用或者暂停存储桶的全球加速功能 @see  */
   putBucketAccelerate(params: COS.PutBucketAccelerateParams, callback: (err: COS.CosError, data: COS.PutBucketAccelerateResult) => void): void;
   putBucketAccelerate(params: COS.PutBucketAccelerateParams): Promise<COS.PutBucketAccelerateResult>;
 
-  /**
-   * 查询存储桶的全球加速功能配置
-   */
+  /** 查询存储桶的全球加速功能配置 @see https://cloud.tencent.com/document/product/436/38869 */
   getBucketAccelerate(params: COS.GetBucketAccelerateParams, callback: (err: COS.CosError, data: COS.GetBucketAccelerateResult) => void): void;
   getBucketAccelerate(params: COS.GetBucketAccelerateParams): Promise<COS.GetBucketAccelerateResult>;
 
-  /**
-   * 取回对应Object的元数据，Head的权限与Get的权限一致
-   */
+  /** 取回对应对象（Object）的元数据，Head的权限与Get的权限一致 @see https://cloud.tencent.com/document/product/436/38868 */
   headObject(params: COS.HeadObjectParams, callback: (err: COS.CosError, data: COS.HeadObjectResult) => void): void;
   headObject(params: COS.HeadObjectParams): Promise<COS.HeadObjectResult>;
 
-  /**
-   * 下载 object
-   */
+  /** 下载对象（Object） @see https://cloud.tencent.com/document/product/436/7753 */
   getObject(params: COS.GetObjectParams, callback: (err: COS.CosError, data: COS.GetObjectResult) => void): void;
   getObject(params: COS.GetObjectParams): Promise<COS.GetObjectResult>;
 
-  /**
-   * 下载 object，返回 Stream 对象
-   */
+  /** 下载对象（Object），返回 Stream 对象 @see https://cloud.tencent.com/document/product/436/7753 */
   getObjectStream(params: COS.GetObjectParams, callback?: (err: COS.CosError, data: COS.GetObjectResult) => void): Stream;
 
-  /**
-   * 上传 object
-   */
+  /** 简单上传对象（Object）至指定存储桶 @see https://cloud.tencent.com/document/product/436/7749 */
   putObject(params: COS.PutObjectParams, callback: (err: COS.CosError, data: COS.PutObjectResult) => void): void;
   putObject(params: COS.PutObjectParams): Promise<COS.PutObjectResult>;
 
-  /**
-   * 删除 object
-   */
+  /** 删除一个指定的对象（Object） @see https://cloud.tencent.com/document/product/436/7743 */
   deleteObject(params: COS.DeleteObjectParams, callback: (err: COS.CosError, data: COS.DeleteObjectResult) => void): void;
   deleteObject(params: COS.DeleteObjectParams): Promise<COS.DeleteObjectResult>;
 
-  /**
-   * 批量删除 object
-   */
+  /** 批量删除指定存储桶中的多个对象（Object） @see https://cloud.tencent.com/document/product/436/8289 */
   deleteMultipleObject(params: COS.DeleteMultipleObjectParams, callback: (err: COS.CosError, data: COS.DeleteMultipleObjectResult) => void): void;
   deleteMultipleObject(params: COS.DeleteMultipleObjectParams): Promise<COS.DeleteMultipleObjectResult>;
 
-  /**
-   * 获取 object 的 权限列表
-   */
+  /** 获取 Object 的权限列表 @see https://cloud.tencent.com/document/product/436/7744 */
   getObjectAcl(params: COS.GetObjectAclParams, callback: (err: COS.CosError, data: COS.GetObjectAclResult) => void): void;
   getObjectAcl(params: COS.GetObjectAclParams): Promise<COS.GetObjectAclResult>;
 
-  /**
-   * 设置 object 的 权限列表
-   */
+  /** 设置 Object 的权限列表 @see https://cloud.tencent.com/document/product/436/7748 */
   putObjectAcl(params: COS.PutObjectAclParams, callback: (err: COS.CosError, data: COS.PutObjectAclResult) => void): void;
   putObjectAcl(params: COS.PutObjectAclParams): Promise<COS.PutObjectAclResult>;
 
-  /**
-   * Options Object请求实现跨域访问的预请求。即发出一个 OPTIONS 请求给服务器以确认是否可以进行跨域操作。
-   */
+  /** 跨域资源共享（CORS）的预检（Preflight）请求 @see https://cloud.tencent.com/document/product/436/8288 */
   optionsObject(params: COS.OptionsObjectParams, callback: (err: COS.CosError, data: COS.OptionsObjectResult) => void): void;
   optionsObject(params: COS.OptionsObjectParams): Promise<COS.OptionsObjectResult>;
 
-  /**
-   * 恢复归档对象
-   */
+  /** 恢复归档对象 @see https://cloud.tencent.com/document/product/436/12633 */
   restoreObject(params: COS.RestoreObjectParams, callback: (err: COS.CosError, data: COS.RestoreObjectResult) => void): void;
   restoreObject(params: COS.RestoreObjectParams): Promise<COS.RestoreObjectResult>;
 
-  /**
-   * 检索对象内容
-   */
+  /** 检索对象内容 @see https://cloud.tencent.com/document/product/436/37641 */
   selectObjectContent(params: COS.SelectObjectContentParams, callback: (err: COS.CosError, data: COS.SelectObjectContentResult) => void): void;
   selectObjectContent(params: COS.SelectObjectContentParams): Promise<COS.SelectObjectContentResult>;
 
-  /**
-   * 检索对象内容，返回 Stream 对象
-   */
+  /** 检索对象内容，返回 Stream 对象 @see https://cloud.tencent.com/document/product/436/37641 */
   selectObjectContentStream(params: COS.SelectObjectContentParams, callback?: (err: COS.CosError, data: COS.SelectObjectContentResult) => void): Stream;
 
-  /**
-   * 复制对象
-   */
+  /** 复制对象 @see https://cloud.tencent.com/document/product/436/10881 */
   putObjectCopy(params: COS.PutObjectCopyParams, callback: (err: COS.CosError, data: COS.PutObjectCopyResult) => void): void;
   putObjectCopy(params: COS.PutObjectCopyParams): Promise<COS.PutObjectCopyResult>;
 
-  /**
-   * 设置对象标签
-   */
+  /** 设置对象标签 @see https://cloud.tencent.com/document/product/436/42997 */
   putObjectTagging(params: COS.PutObjectTaggingParams, callback: (err: COS.CosError, data: COS.PutObjectTaggingResult) => void): void;
   putObjectTagging(params: COS.PutObjectTaggingParams): Promise<COS.PutObjectTaggingResult>;
 
-  /**
-   * 查询对象标签
-   */
+  /** 查询对象标签 @see https://cloud.tencent.com/document/product/436/42998 */
   getObjectTagging(params: COS.GetObjectTaggingParams, callback: (err: COS.CosError, data: COS.GetObjectTaggingResult) => void): void;
   getObjectTagging(params: COS.GetObjectTaggingParams): Promise<COS.GetObjectTaggingResult>;
 
-  /**
-   * 删除对象标签
-   */
+  /** 删除对象标签 @see https://cloud.tencent.com/document/product/436/42999 */
   deleteObjectTagging(params: COS.DeleteObjectTaggingParams, callback: (err: COS.CosError, data: COS.DeleteObjectTaggingResult) => void): void;
   deleteObjectTagging(params: COS.DeleteObjectTaggingParams): Promise<COS.DeleteObjectTaggingResult>;
 
-  /**
-   * 初始化分块上传
-   */
+  /** 初始化分块上传 @see https://cloud.tencent.com/document/product/436/7746 */
   multipartInit(params: COS.MultipartInitParams, callback: (err: COS.CosError, data: COS.MultipartInitResult) => void): void;
   multipartInit(params: COS.MultipartInitParams): Promise<COS.MultipartInitResult>;
 
-  /**
-   * 分块上传
-   */
+  /** 分块上传 @see https://cloud.tencent.com/document/product/436/7750 */
   multipartUpload(params: COS.MultipartUploadParams, callback: (err: COS.CosError, data: COS.MultipartUploadResult) => void): void;
   multipartUpload(params: COS.MultipartUploadParams): Promise<COS.MultipartUploadResult>;
 
-  /**
-   * 分块上传
-   */
+  /** 分块上传 @see https://cloud.tencent.com/document/product/436/8287 */
   uploadPartCopy(params: COS.UploadPartCopyParams, callback: (err: COS.CosError, data: COS.UploadPartCopyResult) => void): void;
   uploadPartCopy(params: COS.UploadPartCopyParams): Promise<COS.UploadPartCopyResult>;
 
-  /**
-   * 完成分块上传
-   */
+  /** 完成分块上传 @see https://cloud.tencent.com/document/product/436/7742 */
   multipartComplete(params: COS.MultipartCompleteParams, callback: (err: COS.CosError, data: COS.MultipartCompleteResult) => void): void;
   multipartComplete(params: COS.MultipartCompleteParams): Promise<COS.MultipartCompleteResult>;
 
-  /**
-   * 分块上传任务列表查询
-   */
+  /** 分块上传任务列表查询 @see https://cloud.tencent.com/document/product/436/7736 */
   multipartList(params: COS.MultipartListParams, callback: (err: COS.CosError, data: COS.MultipartListResult) => void): void;
   multipartList(params: COS.MultipartListParams): Promise<COS.MultipartListResult>;
 
-  /**
-   * 上传的分块列表查询
-   */
+  /** 上传的分块列表查询 @see https://cloud.tencent.com/document/product/436/7747 */
   multipartListPart(params: COS.MultipartListPartParams, callback: (err: COS.CosError, data: COS.MultipartListPartResult) => void): void;
   multipartListPart(params: COS.MultipartListPartParams): Promise<COS.MultipartListPartResult>;
 
-  /**
-   * 抛弃分块上传
-   */
+  /** 抛弃分块上传 @see https://cloud.tencent.com/document/product/436/7740 */
   multipartAbort(params: COS.MultipartAbortParams, callback: (err: COS.CosError, data: COS.MultipartAbortResult) => void): void;
   multipartAbort(params: COS.MultipartAbortParams): Promise<COS.MultipartAbortResult>;
 
-  /**
-   * 分片上传文件，封装好分片上传的多个步骤的上传方法。
-   */
+  /** 分片上传文件，封装好分片上传的多个步骤的上传方法。 @see  */
   sliceUploadFile(params: COS.SliceUploadFileParams, callback: (err: COS.CosError, data: COS.SliceUploadFileResult) => void): void;
   sliceUploadFile(params: COS.SliceUploadFileParams): Promise<COS.SliceUploadFileResult>;
 
-  /**
-   * 分片上传文件，封装好分片上传的多个步骤的上传方法。
-   */
+  /** 分片上传文件，封装好分片上传的多个步骤的上传方法。 @see https://cloud.tencent.com/document/product/436/7740 */
   abortUploadTask(params: COS.AbortUploadTaskParams, callback: (err: COS.CosError, data: COS.AbortUploadTaskResult) => void): void;
   abortUploadTask(params: COS.AbortUploadTaskParams): Promise<COS.AbortUploadTaskResult>;
 
-  /**
-   * 分片复制文件
-   */
+  /** 分片复制文件 @see  */
   uploadFiles(params: COS.UploadFilesParams, callback: (err: COS.CosError, data: COS.UploadFilesResult) => void): void;
   uploadFiles(params: COS.UploadFilesParams): Promise<COS.UploadFilesResult>;
 
-  /**
-   * 分片复制文件
-   */
+  /** 分片复制文件 @see  */
   sliceCopyFile(params: COS.SliceCopyFileParams, callback: (err: COS.CosError, data: COS.SliceCopyFileResult) => void): void;
   sliceCopyFile(params: COS.SliceCopyFileParams): Promise<COS.SliceCopyFileResult>;
 
-  /**
-   * 获取上传任务列表
-   */
+  /** 获取上传任务列表 @see  */
   getTaskList(): COS.TaskList;
 
-  /**
-   * 判断上传队列是否有未完成的任务
-   */
+  /** 判断上传队列是否有未完成的任务 @see  */
   pauseTask(taskId: COS.TaskId): void;
 
-  /**
-   * 判断上传队列是否有未完成的任务
-   */
+  /** 判断上传队列是否有未完成的任务 @see  */
   restartTask(taskId: COS.TaskId): void;
 
-  /**
-   * 判断上传队列是否有未完成的任务
-   */
+  /** 判断上传队列是否有未完成的任务 @see  */
   cancelTask(taskId: COS.TaskId): void;
 
-  /**
-   * 判断上传队列是否有未完成的任务
-   */
+  /** 判断上传队列是否有未完成的任务 @see  */
   isUploadRunning(): boolean;
 
-  /**
-   * 获取文件下载链接
-   */
+  /** 获取文件下载链接 @see https://cloud.tencent.com/document/product/436/35651 */
   getObjectUrl(params: COS.GetObjectUrlParams, callback: (err: COS.CosError, data: COS.GetObjectUrlResult) => void): string;
   getObjectUrl(params: COS.GetObjectUrlParams): Promise<COS.GetObjectUrlResult>;
 
-  /**
-   * 获取 COS JSON API (v4) 签名
-   */
+  /** 获取 COS JSON API (v4) 签名 @see https://cloud.tencent.com/document/product/436/6054 */
   getV4Auth(params: COS.GetV4AuthParams): COS.Authorization;
 
-  /**
-   * 获取签名
-   */
+  /** 获取 COS XMl API (v5) 签名 @see https://cloud.tencent.com/document/product/436/7778 */
   getAuth(params: COS.GetAuthParams): COS.Authorization;
 
 }

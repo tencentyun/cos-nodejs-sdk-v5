@@ -147,6 +147,8 @@ declare namespace COS {
     ServiceDomain?: string,
     /** 强制使用后缀式模式发请求。后缀式模式中 Bucket 会放在域名后的 pathname 里，并且 Bucket 会加入签名 pathname 计算，默认 false */
     Protocol?: string,
+    /** 设置代理，格式如 http://127.0.0.1:8888 */
+    Proxy?: string,
     /** 开启兼容模式，默认 false 不开启，兼容模式下不校验 Region 是否格式有误，在用于私有化 COS 时使用 */
     CompatibilityMode?: boolean,
     /** 强制使用后缀式模式发请求。后缀式模式中 Bucket 会放在域名后的 pathname 里，并且 Bucket 会加入签名 pathname 计算，默认 false */
@@ -324,8 +326,8 @@ declare namespace COS {
   // getBucket
   /** getBucket 接口参数 */
   interface GetBucketParams extends BucketParams {
-    /** 前缀匹配，用来规定返回的文件前缀地址，必选 */
-    Prefix: Prefix,
+    /** 前缀匹配，用来规定返回的文件前缀地址，可选 */
+    Prefix?: Prefix,
     /** 一个字符的分隔符，常用 / 字符，用于对对象键进行分组。所有对象键中从 prefix 或从头（如未指定 prefix）到首个 delimiter 之间相同的部分将作为 CommonPrefixes 下的一个 Prefix 节点。被分组的对象键不再出现在后续对象列表中，可选 */
     Delimiter?: Delimiter,
     /** 默认以UTF-8二进制顺序列出条目，所有列出条目从marker开始，可选 */
@@ -370,8 +372,8 @@ declare namespace COS {
   // listObjectVersions
   /** listObjectVersions 接口参数 */
   interface ListObjectVersionsParams extends BucketParams {
-    /** 前缀匹配，用来规定返回的文件前缀地址，必选 */
-    Prefix: Prefix,
+    /** 前缀匹配，用来规定返回的文件前缀地址，可选 */
+    Prefix?: Prefix,
     /** 一个字符的分隔符，常用 / 字符，用于对对象键进行分组。所有对象键中从 prefix 或从头（如未指定 prefix）到首个 delimiter 之间相同的部分将作为 CommonPrefixes 下的一个 Prefix 节点。被分组的对象键不再出现在后续对象列表中，可选 */
     Delimiter?: Delimiter,
     /** 默认以UTF-8二进制顺序列出条目，所有列出条目从marker开始，可选 */
@@ -455,6 +457,13 @@ declare namespace COS {
     GrantWriteAcp?: Grant,
     /** 赋予被授权者操作对象的所有权限，格式：id="[OwnerUin]"，可使用半角逗号（,）分隔多组被授权者，可选 */
     GrantFullControl?: Grant,
+    /** 放在 XML Body 的授权参数 */
+    AccessControlPolicy?: {
+      /** 所有者的信息 */
+      Owner: Owner,
+      /** 被授权者信息与权限信息 */
+      Grants: Grants
+    }
   }
   /** putBucketAcl 接口返回值 */
   interface PutBucketAclResult extends GeneralResult {}
@@ -569,6 +578,8 @@ declare namespace COS {
   interface PutBucketTaggingResult extends GeneralResult {}
 
   // getBucketTagging
+  /** getBucketTagging 接口参数 */
+  interface GetBucketTaggingParams extends BucketParams {}
   /** getBucketTagging 接口返回值 */
   interface GetBucketTaggingResult extends GeneralResult {
     /** 标签集合，最多支持10个标签 */
@@ -585,7 +596,7 @@ declare namespace COS {
   /** 生命周期配置规则 */
   type LifecycleRule = {
     /** 用于唯一地标识规则，长度不能超过255个字符，可选 */
-    ID: '2',
+    ID: string,
     /** 指明规则是否启用，枚举值：Enabled，Disabled，必选 */
     Status: 'Enabled' | 'Disabled',
     /** Filter 用于描述规则影响的 Object 集合，必选 */
@@ -838,33 +849,33 @@ declare namespace COS {
     /** 回源配置，配置用户使用的 HTTP 传输协议等信息。必选 */
     OriginCondition: {
       /** 触发回源的 HTTP 状态码，默认为404。必选 */
-      HTTPStatusCode: '404',
+      HTTPStatusCode: number,
       /** 触发回源的文件前缀，默认为空，任意文件均可触发。可选 */
-      Prefix: '',
+      Prefix: Prefix,
     },
     /** 回源地址相关信息，必选 */
     OriginParameter: {
       /** 回源使用的协议，枚举值为 HTTP（使用 HTTP 协议），HTTPS（使用 HTTPS 协议）、FOLLOW（跟随用户使用的协议），默认值为 FOLLOW。必选 */
       Protocol: 'HTTP' | 'HTTPS' | 'FOLLOW',
       /** Proxy 模式下是否需要透传 HTTP 请求串，枚举值：true、false，默认为 true。可选 */
-      FollowQueryString?: 'true',
+      FollowQueryString?: BooleanString,
       /** Proxy 模式下是否需要 Http 头部传输配置。可选 */
       HttpHeader?: {
         /** Proxy 模式下是否传输请求头部，枚举值：true、false，默认为 false。可选 */
-        FollowHttpHeader?: 'true' | 'false',
+        FollowHttpHeader?: BooleanString,
         /** 设置 Proxy 模式传输的请求头部。可选 */
         NewHttpHeader?: {
           /** 回源到源站时添加新的自定义头部，默认为空。可选 */
           Header?: {
             /** 用户设置的头部名称，默认为空。形式如 x-cos、oss、amz-ContentType、CacheControl、ContentDisposition、ContentEncoding、HttpExpiresDate、UserMetaData。可选 */
-            Key?: 'a',
+            Key?: string,
             /** 用户设置的头部值，默认为空。可选 */
-            Value?: 'a'
+            Value?: string
           }[]
         },
       },
       /** Proxy 模式下源站 3XX 响应策略，枚举值：true、false，选择 true 时跟随源站 3xx 重定向请求获取到资源，并将资源保存到 COS 上；选择 false 时透传 3XX 响应，不获取资源），默认为 true。可选 */
-      FollowRedirection: 'true',
+      FollowRedirection: BooleanString,
       /** Proxy 模式下的返回码参数，枚举值：301、302，默认为 302。可选 */
       HttpRedirectCode: ('301' | '302')[]
     },
@@ -873,19 +884,19 @@ declare namespace COS {
       /** 源站信息。必选 */
       HostInfo: {
         /** 源站域名或者源站 IP。必选 */
-        HostName: ''
+        HostName: string
       },
       /** 回源文件信息。必选 */
       FileInfo: {
         /** 回源文件前缀配置信息。可选 */
         PrefixConfiguration: {
           /** 回源文件的文件前缀，默认为空。可选 */
-          Prefix: '123/'
+          Prefix: Prefix
         },
         /** 回源文件后缀配置信息。可选 */
         SuffixConfiguration: {
           /** 回源文件的文件后缀，默认为空。可选 */
-          Suffix: '.jpg'
+          Suffix: string
         }
       }
     },
@@ -1100,7 +1111,7 @@ declare namespace COS {
   /** getObject 接口返回值 */
   interface GetObjectResult extends GeneralResult {
     /** 对象内容 */
-    Body: GetObjectBody,
+    Body: Buffer,
     /** 对象的实体标签（Entity Tag），是对象被创建时标识对象内容的信息标签，可用于检查对象的内容是否发生变化，例如"8e0b617ca298a564c3331da28dcb50df"。此头部并不一定返回对象的 MD5 值，而是根据对象上传和加密方式而有所不同 */
     ETag: ETag,
     /** 对象的版本 ID */
@@ -1165,7 +1176,7 @@ declare namespace COS {
 
   // deleteMultipleObject
   /** deleteMultipleObject 接口参数 */
-  interface DeleteMultipleObjectParams extends ObjectParams {
+  interface DeleteMultipleObjectParams extends BucketParams {
     /** 要删除的对象列表 */
     Objects: {
       /** 要删除的对象键 */
@@ -1420,6 +1431,10 @@ Bulk：批量模式，恢复时间为24 - 48小时。 */
   // multipartUpload
   /** multipartUpload 接口参数 */
   interface MultipartUploadParams extends ObjectParams {
+    /** 分块上传的任务 ID */
+    UploadId: UploadId,
+    /** 标识本次分块上传的编号，范围在1 - 10000 */
+    PartNumber: PartNumber,
     /** 要上传分片内容 */
     Body: UploadBody,
     /** 要上传分片内容大小 */
@@ -1482,6 +1497,8 @@ Bulk：批量模式，恢复时间为24 - 48小时。 */
   interface MultipartListParams extends BucketParams {
     /** 限定返回的 Object key 必须以 Prefix 作为前缀。注意使用 prefix 查询时，返回的 key 中仍会包含 Prefix。 */
     Prefix: Prefix,
+    /** 一个字符的分隔符，常用 / 字符，用于对对象键进行分组。所有对象键中从 prefix 或从头（如未指定 prefix）到首个 delimiter 之间相同的部分将作为 CommonPrefixes 下的一个 Prefix 节点。被分组的对象键不再出现在后续对象列表中 */
+    Delimiter: Delimiter
     /** 设置最大返回的 multipart 数量，合法取值从1到1000，默认1000 */
     MaxUploads?: number,
     /** 与 upload-id-marker 一起使用：当 upload-id-marker 未被指定时，ObjectName 字母顺序大于 key-marker 的条目将被列出。当 upload-id-marker 被指定时，ObjectName 字母顺序大于 key-marker 的条目被列出，ObjectName 字母顺序等于 key-marker 同时 UploadId 大于 upload-id-marker 的条目将被列出。 */
@@ -1524,7 +1541,7 @@ Bulk：批量模式，恢复时间为24 - 48小时。 */
     /** 标识本次分块上传的 ID，使用 Initiate Multipart Upload 接口初始化分块上传时得到的 UploadId */
     UploadId: UploadId,
     /** 单次返回最大的条目数量，默认1000 */
-    MaxParts?: string,
+    MaxParts?: number,
     /** 默认以 UTF-8 二进制顺序列出条目，所有列出条目从 marker 开始 */
     PartNumberMarker?: string,
     /** 规定返回值的编码方式，可选值：url，代表返回的对象键为 URL 编码（百分号编码）后的值，例如“腾讯云”将被编码为%E8%85%BE%E8%AE%AF%E4%BA%91 */
@@ -1674,6 +1691,8 @@ Bulk：批量模式，恢复时间为24 - 48小时。 */
     CopySliceSize?: number,
     /** 使用 sliceCopyFile 分块复制文件时，每片的大小字节数，默认值10485760（10MB） */
     CopyChunkSize?: number,
+    /** 分片复制进度回调方法 */
+    onProgress: onProgress
   }
   /** sliceCopyFile 接口返回值 */
   interface SliceCopyFileResult extends GeneralResult {}
@@ -1844,8 +1863,8 @@ declare class COS {
   putBucketTagging(params: COS.PutBucketTaggingParams): Promise<COS.PutBucketTaggingResult>;
 
   /** 获取 Bucket 的标签设置 @see https://cloud.tencent.com/document/product/436/34837 */
-  getBucketTagging(params: COS.GetBucketTaggingResult, callback: (err: COS.CosError, data: COS.GetBucketTaggingResult) => void): void;
-  getBucketTagging(params: COS.GetBucketTaggingResult): Promise<COS.GetBucketTaggingResult>;
+  getBucketTagging(params: COS.GetBucketTaggingParams, callback: (err: COS.CosError, data: COS.GetBucketTaggingResult) => void): void;
+  getBucketTagging(params: COS.GetBucketTaggingParams): Promise<COS.GetBucketTaggingResult>;
 
   /** 删除 Bucket 的 标签设置 @see https://cloud.tencent.com/document/product/436/34836 */
   deleteBucketTagging(params: COS.DeleteBucketTaggingParams, callback: (err: COS.CosError, data: COS.DeleteBucketTaggingResult) => void): void;

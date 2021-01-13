@@ -1,3 +1,4 @@
+// @ts-check
 var fs = require('fs');
 var path = require('path');
 var COS = require('../index');
@@ -78,7 +79,6 @@ function putBucket() {
         Bucket: 'testnew-' + config.Bucket.substr(config.Bucket.lastIndexOf('-') + 1),
         Region: 'ap-guangzhou',
         // BucketAZConfig: 'MAZ',
-        ACL: '',
     }, function (err, data) {
         console.log(err || data);
     });
@@ -123,33 +123,33 @@ function putBucketAcl() {
         // ACL: 'public-read-write',
         // ACL: 'public-read',
         ACL: 'private',
-        // AccessControlPolicy: {
-        // "Owner": { // AccessControlPolicy 里必须有 owner
-        //     "ID": 'qcs::cam::uin/10001:uin/10001' // 10001 是 Bucket 所属用户的 QQ 号
-        // },
-        // "Grants": [{
-        //     "Grantee": {
-        //         "ID": "qcs::cam::uin/1001:uin/1001", // 10002 是 QQ 号
-        //         "DisplayName": "qcs::cam::uin/1001:uin/1001" // 10002 是 QQ 号
-        //     },
-        //     "Permission": "READ"
-        // }, {
-        //     "Grantee": {
-        //         "ID": "qcs::cam::uin/10002:uin/10002", // 10002 是 QQ 号
-        //     },
-        //     "Permission": "WRITE"
-        // }, {
-        //     "Grantee": {
-        //         "ID": "qcs::cam::uin/10002:uin/10002", // 10002 是 QQ 号
-        //     },
-        //     "Permission": "READ_ACP"
-        // }, {
-        //     "Grantee": {
-        //         "ID": "qcs::cam::uin/10002:uin/10002", // 10002 是 QQ 号
-        //     },
-        //     "Permission": "WRITE_ACP"
-        // }]
-        // }
+        AccessControlPolicy: {
+        "Owner": { // AccessControlPolicy 里必须有 owner
+            "ID": 'qcs::cam::uin/10001:uin/10001' // 10001 是 Bucket 所属用户的 QQ 号
+        },
+        "Grants": [{
+            "Grantee": {
+                "ID": "qcs::cam::uin/1001:uin/1001", // 10002 是 QQ 号
+                "DisplayName": "qcs::cam::uin/1001:uin/1001" // 10002 是 QQ 号
+            },
+            "Permission": "READ"
+        }, {
+            "Grantee": {
+                "ID": "qcs::cam::uin/10002:uin/10002", // 10002 是 QQ 号
+            },
+            "Permission": "WRITE"
+        }, {
+            "Grantee": {
+                "ID": "qcs::cam::uin/10002:uin/10002", // 10002 是 QQ 号
+            },
+            "Permission": "READ_ACP"
+        }, {
+            "Grantee": {
+                "ID": "qcs::cam::uin/10002:uin/10002", // 10002 是 QQ 号
+            },
+            "Permission": "WRITE_ACP"
+        }]
+        }
     }, function (err, data) {
         console.log(err || data);
     });
@@ -173,7 +173,7 @@ function putBucketCors() {
             "AllowedMethod": ["GET", "POST", "PUT", "DELETE", "HEAD"],
             "AllowedHeader": ["*"],
             "ExposeHeader": ["ETag", "Date", "Content-Length", "x-cos-acl", "x-cos-version-id", "x-cos-request-id", "x-cos-delete-marker", "x-cos-server-side-encryption"],
-            "MaxAgeSeconds": "5"
+            "MaxAgeSeconds": 5
         }]
     }, function (err, data) {
         console.log(err || data);
@@ -298,12 +298,10 @@ function putBucketTagging() {
     cos.putBucketTagging({
         Bucket: config.Bucket, // Bucket 格式：test-1250000000
         Region: config.Region,
-        Tagging: {
-            "Tags": [
-                {"Key": "k1", "Value": "v1"},
-                {"Key": "k2", "Value": "v2"}
-            ]
-        }
+        Tags: [
+            {"Key": "k1", "Value": "v1"},
+            {"Key": "k2", "Value": "v2"}
+        ]
     }, function (err, data) {
         console.log(err || data);
     });
@@ -331,41 +329,39 @@ function putBucketLifecycle() {
     cos.putBucketLifecycle({
         Bucket: config.Bucket, // Bucket 格式：test-1250000000
         Region: config.Region,
-        LifecycleConfiguration: {
-            Rules: [{
-                "ID": "1",
-                "Status": "Enabled",
-                "Filter": {},
-                "Transition": {
-                    "Days": "30",
-                    "StorageClass": "STANDARD_IA"
-                }
-            }, {
-                "ID": "2",
-                "Status": "Enabled",
-                "Filter": {
-                    "Prefix": "dir/"
-                },
-                "Transition": {
-                    "Days": "180",
-                    "StorageClass": "ARCHIVE"
-                }
-            }, {
-                "ID": "3",
-                "Status": "Enabled",
-                "Filter": {},
-                "Expiration": {
-                    "Days": "180"
-                }
-            }, {
-                "ID": "4",
-                "Status": "Enabled",
-                "Filter": {},
-                "AbortIncompleteMultipartUpload": {
-                    "DaysAfterInitiation": "30"
-                }
-            }],
-        }
+        Rules: [{
+            "ID": "1",
+            "Status": "Enabled",
+            "Filter": {},
+            "Transition": {
+                "Days": "30",
+                "StorageClass": "STANDARD_IA"
+            }
+        }, {
+            "ID": "2",
+            "Status": "Enabled",
+            "Filter": {
+                "Prefix": "dir/"
+            },
+            "Transition": {
+                "Days": "180",
+                "StorageClass": "ARCHIVE"
+            }
+        }, {
+            "ID": "3",
+            "Status": "Enabled",
+            "Filter": {},
+            "Expiration": {
+                "Days": "180"
+            }
+        }, {
+            "ID": "4",
+            "Status": "Enabled",
+            "Filter": {},
+            "AbortIncompleteMultipartUpload": {
+                "DaysAfterInitiation": "30"
+            }
+        }],
     }, function (err, data) {
         console.log(err || data);
     });
@@ -584,11 +580,18 @@ function putBucketOrigin() {
         Region: config.Region,
         OriginRule: [{
             OriginType: 'Mirror',
-            OriginCondition: {HTTPStatusCode: '404', Prefix: ''},
+            OriginCondition: {HTTPStatusCode: 404, Prefix: ''},
             OriginParameter: {
                 Protocol: 'HTTP',
                 FollowQueryString: 'true',
-                HttpHeader: {NewHttpHeaders: {Header: [{Key: 'a', Value: 'a'}]}},
+                HttpHeader: {
+                    NewHttpHeader: {
+                        Header: [{
+                            Key: 'a',
+                            Value: 'a'
+                        }]
+                    }
+                },
                 FollowRedirection: 'true',
                 HttpRedirectCode: ['301', '302']
             },
@@ -607,10 +610,10 @@ function putBucketOrigin() {
 }
 
 function getBucketOrigin() {
-    cos.putBucketOrigin({
+    cos.getBucketOrigin({
         Bucket: config.Bucket,
         Region: config.Region,
-    },function(err, data){
+    }, function(err, data){
         console.log(err || data);
     });
 }
@@ -1056,9 +1059,10 @@ function multipartCom() {
     cos.multipartComplete({
         Bucket: config.Bucket,
         Region: config.Region,
+        Key: '1.zip',
         UploadId: 'xxx',
         Parts: [{
-            PartNumber: '1',
+            PartNumber: 1,
             ETag: 'xxx',
         }],
     }, function (err, data) {
@@ -1160,8 +1164,8 @@ function uploadFiles() {
             }],
             SliceSize: 1024 * 1024,
             onProgress: function (info) {
-                var percent = parseInt(info.percent * 10000) / 100;
-                var speed = parseInt(info.speed / 1024 / 1024 * 100) / 100;
+                var percent = Math.floor(info.percent * 10000) / 100;
+                var speed = Math.floor(info.speed / 1024 / 1024 * 100) / 100;
                 console.log('进度：' + percent + '%; 速度：' + speed + 'Mb/s;');
             },
             onFileFinish: function (err, data, options) {
@@ -1186,10 +1190,10 @@ function sliceCopyFile() {
         Region: config.Region,
         Key: Key,
         CopySource: sourcePath,
-        SliceSize: 2 * 1024 * 1024, // 大于2M的文件用分片复制，小于则用单片复制
-        onProgress:function (info) {
-            var percent = parseInt(info.percent * 10000) / 100;
-            var speed = parseInt(info.speed / 1024 / 1024 * 100) / 100;
+        CopySliceSize: 2 * 1024 * 1024, // 大于2M的文件用分片复制，小于则用单片复制
+        onProgress: function (info) {
+            var percent = Math.floor(info.percent * 10000) / 100;
+            var speed = Math.floor(info.speed / 1024 / 1024 * 100) / 100;
             console.log('进度：' + percent + '%; 速度：' + speed + 'Mb/s;');
         }
     },function (err,data) {
@@ -1253,8 +1257,8 @@ function uploadFolder() {
             files: files,
             SliceSize: 1024 * 1024,
             onProgress: function (info) {
-                var percent = parseInt(info.percent * 10000) / 100;
-                var speed = parseInt(info.speed / 1024 / 1024 * 100) / 100;
+                var percent = Math.floor(info.percent * 10000) / 100;
+                var speed = Math.floor(info.speed / 1024 / 1024 * 100) / 100;
                 console.log('进度：' + percent + '%; 速度：' + speed + 'Mb/s;');
             },
             onFileFinish: function (err, data, options) {

@@ -1,5 +1,5 @@
 /**
- * 腾讯云 COS Nodejs/JavaScript/小程序 SDK 类型声明
+ * 腾讯云 COS Node.js SDK 类型声明
  */
 import { Stream } from 'stream';
 
@@ -163,7 +163,7 @@ declare namespace COS {
     UploadCheckContentMd5?: boolean,
     /** 上传文件时计算文件内容 md5 并设置为文件 x-cos-meta-md5 元数据 Header 字段 */
     UploadAddMetaMd5?: boolean,
-    /** 分片上传缓存的 UploadId 列表大小限制，nodejs-sdk 默认 500 个，js-sdk 默认 50 */
+    /** 分片上传缓存的 UploadId 列表大小限制，nodejs-sdk 默认 500 个，js-sdk、小程序 SDK 默认 50 */
     UploadIdCacheLimit?: number,
     /** 分片上传缓存的 UploadId 列表时，保存的本地缓存文件目录路径，nodejs-sdk 默认 500 个，js-sdk 默认 50 */
     ConfCwd?: string,

@@ -912,12 +912,18 @@ function sliceCopyFile(params, callback) {
 
     // 分片复制完成，开始 multipartComplete 操作
     ep.on('copy_slice_complete', function (UploadData) {
+        var Parts = util.map(UploadData.PartList, function (item) {
+            return {
+                PartNumber: item.PartNumber,
+                ETag: item.ETag,
+            };
+        });
         self.multipartComplete({
             Bucket: Bucket,
             Region: Region,
             Key: Key,
             UploadId: UploadData.UploadId,
-            Parts: UploadData.PartList,
+            Parts: Parts,
         },function (err, data) {
             if (err) {
                 onProgress(null, true);

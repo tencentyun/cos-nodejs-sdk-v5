@@ -354,6 +354,7 @@ var formatParams = function (apiName, params) {
                 'x-cos-grant-read-acp': 'GrantReadAcp',
                 'x-cos-grant-write-acp': 'GrantWriteAcp',
                 'x-cos-storage-class': 'StorageClass',
+                'x-cos-traffic-limit': 'TrafficLimit',
                 // SSE-C
                 'x-cos-server-side-encryption-customer-algorithm': 'SSECustomerAlgorithm',
                 'x-cos-server-side-encryption-customer-key': 'SSECustomerKey',

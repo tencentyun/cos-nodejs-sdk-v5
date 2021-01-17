@@ -980,6 +980,8 @@ group('sliceCopyFile()', function () {
                         delete data2.headers['x-cos-request-id'];
                         delete data1.headers['x-cos-version-id'];
                         delete data2.headers['x-cos-version-id'];
+                        delete data1.headers['x-cos-replication-status'];
+                        delete data2.headers['x-cos-replication-status'];
                         delete data1.headers['last-modified'];
                         delete data2.headers['last-modified'];
                         delete data1.headers['date'];
@@ -1029,6 +1031,8 @@ group('sliceCopyFile()', function () {
                                 delete data2.headers['x-cos-request-id'];
                                 delete data1.headers['x-cos-version-id'];
                                 delete data2.headers['x-cos-version-id'];
+                                delete data1.headers['x-cos-replication-status'];
+                                delete data2.headers['x-cos-replication-status'];
                                 delete data1.headers['last-modified'];
                                 delete data2.headers['last-modified'];
                                 delete data1.headers['date'];

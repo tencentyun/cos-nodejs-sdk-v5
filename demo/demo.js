@@ -1,3 +1,4 @@
+// @ts-check
 var fs = require('fs');
 var path = require('path');
 var COS = require('../index');
@@ -122,33 +123,33 @@ function putBucketAcl() {
         // ACL: 'public-read-write',
         // ACL: 'public-read',
         ACL: 'private',
-        // AccessControlPolicy: {
-        // "Owner": { // AccessControlPolicy 里必须有 owner
-        //     "ID": 'qcs::cam::uin/10001:uin/10001' // 10001 是 Bucket 所属用户的 QQ 号
-        // },
-        // "Grants": [{
-        //     "Grantee": {
-        //         "ID": "qcs::cam::uin/1001:uin/1001", // 10002 是 QQ 号
-        //         "DisplayName": "qcs::cam::uin/1001:uin/1001" // 10002 是 QQ 号
-        //     },
-        //     "Permission": "READ"
-        // }, {
-        //     "Grantee": {
-        //         "ID": "qcs::cam::uin/10002:uin/10002", // 10002 是 QQ 号
-        //     },
-        //     "Permission": "WRITE"
-        // }, {
-        //     "Grantee": {
-        //         "ID": "qcs::cam::uin/10002:uin/10002", // 10002 是 QQ 号
-        //     },
-        //     "Permission": "READ_ACP"
-        // }, {
-        //     "Grantee": {
-        //         "ID": "qcs::cam::uin/10002:uin/10002", // 10002 是 QQ 号
-        //     },
-        //     "Permission": "WRITE_ACP"
-        // }]
-        // }
+        AccessControlPolicy: {
+        "Owner": { // AccessControlPolicy 里必须有 owner
+            "ID": 'qcs::cam::uin/10001:uin/10001' // 10001 是 Bucket 所属用户的 QQ 号
+        },
+        "Grants": [{
+            "Grantee": {
+                "ID": "qcs::cam::uin/1001:uin/1001", // 10002 是 QQ 号
+                "DisplayName": "qcs::cam::uin/1001:uin/1001" // 10002 是 QQ 号
+            },
+            "Permission": "READ"
+        }, {
+            "Grantee": {
+                "ID": "qcs::cam::uin/10002:uin/10002", // 10002 是 QQ 号
+            },
+            "Permission": "WRITE"
+        }, {
+            "Grantee": {
+                "ID": "qcs::cam::uin/10002:uin/10002", // 10002 是 QQ 号
+            },
+            "Permission": "READ_ACP"
+        }, {
+            "Grantee": {
+                "ID": "qcs::cam::uin/10002:uin/10002", // 10002 是 QQ 号
+            },
+            "Permission": "WRITE_ACP"
+        }]
+        }
     }, function (err, data) {
         console.log(err || data);
     });
@@ -172,7 +173,7 @@ function putBucketCors() {
             "AllowedMethod": ["GET", "POST", "PUT", "DELETE", "HEAD"],
             "AllowedHeader": ["*"],
             "ExposeHeader": ["ETag", "Date", "Content-Length", "x-cos-acl", "x-cos-version-id", "x-cos-request-id", "x-cos-delete-marker", "x-cos-server-side-encryption"],
-            "MaxAgeSeconds": "5"
+            "MaxAgeSeconds": 5
         }]
     }, function (err, data) {
         console.log(err || data);
@@ -297,12 +298,10 @@ function putBucketTagging() {
     cos.putBucketTagging({
         Bucket: config.Bucket, // Bucket 格式：test-1250000000
         Region: config.Region,
-        Tagging: {
-            "Tags": [
-                {"Key": "k1", "Value": "v1"},
-                {"Key": "k2", "Value": "v2"}
-            ]
-        }
+        Tags: [
+            {"Key": "k1", "Value": "v1"},
+            {"Key": "k2", "Value": "v2"}
+        ]
     }, function (err, data) {
         console.log(err || data);
     });
@@ -330,41 +329,39 @@ function putBucketLifecycle() {
     cos.putBucketLifecycle({
         Bucket: config.Bucket, // Bucket 格式：test-1250000000
         Region: config.Region,
-        LifecycleConfiguration: {
-            Rules: [{
-                "ID": "1",
-                "Status": "Enabled",
-                "Filter": {},
-                "Transition": {
-                    "Days": "30",
-                    "StorageClass": "STANDARD_IA"
-                }
-            }, {
-                "ID": "2",
-                "Status": "Enabled",
-                "Filter": {
-                    "Prefix": "dir/"
-                },
-                "Transition": {
-                    "Days": "180",
-                    "StorageClass": "ARCHIVE"
-                }
-            }, {
-                "ID": "3",
-                "Status": "Enabled",
-                "Filter": {},
-                "Expiration": {
-                    "Days": "180"
-                }
-            }, {
-                "ID": "4",
-                "Status": "Enabled",
-                "Filter": {},
-                "AbortIncompleteMultipartUpload": {
-                    "DaysAfterInitiation": "30"
-                }
-            }],
-        }
+        Rules: [{
+            "ID": "1",
+            "Status": "Enabled",
+            "Filter": {},
+            "Transition": {
+                "Days": "30",
+                "StorageClass": "STANDARD_IA"
+            }
+        }, {
+            "ID": "2",
+            "Status": "Enabled",
+            "Filter": {
+                "Prefix": "dir/"
+            },
+            "Transition": {
+                "Days": "180",
+                "StorageClass": "ARCHIVE"
+            }
+        }, {
+            "ID": "3",
+            "Status": "Enabled",
+            "Filter": {},
+            "Expiration": {
+                "Days": "180"
+            }
+        }, {
+            "ID": "4",
+            "Status": "Enabled",
+            "Filter": {},
+            "AbortIncompleteMultipartUpload": {
+                "DaysAfterInitiation": "30"
+            }
+        }],
     }, function (err, data) {
         console.log(err || data);
     });
@@ -577,6 +574,59 @@ function deleteBucketDomain() {
     });
 }
 
+function putBucketOrigin() {
+    cos.putBucketOrigin({
+        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Region: config.Region,
+        OriginRule: [{
+            OriginType: 'Mirror',
+            OriginCondition: {HTTPStatusCode: 404, Prefix: ''},
+            OriginParameter: {
+                Protocol: 'HTTP',
+                FollowQueryString: 'true',
+                HttpHeader: {
+                    NewHttpHeader: {
+                        Header: [{
+                            Key: 'a',
+                            Value: 'a'
+                        }]
+                    }
+                },
+                FollowRedirection: 'true',
+                HttpRedirectCode: ['301', '302']
+            },
+            OriginInfo: {
+                HostInfo: {HostName: ''},
+                FileInfo: {
+                    PrefixConfiguration: {Prefix: '123/'},
+                    SuffixConfiguration: {Suffix: '.jpg'}
+                }
+            },
+            RulePriority: 1
+        }]
+    },function(err, data){
+        console.log(err || data);
+    });
+}
+
+function getBucketOrigin() {
+    cos.getBucketOrigin({
+        Bucket: config.Bucket,
+        Region: config.Region,
+    }, function(err, data){
+        console.log(err || data);
+    });
+}
+
+function deleteBucketOrigin() {
+    cos.deleteBucketOrigin({
+        Bucket: config.Bucket,
+        Region: config.Region,
+    },function(err, data){
+        console.log(err || data);
+    });
+}
+
 function putBucketLogging() {
     var AppId = config.Bucket.substr(config.Bucket.lastIndexOf('-') + 1);
     cos.putBucketLogging({
@@ -679,6 +729,27 @@ function listBucketInventory() {
         Region: config.Region
     }, function(err, data) {
         console.log(err || JSON.stringify(data));
+    });
+}
+
+function putBucketAccelerate() {
+    cos.putBucketAccelerate({
+        Bucket: config.Bucket,
+        Region: config.Region,
+        AccelerateConfiguration: {
+            Status: 'Enabled'
+        }
+    }, function (err, data) {
+        console.log(err || data);
+    });
+}
+
+function getBucketAccelerate() {
+    cos.getBucketAccelerate({
+        Bucket: config.Bucket,
+        Region: config.Region,
+    }, function(err, data) {
+        console.log(err || data);
     });
 }
 
@@ -795,7 +866,8 @@ function putObjectAcl() {
         Region: config.Region,
         Key: '1mb.zip',
         // GrantFullControl: 'id="qcs::cam::uin/1001:uin/1001",id="qcs::cam::uin/1002:uin/1002"',
-        // GrantWrite: 'id="qcs::cam::uin/1001:uin/1001",id="qcs::cam::uin/1002:uin/1002"',
+        // GrantWriteAcp: 'id="qcs::cam::uin/1001:uin/1001",id="qcs::cam::uin/1002:uin/1002"',
+        // GrantReadAcp: 'id="qcs::cam::uin/1001:uin/1001",id="qcs::cam::uin/1002:uin/1002"',
         // GrantRead: 'id="qcs::cam::uin/1001:uin/1001",id="qcs::cam::uin/1002:uin/1002"',
         // ACL: 'public-read-write',
         // ACL: 'public-read',
@@ -939,6 +1011,79 @@ function selectObjectContent() {
     });
 }
 
+function multipartList() {
+    cos.multipartList({
+        Bucket: config.Bucket,
+        Region: config.Region,
+        Prefix: '',
+        MaxUploads: 1,
+        Delimiter: '/'
+    }, function (err, data) {
+        console.log(err || JSON.stringify(data, null, 2));
+    });
+}
+
+function multipartListPart() {
+    cos.multipartListPart({
+        Bucket: config.Bucket,
+        Region: config.Region,
+        Key: "10mb.zip",
+        MaxParts: 1,
+        UploadId: 'xxx',
+    }, function (err, data) {
+        console.log(err || JSON.stringify(data, null, 2));
+    });
+}
+
+function multipartInit() {
+    cos.multipartInit({
+        Bucket: config.Bucket,
+        Region: config.Region,
+        Key: "10mb.zip",
+    }, function (err, data) {
+        console.log(err || JSON.stringify(data, null, 2));
+    });
+}
+
+function multipartUpload() {
+    cos.multipartUpload({
+        Bucket: config.Bucket,
+        Region: config.Region,
+        Key: "10mb.zip",
+        UploadId: 'xxx',
+        PartNumber: 1,
+        Body: '123',
+    }, function (err, data) {
+        console.log(err || JSON.stringify(data, null, 2));
+    });
+}
+
+function multipartCom() {
+    cos.multipartComplete({
+        Bucket: config.Bucket,
+        Region: config.Region,
+        Key: '1.zip',
+        UploadId: 'xxx',
+        Parts: [{
+            PartNumber: 1,
+            ETag: 'xxx',
+        }],
+    }, function (err, data) {
+        console.log(err || JSON.stringify(data, null, 2));
+    });
+}
+
+function multipartAbort() {
+    cos.multipartAbort({
+        Bucket: config.Bucket,
+        Region: config.Region,
+        Key: "10mb.zip",
+        UploadId: 'xxx',
+    }, function (err, data) {
+        console.log(err || JSON.stringify(data, null, 2));
+    });
+}
+
 function abortUploadTask() {
     cos.abortUploadTask({
         Bucket: config.Bucket, /* 必须 */ // Bucket 格式：test-1250000000
@@ -1022,8 +1167,8 @@ function uploadFiles() {
             }],
             SliceSize: 1024 * 1024,
             onProgress: function (info) {
-                var percent = parseInt(info.percent * 10000) / 100;
-                var speed = parseInt(info.speed / 1024 / 1024 * 100) / 100;
+                var percent = Math.floor(info.percent * 10000) / 100;
+                var speed = Math.floor(info.speed / 1024 / 1024 * 100) / 100;
                 console.log('进度：' + percent + '%; 速度：' + speed + 'Mb/s;');
             },
             onFileFinish: function (err, data, options) {
@@ -1048,10 +1193,10 @@ function sliceCopyFile() {
         Region: config.Region,
         Key: Key,
         CopySource: sourcePath,
-        SliceSize: 2 * 1024 * 1024, // 大于2M的文件用分片复制，小于则用单片复制
-        onProgress:function (info) {
-            var percent = parseInt(info.percent * 10000) / 100;
-            var speed = parseInt(info.speed / 1024 / 1024 * 100) / 100;
+        CopySliceSize: 2 * 1024 * 1024, // 大于2M的文件用分片复制，小于则用单片复制
+        onProgress: function (info) {
+            var percent = Math.floor(info.percent * 10000) / 100;
+            var speed = Math.floor(info.speed / 1024 / 1024 * 100) / 100;
             console.log('进度：' + percent + '%; 速度：' + speed + 'Mb/s;');
         }
     },function (err,data) {
@@ -1060,6 +1205,40 @@ function sliceCopyFile() {
         } else {
             console.log(data);
         }
+    });
+}
+
+function putObjectTagging() {
+    cos.putObjectTagging({
+        Bucket: config.Bucket,
+        Region: config.Region,
+        Key: '1mb.zip',
+        Tags: [
+            {Key: 'k1', Value: 'v1'},
+            {Key: 'k2', Value: 'v2'},
+        ],
+    }, function (err, data) {
+        console.log(err || data);
+    });
+}
+
+function getObjectTagging() {
+    cos.getObjectTagging({
+        Bucket: config.Bucket,
+        Region: config.Region,
+        Key: '1mb.zip',
+    }, function (err, data) {
+        console.log(err || data);
+    });
+}
+
+function deleteObjectTagging() {
+    cos.getObjectTagging({
+        Bucket: config.Bucket,
+        Region: config.Region,
+        Key: '1mb.zip',
+    }, function (err, data) {
+        console.log(err || data);
     });
 }
 
@@ -1081,8 +1260,8 @@ function uploadFolder() {
             files: files,
             SliceSize: 1024 * 1024,
             onProgress: function (info) {
-                var percent = parseInt(info.percent * 10000) / 100;
-                var speed = parseInt(info.speed / 1024 / 1024 * 100) / 100;
+                var percent = Math.floor(info.percent * 10000) / 100;
+                var speed = Math.floor(info.speed / 1024 / 1024 * 100) / 100;
                 console.log('进度：' + percent + '%; 速度：' + speed + 'Mb/s;');
             },
             onFileFinish: function (err, data, options) {
@@ -1218,16 +1397,21 @@ function deleteFolder() {
 // deleteBucketWebsite();
 // putBucketReferer();
 // getBucketReferer();
-// putBucketDomain()
-// getBucketDomain()
-// deleteBucketDomain()
-// putBucketLogging()
-// getBucketLogging()
-// deleteBucketLogging()
-// putBucketInventory()
-// getBucketInventory()
-// deleteBucketInventory()
-// listBucketInventory()
+// putBucketDomain();
+// getBucketDomain();
+// deleteBucketDomain();
+// putBucketOrigin();
+// getBucketOrigin();
+// deleteBucketOrigin();
+// putBucketLogging();
+// getBucketLogging();
+// deleteBucketLogging();
+// putBucketInventory();
+// getBucketInventory();
+// deleteBucketInventory();
+// listBucketInventory();
+// putBucketAccelerate();
+// getBucketAccelerate();
 // deleteBucket();
 // putObjectCopy();
 // getObjectStream();
@@ -1248,6 +1432,9 @@ function deleteFolder() {
 // restartTask();
 // putObject();
 // sliceCopyFile();
+// putObjectTagging();
+// getObjectTagging();
+// deleteObjectTagging();
 // uploadFolder();
 // listFolder();
 // deleteFolder();

@@ -487,6 +487,7 @@ function putBucketPolicy(params, callback) {
     } catch (e) {
         callback({error: 'Policy format error'});
     }
+    if (!Policy.version) Policy.version = '2.0';
 
     var headers = params.Headers;
     headers['Content-Type'] = 'application/json';
@@ -2080,6 +2081,7 @@ function getObjectAcl(params, callback) {
         var Grant = AccessControlPolicy.AccessControlList && AccessControlPolicy.AccessControlList.Grant || [];
         Grant = util.isArray(Grant) ? Grant : [Grant];
         var result = decodeAcl(AccessControlPolicy);
+        delete result.GrantWrite;
         if (data.headers && data.headers['x-cos-acl']) {
             result.ACL = data.headers['x-cos-acl'];
         }
@@ -2856,14 +2858,8 @@ function multipartList(params, callback) {
 
         if (data && data.ListMultipartUploadsResult) {
             var Upload = data.ListMultipartUploadsResult.Upload || [];
-
-            var CommonPrefixes = data.ListMultipartUploadsResult.CommonPrefixes || [];
-
-            CommonPrefixes = util.isArray(CommonPrefixes) ? CommonPrefixes : [CommonPrefixes];
             Upload = util.isArray(Upload) ? Upload : [Upload];
-
             data.ListMultipartUploadsResult.Upload = Upload;
-            data.ListMultipartUploadsResult.CommonPrefixes = CommonPrefixes;
         }
         var result = util.clone(data.ListMultipartUploadsResult || {});
         util.extend(result, {
@@ -3168,10 +3164,8 @@ function getUrl(params) {
 function getAuthorizationAsync(params, callback) {
 
     var headers = util.clone(params.Headers);
-    delete headers['Content-Type'];
-    delete headers['Cache-Control'];
     util.each(headers, function (v, k) {
-        v === '' && delete headers[k];
+        (v === '' || ['content-type', 'cache-control', 'expires'].indexOf(k.toLowerCase())) && delete headers[k];
     });
 
     var cb = function (AuthData) {
@@ -3190,7 +3184,7 @@ function getAuthorizationAsync(params, callback) {
                 formatAllow = true;
             } else {
                 try {
-                    auth = atob(auth);
+                    auth = Buffer.from(auth, 'base64').toString();
                     if (auth.indexOf('a=') > -1 &&
                         auth.indexOf('k=') > -1 &&
                         auth.indexOf('t=') > -1 &&
@@ -3204,7 +3198,7 @@ function getAuthorizationAsync(params, callback) {
         if (formatAllow) {
             callback && callback(null, AuthData);
         } else {
-            callback && callback('authorization error');
+            callback && callback({error: 'authorization error'});
         }
     };
 

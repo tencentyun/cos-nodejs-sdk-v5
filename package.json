@@ -1,8 +1,9 @@
 {
   "name": "cos-nodejs-sdk-v5",
-  "version": "2.8.3",
+  "version": "2.8.6",
   "description": "cos nodejs sdk v5",
   "main": "index.js",
+  "types": "types",
   "scripts": {
     "demo": "node demo/demo.js",
     "demo-sts": "node demo/demo-sts.js",
@@ -28,9 +29,10 @@
   },
   "homepage": "https://github.com/tencentyun/cos-nodejs-sdk-v5#readme",
   "dependencies": {
+    "@types/node": "^14.14.20",
     "conf": "^7.1.2",
     "mime-types": "^2.1.24",
-    "request": "^2.88.0",
+    "request": "^2.88.2",
     "xml2js": "^0.4.19"
   },
   "devDependencies": {

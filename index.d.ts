@@ -519,7 +519,7 @@ declare namespace COS {
   /** putBucketCors 接口返回值 */
   interface PutBucketCorsResult extends GeneralResult {
     /** 存储桶跨域资源共享（CORS）访问控制规则 */
-    CORSRules: object,
+    CORSRules: Record<string, any>,
   }
 
   // getBucketCors
@@ -546,7 +546,7 @@ declare namespace COS {
   /** putBucketPolicy 接口参数 */
   interface PutBucketPolicyParams extends BucketParams {
     /** 存储桶的权限策略 @see https://cloud.tencent.com/document/product/436/31923 */
-    Policy: object,
+    Policy: Record<string, any>,
   }
   /** putBucketPolicy 接口返回值 */
   interface PutBucketPolicyResult extends GeneralResult {}
@@ -557,7 +557,7 @@ declare namespace COS {
   /** getBucketPolicy 接口返回值 */
   interface GetBucketPolicyResult extends GeneralResult {
     /** 存储桶的权限策略 @see https://cloud.tencent.com/document/product/436/31923 */
-    Policy: object
+    Policy: Record<string, any>
   }
 
   // deleteBucketPolicy
@@ -598,17 +598,17 @@ declare namespace COS {
     /** 指明规则是否启用，枚举值：Enabled，Disabled，必选 */
     Status: 'Enabled' | 'Disabled',
     /** Filter 用于描述规则影响的 Object 集合，必选 */
-    Filter?: object,
+    Filter?: Record<string, any>,
     /** 规则转换属性，对象何时转换为 Standard_IA 或 Archive 等存储类型 */
-    Transition?: object,
+    Transition?: Record<string, any>,
     /** 规则过期属性 */
-    Expiration?: object,
+    Expiration?: Record<string, any>,
     /** 设置允许分片上传保持运行的最长时间 */
-    AbortIncompleteMultipartUpload?: object,
+    AbortIncompleteMultipartUpload?: Record<string, any>,
     /** 指明非当前版本对象何时过期 */
-    NoncurrentVersionExpiration?: object,
+    NoncurrentVersionExpiration?: Record<string, any>,
     /** 指明非当前版本对象何时转换为 STANDARD_IA 或 ARCHIVE 等存储类型 */
-    NoncurrentVersionTransition?: object,
+    NoncurrentVersionTransition?: Record<string, any>,
   };
   /** putBucketLifecycle 接口参数 */
   interface PutBucketLifecycleParams extends BucketParams {
@@ -1017,7 +1017,7 @@ declare namespace COS {
   /** listBucketInventory 接口返回值 */
   interface ListBucketInventoryResult extends GeneralResult {
     /** 包含清单任务的详细信息 */
-    InventoryConfigurations: object,
+    InventoryConfigurations: Record<string, any>,
     /** 当 COS 响应体中 IsTruncated 为 true，且 NextContinuationToken 节点中存在参数值时，您可以将这个参数作为 continuation-token 参数值，以获取下一页的清单任务信息。缺省值：None */
     ContinuationToken: string,
     /** 是否已列出所有清单任务信息的标识。如果已经展示完则为 false，否则为 true */
@@ -1305,7 +1305,7 @@ Bulk：批量模式，恢复时间为24 - 48小时。 */
     /** 接口的版本信息，当前最新版本是 2 */
     SelectType: number,
     /** 检索参数，当前版本支持检索 JSON、CSV 文件内容 */
-    SelectRequest: object,
+    SelectRequest: Record<string, any>,
     /** 当启用版本控制时，指定要检索的版本 ID，如不指定则检索对象的最新版本 */
     VersionId?: VersionId,
   }
@@ -1648,7 +1648,7 @@ Bulk：批量模式，恢复时间为24 - 48小时。 */
     /** 上传的进度回调方法 */
     onProgress?: onProgress,
     /** 上传完成回调方法 */
-    onFileFinish?: (err: Error, data?: object) => void,
+    onFileFinish?: (err: Error, data?: Record<string, any>) => void,
   }
   /** 要上传的单个文件参数 */
   interface UploadFileItemResult extends GeneralResult {
@@ -1667,7 +1667,7 @@ Bulk：批量模式，恢复时间为24 - 48小时。 */
     /** 所有文件整体上传进度回调方法 */
     onProgress?: onProgress,
     /** 所有文件上传完成回调方法 */
-    onFileFinish?: (err: CosError, data?: object) => void,
+    onFileFinish?: (err: CosError, data?: Record<string, any>) => void,
   }
   /** uploadFiles 接口返回值 */
   interface UploadFilesResult extends GeneralResult {

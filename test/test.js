@@ -52,6 +52,7 @@ var cos = new COS({
     ProgressInterval: 1,  // 控制 onProgress 回调的间隔
     ChunkRetryTimes: 3,   // 控制文件切片后单片上传失败后重试次数
     UploadCheckContentMd5: true,   // 上传过程计算 Content-MD5
+    ServiceDomain: 'service.cos.myqcloud.com/',
 });
 
 var AppId;
@@ -118,14 +119,16 @@ function prepareBucket() {
 group('getService()', function () {
     test('能正常列出 Bucket', function (done, assert) {
         prepareBucket().then(function () {
-            cos.getService(function (err, data) {
+            cos.getService({
+                Region: config.Region,
+            }, function (err, data) {
                 var hasBucket = false;
                 data.Buckets && data.Buckets.forEach(function (item) {
                     if (item.Name === BucketLongName && (item.Location === config.Region || !item.Location)) {
                         hasBucket = true;
                     }
                 });
-                assert.equal(true, hasBucket);
+                assert.ok(hasBucket);
                 done();
             });
         }).catch(function () {
@@ -245,6 +248,21 @@ group('getBucket()', function () {
             }, function (err, data) {
                 assert.equal(true, data.Name === BucketLongName);
                 assert.equal(data.Contents.constructor, Array);
+                done();
+            });
+        }).catch(function () {
+            assert.fail();
+            done();
+        });
+    });
+    test('正常获取 bucket 里的文件版本列表', function (done, assert) {
+        prepareBucket().then(function () {
+            cos.listObjectVersions({
+                Bucket: config.Bucket,
+                Region: config.Region
+            }, function (err, data) {
+                assert.equal(true, data.Name === BucketLongName);
+                assert.equal(data.Versions.constructor, Array);
                 done();
             });
         }).catch(function () {
@@ -1752,6 +1770,22 @@ group('BucketPolicy', function () {
             });
         });
     });
+    test('deleteBucketPolicy()', function (done, assert) {
+        cos.deleteBucketPolicy({
+            Bucket: config.Bucket,
+            Region: config.Region,
+            Policy: JSON.stringify(Policy)
+        }, function (err, data) {
+            assert.ok(!err);
+            cos.getBucketPolicy({
+                Bucket: config.Bucket,
+                Region: config.Region
+            }, function (err, data) {
+                assert.ok(err.ErrorStatus === 'Policy Not Found');
+                done();
+            });
+        });
+    });
 });
 
 group('BucketLocation', function () {
@@ -2651,22 +2685,22 @@ group('BucketInventory', function () {
         });
     });
 
-    // test('listBucketInventory()', function (done, assert) {
-    //     cos.listBucketInventory({
-    //         Bucket: config.Bucket,
-    //         Region: config.Region
-    //     }, function (err, data) {
-    //         var targetInventory;
-    //         data.InventoryConfigurations.forEach(function (item) {
-    //             if (item.Id === InventoryConfiguration.Id) {
-    //                 targetInventory = item;
-    //             }
-    //         });
-    //         assert.ok(comparePlainObject(InventoryConfiguration, targetInventory));
-    //         assert.ok(data.IsTruncated === 'false' || data.IsTruncated === 'true');
-    //         done();
-    //     });
-    // });
+    test('listBucketInventory()', function (done, assert) {
+        cos.listBucketInventory({
+            Bucket: config.Bucket,
+            Region: config.Region
+        }, function (err, data) {
+            var targetInventory;
+            data.InventoryConfigurations.forEach(function (item) {
+                if (item.Id === InventoryConfiguration.Id) {
+                    targetInventory = item;
+                }
+            });
+            assert.ok(comparePlainObject(InventoryConfiguration, targetInventory));
+            assert.ok(data.IsTruncated === 'false' || data.IsTruncated === 'true');
+            done();
+        });
+    });
 
     test('putBucketInventory() 不设置 SSECOS', function (done, assert) {
         cos.putBucketInventory({
@@ -2706,456 +2740,753 @@ group('BucketInventory', function () {
         });
     });
 });
-
-group('Content-Type: false Bug', function () {
-    test('fs.createReadStream 1', function (done, assert) {
-        var filename = '1';
-        var filepath = path.resolve(__dirname, filename);
-        util.createFile(filepath, 1, function (err) {
-            // 调用方法
-            cos.putObject({
-                Bucket: config.Bucket, /* 必须 */ // Bucket 格式：test-1250000000
-                Region: config.Region,
-                Key: filename,
-                Body: fs.createReadStream(filepath),
-            }, function (err1, data1) {
-                cos.headObject({
-                    Bucket: config.Bucket, /* 必须 */ // Bucket 格式：test-1250000000
-                    Region: config.Region,
-                    Key: filename,
-                }, function (err, data) {
-                    var contentType = data && data.headers['content-type'];
-                    assert.ok(contentType === 'application/octet-stream', '返回了 Content-Type: ' + contentType);
-                    fs.unlinkSync(filepath);
-                    done();
-                });
-            });
-        });
-    });
-    test('text 2', function (done, assert) {
-        // 调用方法
-        cos.putObject({
-            Bucket: config.Bucket, /* 必须 */ // Bucket 格式：test-1250000000
+//
+// group('Content-Type: false Bug', function () {
+//     test('fs.createReadStream 1', function (done, assert) {
+//         var filename = '1';
+//         var filepath = path.resolve(__dirname, filename);
+//         util.createFile(filepath, 1, function (err) {
+//             // 调用方法
+//             cos.putObject({
+//                 Bucket: config.Bucket, /* 必须 */ // Bucket 格式：test-1250000000
+//                 Region: config.Region,
+//                 Key: filename,
+//                 Body: fs.createReadStream(filepath),
+//             }, function (err1, data1) {
+//                 cos.headObject({
+//                     Bucket: config.Bucket, /* 必须 */ // Bucket 格式：test-1250000000
+//                     Region: config.Region,
+//                     Key: filename,
+//                 }, function (err, data) {
+//                     var contentType = data && data.headers['content-type'];
+//                     assert.ok(contentType === 'application/octet-stream', '返回了 Content-Type: ' + contentType);
+//                     fs.unlinkSync(filepath);
+//                     done();
+//                 });
+//             });
+//         });
+//     });
+//     test('text 2', function (done, assert) {
+//         // 调用方法
+//         cos.putObject({
+//             Bucket: config.Bucket, /* 必须 */ // Bucket 格式：test-1250000000
+//             Region: config.Region,
+//             Key: '2',
+//             Body: 'hello!',
+//         }, function (err1, data1) {
+//             cos.headObject({
+//                 Bucket: config.Bucket, /* 必须 */ // Bucket 格式：test-1250000000
+//                 Region: config.Region,
+//                 Key: '2',
+//             }, function (err, data) {
+//                 var contentType = data && data.headers['content-type'];
+//                 assert.ok(contentType === 'application/octet-stream', '返回了 Content-Type: ' + contentType);
+//                 done();
+//             });
+//         });
+//     });
+//     test('text 1.zip', function (done, assert) {
+//         // 调用方法
+//         cos.putObject({
+//             Bucket: config.Bucket, /* 必须 */ // Bucket 格式：test-1250000000
+//             Region: config.Region,
+//             Key: '2.zip',
+//             Body: 'hello!',
+//         }, function (err1, data1) {
+//             cos.headObject({
+//                 Bucket: config.Bucket, /* 必须 */ // Bucket 格式：test-1250000000
+//                 Region: config.Region,
+//                 Key: '2.zip',
+//             }, function (err, data) {
+//                 var contentType = data && data.headers['content-type'];
+//                 assert.ok(contentType === 'application/zip', '返回了 Content-Type: ' + contentType);
+//                 done();
+//             });
+//         });
+//     });
+//     test('Buffer 3', function (done, assert) {
+//         // 调用方法
+//         cos.putObject({
+//             Bucket: config.Bucket, /* 必须 */ // Bucket 格式：test-1250000000
+//             Region: config.Region,
+//             Key: '3',
+//             Body: Buffer.from('hello!'),
+//         }, function (err1, data1) {
+//             cos.headObject({
+//                 Bucket: config.Bucket, /* 必须 */ // Bucket 格式：test-1250000000
+//                 Region: config.Region,
+//                 Key: '3',
+//             }, function (err, data) {
+//                 var contentType = data && data.headers['content-type'];
+//                 assert.ok(contentType === 'application/octet-stream', '返回了 Content-Type: ' + contentType);
+//                 done();
+//             });
+//         });
+//     });
+// });
+//
+// var tagging2str = (obj) => {
+//     var arr = [];
+//     obj.forEach(v => arr.push(v.Key + '=' + encodeURIComponent(v.Value)))
+//     return arr.join('&');
+// }
+// group('上传带 tagging', function () {
+//     var Tags = [
+//         {Key: "k1", Value: "v1"},
+//         {Key: "k2", Value: "v2"},
+//     ];
+//     var key = '1.txt';
+//
+//     test('putObject 带 x-cos-tagging', function (done, assert) {
+//         Tags[0].Value = Date.now().toString(36);
+//         var tagStr = tagging2str(Tags);
+//         // 调用方法
+//         cos.putObject({
+//             Bucket: config.Bucket, /* 必须 */ // Bucket 格式：test-1250000000
+//             Region: config.Region,
+//             Key: key,
+//             Body: 'hello!',
+//             Headers: {
+//                 'x-cos-tagging': tagStr,
+//             },
+//         }, function (err1, data1) {
+//             cos.headObject({
+//                 Bucket: config.Bucket, /* 必须 */ // Bucket 格式：test-1250000000
+//                 Region: config.Region,
+//                 Key: key,
+//             }, function (err2, data2) {
+//                 var taggingCount = data2 && data2.headers['x-cos-tagging-count'];
+//                 assert.ok(taggingCount === '2', '返回 x-cos-tagging-count: ' + taggingCount);
+//                 cos.getObjectTagging({
+//                     Bucket: config.Bucket, /* 必须 */ // Bucket 格式：test-1250000000
+//                     Region: config.Region,
+//                     Key: key,
+//                 }, function (err3, data3) {
+//                     assert.ok(comparePlainObject(Tags, data3.Tags));
+//                     done();
+//                 });
+//             });
+//         });
+//     });
+//
+//     // test('sliceUploadFile 带 x-cos-tagging', function (done, assert) {
+//     //     Tags[0].Value = Date.now().toString(36);
+//     //     var tagStr = tagging2str(Tags);
+//     //     // 调用方法
+//     //     cos.sliceUploadFile({
+//     //         Bucket: config.Bucket, /* 必须 */ // Bucket 格式：test-1250000000
+//     //         Region: config.Region,
+//     //         Key: key,
+//     //         Body: 'hello!',
+//     //         Headers: {
+//     //             'x-cos-tagging': tagStr,
+//     //         },
+//     //     }, function (err1, data1) {
+//     //         cos.headObject({
+//     //             Bucket: config.Bucket, /* 必须 */ // Bucket 格式：test-1250000000
+//     //             Region: config.Region,
+//     //             Key: key,
+//     //         }, function (err2, data2) {
+//     //             var taggingCount = data2 && data2.headers['x-cos-tagging-count'];
+//     //             assert.ok(taggingCount === '1', '返回 x-cos-tagging-count: ' + taggingCount);
+//     //             cos.getObjectTagging({
+//     //                 Bucket: config.Bucket, /* 必须 */ // Bucket 格式：test-1250000000
+//     //                 Region: config.Region,
+//     //                 Key: key,
+//     //             }, function (err3, data3) {
+//     //                 assert.ok(data3 && data3.Tags && comparePlainObject(Tags, data3.Tags));
+//     //                 done();
+//     //             });
+//     //         });
+//     //     });
+//     // });
+// });
+//
+// group('ObjectTagging', function () {
+//     var key = '1.txt';
+//     var Tags = [
+//         {Key: "k1", Value: "v1"},
+//         {Key: "k2", Value: "v2"},
+//     ];
+//     test('putObjectTagging(),getObjectTagging()', function (done, assert) {
+//         Tags[0].Value = Date.now().toString(36);
+//         cos.putObjectTagging({
+//             Bucket: config.Bucket,
+//             Region: config.Region,
+//             Key: key,
+//             Tagging: {
+//                 Tags: Tags
+//             },
+//         }, function (err, data) {
+//             assert.ok(!err);
+//             setTimeout(function () {
+//                 cos.getObjectTagging({
+//                     Bucket: config.Bucket,
+//                     Region: config.Region,
+//                     Key: key,
+//                 }, function (err, data) {
+//                     assert.ok(comparePlainObject(Tags, data.Tags));
+//                     done();
+//                 });
+//             }, 1000);
+//         });
+//     });
+//     test('deleteObjectTagging()', function (done, assert) {
+//         cos.deleteObjectTagging({
+//             Bucket: config.Bucket,
+//             Region: config.Region,
+//             Key: key,
+//         }, function (err, data) {
+//             assert.ok(!err);
+//             setTimeout(function () {
+//                 cos.getObjectTagging({
+//                     Bucket: config.Bucket,
+//                     Region: config.Region,
+//                     Key: key,
+//                 }, function (err, data) {
+//                     assert.ok(comparePlainObject([], data.Tags));
+//                     done();
+//                 });
+//             }, 1000);
+//         });
+//     });
+// });
+//
+// group('getBucketAccelerate', function () {
+//     test('putBucketAccelerate(),getBucketAccelerate() Enabled', function (done, assert) {
+//         cos.putBucketAccelerate({
+//             Bucket: config.Bucket,
+//             Region: config.Region,
+//             AccelerateConfiguration: {
+//                 Status: 'Enabled', // Suspended、Enabled
+//             },
+//         }, function (err, data) {
+//             assert.ok(!err);
+//             setTimeout(function () {
+//                 cos.getBucketAccelerate({
+//                     Bucket: config.Bucket,
+//                     Region: config.Region,
+//                 }, function (err2, data2) {
+//                     assert.ok(data2 && data2.AccelerateConfiguration && data2.AccelerateConfiguration.Status === 'Enabled');
+//                     done();
+//                 });
+//             }, 2000);
+//         });
+//     });
+//
+//     test('putBucketAccelerate(),getBucketAccelerate() Suspended', function (done, assert) {
+//         cos.putBucketAccelerate({
+//             Bucket: config.Bucket,
+//             Region: config.Region,
+//             AccelerateConfiguration: {
+//                 Status: 'Suspended', // Suspended、Enabled
+//             },
+//         }, function (err, data) {
+//             assert.ok(!err);
+//             setTimeout(function () {
+//                 cos.getBucketAccelerate({
+//                     Bucket: config.Bucket,
+//                     Region: config.Region,
+//                 }, function (err2, data2) {
+//                     assert.ok(data2 && data2.AccelerateConfiguration && data2.AccelerateConfiguration.Status === 'Suspended');
+//                     done();
+//                 });
+//             }, 1000);
+//         });
+//     });
+// });
+//
+// group('Promise', function () {
+//
+//     test('Promise() getService', function (done, assert) {
+//         cos.getService().then(function (data) {
+//             assert.ok(data);
+//             done();
+//         }).catch(function (err) {
+//             assert.ok(false);
+//             done();
+//         });
+//     });
+//
+//     test('Promise() getService region', function (done, assert) {
+//         cos.getService({
+//             Region: config.Region,
+//         }).then(function (data) {
+//             assert.ok(data);
+//             done();
+//         }).catch(function (err) {
+//             assert.ok(false);
+//             done();
+//         });
+//     });
+//
+//     test('Promise() getObjectUrl', function (done, assert) {
+//         var res = cos.getObjectUrl({
+//             Bucket: config.Bucket,
+//             Region: config.Region,
+//             Key: '123.txt',
+//         });
+//         assert.ok(!res.then);
+//         done();
+//     });
+//
+//     test('Promise() headBucket', function (done, assert) {
+//         cos.headBucket({
+//             Bucket: config.Bucket,
+//             Region: config.Region,
+//         }).then(function (data) {
+//             assert.ok(data);
+//             done();
+//         }).catch(function () {
+//             assert.ok(false);
+//             done();
+//         });
+//     });
+//
+//     test('headBucket callback', function (done, assert) {
+//         var res = cos.headBucket({
+//             Bucket: config.Bucket,
+//             Region: config.Region,
+//         }, function (err, data) {
+//             assert.ok(!err && data);
+//             done();
+//         });
+//         assert.ok(!res);
+//     });
+//
+//     test('Promise() headBucket error', function (done, assert) {
+//         cos.headBucket({
+//             Bucket: config.Bucket,
+//             Region: config.Region + '/',
+//         }).then(function (data) {
+//             assert.ok(!data);
+//             done();
+//         }).catch(function (err) {
+//             assert.ok(err && err.error === 'Region format error.');
+//             done();
+//         });
+//     });
+// });
+//
+// group('Query 的键值带有特殊字符', function () {
+//     test('getAuth()', function (done, assert) {
+//         var content = Date.now().toString();
+//         var key = '1.txt';
+//         cos.putObject({
+//             Bucket: config.Bucket,
+//             Region: config.Region,
+//             Key: key,
+//             Body: content,
+//         }, function (err, data) {
+//             var str = 'qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM,./;\'[]\\-=0987654321`~!@#$%^&*()_+{}|":>?<';
+//             var qs = {};
+//             qs[str] = str;
+//             var AuthData = cos.getAuth({
+//                 Method: 'GET',
+//                 Key: key,
+//                 Query: qs,
+//             });
+//             if (typeof AuthData === 'string') {
+//                 AuthData = {Authorization: AuthData};
+//             }
+//             var link = 'http://' + config.Bucket + '.cos.' + config.Region + '.myqcloud.com' + '/' +
+//                 camSafeUrlEncode(key).replace(/%2F/g, '/') +
+//                 '?sign=' + camSafeUrlEncode(AuthData.Authorization) +
+//                 (AuthData.XCosSecurityToken ? '&x-cos-security-token=' + AuthData.XCosSecurityToken : '') +
+//                 '&' + camSafeUrlEncode(str) + '=' + camSafeUrlEncode(str);
+//             request({
+//                 method: 'GET',
+//                 url: link,
+//             }, function (err, response, body) {
+//                 assert.ok(response.statusCode === 200);
+//                 assert.ok(body === content);
+//                 done();
+//             });
+//         });
+//     });
+// });
+//
+// group('selectObjectContent(),selectObjectContentStream()', function () {
+//     var key = '1.json';
+//     var selectJsonOpt = {
+//         Bucket: config.Bucket,
+//         Region: config.Region,
+//         Key: key,
+//         SelectType: 2,
+//         SelectRequest: {
+//             Expression: "Select * from COSObject",
+//             ExpressionType: "SQL",
+//             InputSerialization: {JSON: {Type: "DOCUMENT",},},
+//             OutputSerialization: {JSON: {RecordDelimiter: "\n"},},
+//             RequestProgress: {Enabled: "FALSE"}
+//         },
+//     };
+//     test('selectObjectContent', function (done, assert) {
+//         var time = Date.now();
+//         var content = `{"a":123,"b":"${time}","c":{"d":456}}`;
+//         cos.putObject({
+//             Bucket: config.Bucket,
+//             Region: config.Region,
+//             Key: key,
+//             Body: content,
+//         }, function (err, data) {
+//             var bufList = [];
+//             var writeStream = new Writable({
+//                 write: function (chunk, encoding, callback) {
+//                     bufList.push(chunk);
+//                     callback();
+//                 },
+//             });
+//             cos.selectObjectContent(selectJsonOpt, function (err, data) {
+//                 assert.ok(data.Payload.toString() === content + '\n');
+//                 done();
+//             });
+//         });
+//     });
+//     test('selectObjectContentStream', function (done, assert) {
+//         var time = Date.now();
+//         var content = `{"a":123,"b":"${time}","c":{"d":456}}`;
+//         cos.putObject({
+//             Bucket: config.Bucket,
+//             Region: config.Region,
+//             Key: key,
+//             Body: content,
+//         }, function (err, data) {
+//             var bufList = [];
+//             var writeStream = new Writable({
+//                 write: function (chunk, encoding, callback) {
+//                     bufList.push(chunk);
+//                     callback();
+//                 },
+//             });
+//             cos.selectObjectContentStream(selectJsonOpt, function (err, data) {
+//                 assert.ok(Buffer.concat(bufList).toString() === content + '\n');
+//                 done();
+//             }).pipe(writeStream);
+//         });
+//     });
+//     test('selectObjectContentStream raw', function (done, assert) {
+//         var time = Date.now();
+//         var content = `{"a":123,"b":"${time}","c":{"d":456}}`;
+//         var key = '1.json';
+//         cos.putObject({
+//             Bucket: config.Bucket,
+//             Region: config.Region,
+//             Key: key,
+//             Body: content,
+//         }, function (err, data) {
+//             var bufList = [];
+//             var writeStream = new Writable({
+//                 write: function (chunk, encoding, callback) {
+//                     bufList.push(chunk);
+//                     callback();
+//                 },
+//             });
+//             cos.selectObjectContentStream({
+//                 ...selectJsonOpt,
+//                 DataType: 'raw',
+//             }, function (err, data) {
+//                 var result = Buffer.concat(bufList).toString();
+//                 assert.ok(result.includes('<BytesScanned>') && result.includes(content));
+//                 var selectStream = require('../sdk/select-stream');
+//                 console.log(selectStream.parseBody(Buffer.from(result)));
+//                 // assert.ok();
+//                 done();
+//             }).pipe(writeStream);
+//         });
+//     });
+// });
+//
+group('putBucketVersioning(),getBucketVersioning()', function () {
+    test('Enabled', function (done, assert) {
+        cos.deleteBucketReplication({
+            Bucket: config.Bucket, // Bucket 格式：test-1250000000
             Region: config.Region,
-            Key: '2',
-            Body: 'hello!',
-        }, function (err1, data1) {
-            cos.headObject({
-                Bucket: config.Bucket, /* 必须 */ // Bucket 格式：test-1250000000
+            VersioningConfiguration: {
+                Status: "Enabled"
+            }
+        }, function (err, data) {
+            cos.putBucketVersioning({
+                Bucket: config.Bucket, // Bucket 格式：test-1250000000
                 Region: config.Region,
-                Key: '2',
+                VersioningConfiguration: {
+                    Status: "Enabled"
+                }
             }, function (err, data) {
-                var contentType = data && data.headers['content-type'];
-                assert.ok(contentType === 'application/octet-stream', '返回了 Content-Type: ' + contentType);
-                done();
+                setTimeout(function () {
+                    cos.getBucketVersioning({
+                        Bucket: config.Bucket,
+                        Region: config.Region,
+                    }, function (err, data) {
+                        assert.ok(data.VersioningConfiguration.Status === 'Enabled');
+                        done();
+                    });
+                }, 2000);
             });
         });
     });
-    test('text 1.zip', function (done, assert) {
-        // 调用方法
-        cos.putObject({
-            Bucket: config.Bucket, /* 必须 */ // Bucket 格式：test-1250000000
+    test('Suspended', function (done, assert) {
+        cos.putBucketVersioning({
+            Bucket: config.Bucket, // Bucket 格式：test-1250000000
             Region: config.Region,
-            Key: '2.zip',
-            Body: 'hello!',
-        }, function (err1, data1) {
-            cos.headObject({
-                Bucket: config.Bucket, /* 必须 */ // Bucket 格式：test-1250000000
-                Region: config.Region,
-                Key: '2.zip',
-            }, function (err, data) {
-                var contentType = data && data.headers['content-type'];
-                assert.ok(contentType === 'application/zip', '返回了 Content-Type: ' + contentType);
-                done();
-            });
-        });
-    });
-    test('Buffer 3', function (done, assert) {
-        // 调用方法
-        cos.putObject({
-            Bucket: config.Bucket, /* 必须 */ // Bucket 格式：test-1250000000
-            Region: config.Region,
-            Key: '3',
-            Body: Buffer.from('hello!'),
-        }, function (err1, data1) {
-            cos.headObject({
-                Bucket: config.Bucket, /* 必须 */ // Bucket 格式：test-1250000000
-                Region: config.Region,
-                Key: '3',
-            }, function (err, data) {
-                var contentType = data && data.headers['content-type'];
-                assert.ok(contentType === 'application/octet-stream', '返回了 Content-Type: ' + contentType);
-                done();
-            });
-        });
-    });
-});
-
-var tagging2str = (obj) => {
-    var arr = [];
-    obj.forEach(v => arr.push(v.Key + '=' + encodeURIComponent(v.Value)))
-    return arr.join('&');
-}
-group('上传带 tagging', function () {
-    var Tags = [
-        {Key: "k1", Value: "v1"},
-        {Key: "k2", Value: "v2"},
-    ];
-    var key = '1.txt';
-
-    test('putObject 带 x-cos-tagging', function (done, assert) {
-        Tags[0].Value = Date.now().toString(36);
-        var tagStr = tagging2str(Tags);
-        // 调用方法
-        cos.putObject({
-            Bucket: config.Bucket, /* 必须 */ // Bucket 格式：test-1250000000
-            Region: config.Region,
-            Key: key,
-            Body: 'hello!',
-            Headers: {
-                'x-cos-tagging': tagStr,
-            },
-        }, function (err1, data1) {
-            cos.headObject({
-                Bucket: config.Bucket, /* 必须 */ // Bucket 格式：test-1250000000
-                Region: config.Region,
-                Key: key,
-            }, function (err2, data2) {
-                var taggingCount = data2 && data2.headers['x-cos-tagging-count'];
-                assert.ok(taggingCount === '2', '返回 x-cos-tagging-count: ' + taggingCount);
-                cos.getObjectTagging({
-                    Bucket: config.Bucket, /* 必须 */ // Bucket 格式：test-1250000000
-                    Region: config.Region,
-                    Key: key,
-                }, function (err3, data3) {
-                    assert.ok(comparePlainObject(Tags, data3.Tags));
-                    done();
-                });
-            });
-        });
-    });
-
-    // test('sliceUploadFile 带 x-cos-tagging', function (done, assert) {
-    //     Tags[0].Value = Date.now().toString(36);
-    //     var tagStr = tagging2str(Tags);
-    //     // 调用方法
-    //     cos.sliceUploadFile({
-    //         Bucket: config.Bucket, /* 必须 */ // Bucket 格式：test-1250000000
-    //         Region: config.Region,
-    //         Key: key,
-    //         Body: 'hello!',
-    //         Headers: {
-    //             'x-cos-tagging': tagStr,
-    //         },
-    //     }, function (err1, data1) {
-    //         cos.headObject({
-    //             Bucket: config.Bucket, /* 必须 */ // Bucket 格式：test-1250000000
-    //             Region: config.Region,
-    //             Key: key,
-    //         }, function (err2, data2) {
-    //             var taggingCount = data2 && data2.headers['x-cos-tagging-count'];
-    //             assert.ok(taggingCount === '1', '返回 x-cos-tagging-count: ' + taggingCount);
-    //             cos.getObjectTagging({
-    //                 Bucket: config.Bucket, /* 必须 */ // Bucket 格式：test-1250000000
-    //                 Region: config.Region,
-    //                 Key: key,
-    //             }, function (err3, data3) {
-    //                 assert.ok(data3 && data3.Tags && comparePlainObject(Tags, data3.Tags));
-    //                 done();
-    //             });
-    //         });
-    //     });
-    // });
-});
-
-group('ObjectTagging', function () {
-    var key = '1.txt';
-    var Tags = [
-        {Key: "k1", Value: "v1"},
-        {Key: "k2", Value: "v2"},
-    ];
-    test('putObjectTagging(),getObjectTagging()', function (done, assert) {
-        Tags[0].Value = Date.now().toString(36);
-        cos.putObjectTagging({
-            Bucket: config.Bucket,
-            Region: config.Region,
-            Key: key,
-            Tagging: {
-                Tags: Tags
-            },
+            VersioningConfiguration: {
+                Status: 'Suspended'
+            }
         }, function (err, data) {
             assert.ok(!err);
             setTimeout(function () {
-                cos.getObjectTagging({
+                cos.getBucketVersioning({
                     Bucket: config.Bucket,
                     Region: config.Region,
-                    Key: key,
                 }, function (err, data) {
-                    assert.ok(comparePlainObject(Tags, data.Tags));
-                    done();
-                });
-            }, 1000);
-        });
-    });
-    test('deleteObjectTagging()', function (done, assert) {
-        cos.deleteObjectTagging({
-            Bucket: config.Bucket,
-            Region: config.Region,
-            Key: key,
-        }, function (err, data) {
-            assert.ok(!err);
-            setTimeout(function () {
-                cos.getObjectTagging({
-                    Bucket: config.Bucket,
-                    Region: config.Region,
-                    Key: key,
-                }, function (err, data) {
-                    assert.ok(comparePlainObject([], data.Tags));
-                    done();
-                });
-            }, 1000);
-        });
-    });
-});
-
-group('getBucketAccelerate', function () {
-    test('putBucketAccelerate(),getBucketAccelerate() Enabled', function (done, assert) {
-        cos.putBucketAccelerate({
-            Bucket: config.Bucket,
-            Region: config.Region,
-            AccelerateConfiguration: {
-                Status: 'Enabled', // Suspended、Enabled
-            },
-        }, function (err, data) {
-            assert.ok(!err);
-            setTimeout(function () {
-                cos.getBucketAccelerate({
-                    Bucket: config.Bucket,
-                    Region: config.Region,
-                }, function (err2, data2) {
-                    assert.ok(data2 && data2.AccelerateConfiguration && data2.AccelerateConfiguration.Status === 'Enabled');
+                    console.log(data.VersioningConfiguration.Status);
+                    assert.ok(data.VersioningConfiguration.Status === 'Suspended');
                     done();
                 });
             }, 2000);
         });
     });
+});
 
-    test('putBucketAccelerate(),getBucketAccelerate() Suspended', function (done, assert) {
-        cos.putBucketAccelerate({
-            Bucket: config.Bucket,
+group('BucketReplication', function () {
+    var prepared = false;
+    var repBucket = config.Bucket.replace(/^(.*)(-\d+)$/, '$1-replication$2')
+    var repBucketName = repBucket.replace(/(-\d+)$/, '')
+    var repRegion = 'ap-chengdu';
+    var prepareBucket = function (callback) {
+        cos.putBucket({
+            Bucket: repBucket,
+            Region: repRegion,
+        }, function (err, data) {
+            cos.putBucketVersioning({
+                Bucket: config.Bucket,
+                Region: config.Region,
+                VersioningConfiguration: {
+                    Status: 'Enabled'
+                }
+            }, function (err, data) {
+                cos.putBucketVersioning({
+                    Bucket: repBucket,
+                    Region: repRegion,
+                    VersioningConfiguration: {
+                        Status: 'Enabled'
+                    }
+                }, function (err, data) {
+                    prepared = true
+                    callback();
+                });
+            });
+        });
+    };
+    test('putBucketReplication();getBucketReplication()', function (done, assert) {
+        var ruleId = Date.now().toString(36);
+        prepareBucket(function () {
+            cos.putBucketReplication({
+                Bucket: config.Bucket, // Bucket 格式：test-1250000000
+                Region: config.Region,
+                ReplicationConfiguration: {
+                    Role: "qcs::cam::uin/10001:uin/10001",
+                    Rules: [{
+                        ID: ruleId,
+                        Status: "Enabled",
+                        Prefix: "sync/",
+                        Destination: {
+                            Bucket: `qcs:id/0:cos:${repRegion}:appid/${AppId}:${repBucketName}`,
+                        }
+                    }]
+                }
+            }, function (err, data) {
+                assert.ok(!err);
+                cos.getBucketReplication({
+                    Bucket: config.Bucket, // Bucket 格式：test-1250000000
+                    Region: config.Region,
+                }, function (err, data) {
+                    assert.ok(data.ReplicationConfiguration.Rules[0].ID === ruleId);
+                    done();
+                });
+            });
+        });
+    });
+    test('deleteBucketReplication()', function (done, assert) {
+        cos.deleteBucketReplication({
+            Bucket: config.Bucket, // Bucket 格式：test-1250000000
             Region: config.Region,
-            AccelerateConfiguration: {
-                Status: 'Suspended', // Suspended、Enabled
-            },
+            VersioningConfiguration: {
+                Status: 'Suspended'
+            }
         }, function (err, data) {
             assert.ok(!err);
             setTimeout(function () {
-                cos.getBucketAccelerate({
+                cos.getBucketReplication({
                     Bucket: config.Bucket,
                     Region: config.Region,
-                }, function (err2, data2) {
-                    assert.ok(data2 && data2.AccelerateConfiguration && data2.AccelerateConfiguration.Status === 'Suspended');
+                }, function (err, data) {
+                    assert.ok(err && err.statusCode === 404);
                     done();
                 });
-            }, 1000);
+            }, 2000);
         });
     });
 });
 
-group('Promise', function () {
-
-    test('Promise() getService', function (done, assert) {
-        cos.getService().then(function (data) {
-            assert.ok(data);
-            done();
-        }).catch(function (err) {
-            assert.ok(false);
-            done();
-        });
-    });
-
-    test('Promise() getService region', function (done, assert) {
-        cos.getService({
+group('optionsObject()', function () {
+    test('optionsObject()', function (done, assert) {
+        cos.putBucketCors({
+            Bucket: config.Bucket, // Bucket 格式：test-1250000000
             Region: config.Region,
-        }).then(function (data) {
-            assert.ok(data);
-            done();
-        }).catch(function (err) {
-            assert.ok(false);
-            done();
-        });
-    });
-
-    test('Promise() getObjectUrl', function (done, assert) {
-        var res = cos.getObjectUrl({
-            Bucket: config.Bucket,
-            Region: config.Region,
-            Key: '123.txt',
-        });
-        assert.ok(!res.then);
-        done();
-    });
-
-    test('Promise() headBucket', function (done, assert) {
-        cos.headBucket({
-            Bucket: config.Bucket,
-            Region: config.Region,
-        }).then(function (data) {
-            assert.ok(data);
-            done();
-        }).catch(function () {
-            assert.ok(false);
-            done();
-        });
-    });
-
-    test('headBucket callback', function (done, assert) {
-        var res = cos.headBucket({
-            Bucket: config.Bucket,
-            Region: config.Region,
+            CORSRules: [{
+                "AllowedOrigins": ["*"],
+                "AllowedMethods": ["GET", "POST", "PUT", "DELETE", "HEAD"],
+                "AllowedHeaders": ["*", 'test-' + Date.now().toString(36)],
+                "ExposeHeaders": ['etag'],
+                "MaxAgeSeconds": "5"
+            }],
         }, function (err, data) {
-            assert.ok(!err && data);
-            done();
-        });
-        assert.ok(!res);
-    });
-
-    test('Promise() headBucket error', function (done, assert) {
-        cos.headBucket({
-            Bucket: config.Bucket,
-            Region: config.Region + '/',
-        }).then(function (data) {
-            assert.ok(!data);
-            done();
-        }).catch(function (err) {
-            assert.ok(err && err.error === 'Region format error.');
-            done();
-        });
-    });
-});
-
-group('Query 的键值带有特殊字符', function () {
-    test('getAuth()', function (done, assert) {
-        var content = Date.now().toString();
-        var key = '1.txt';
-        cos.putObject({
-            Bucket: config.Bucket,
-            Region: config.Region,
-            Key: key,
-            Body: content,
-        }, function (err, data) {
-            var str = 'qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM,./;\'[]\\-=0987654321`~!@#$%^&*()_+{}|":>?<';
-            var qs = {};
-            qs[str] = str;
-            var AuthData = cos.getAuth({
-                Method: 'GET',
-                Key: key,
-                Query: qs,
-            });
-            if (typeof AuthData === 'string') {
-                AuthData = {Authorization: AuthData};
-            }
-            var link = 'http://' + config.Bucket + '.cos.' + config.Region + '.myqcloud.com' + '/' +
-                camSafeUrlEncode(key).replace(/%2F/g, '/') +
-                '?sign=' + camSafeUrlEncode(AuthData.Authorization) +
-                (AuthData.XCosSecurityToken ? '&x-cos-security-token=' + AuthData.XCosSecurityToken : '') +
-                '&' + camSafeUrlEncode(str) + '=' + camSafeUrlEncode(str);
-            request({
-                method: 'GET',
-                url: link,
-            }, function (err, response, body) {
-                assert.ok(response.statusCode === 200);
-                assert.ok(body === content);
-                done();
-            });
-        });
-    });
-});
-
-group('selectObjectContent(),selectObjectContentStream()', function () {
-    var key = '1.json';
-    var selectJsonOpt = {
-        Bucket: config.Bucket,
-        Region: config.Region,
-        Key: key,
-        SelectType: 2,
-        SelectRequest: {
-            Expression: "Select * from COSObject",
-            ExpressionType: "SQL",
-            InputSerialization: {JSON: {Type: "DOCUMENT",},},
-            OutputSerialization: {JSON: {RecordDelimiter: "\n"},},
-            RequestProgress: {Enabled: "FALSE"}
-        },
-    };
-    test('selectObjectContent', function (done, assert) {
-        var time = Date.now();
-        var content = `{"a":123,"b":"${time}","c":{"d":456}}`;
-        cos.putObject({
-            Bucket: config.Bucket,
-            Region: config.Region,
-            Key: key,
-            Body: content,
-        }, function (err, data) {
-            var bufList = [];
-            var writeStream = new Writable({
-                write: function (chunk, encoding, callback) {
-                    bufList.push(chunk);
-                    callback();
-                },
-            });
-            cos.selectObjectContent(selectJsonOpt, function (err, data) {
-                assert.ok(data.Payload.toString() === content + '\n');
-                done();
-            });
-        });
-    });
-    test('selectObjectContentStream', function (done, assert) {
-        var time = Date.now();
-        var content = `{"a":123,"b":"${time}","c":{"d":456}}`;
-        cos.putObject({
-            Bucket: config.Bucket,
-            Region: config.Region,
-            Key: key,
-            Body: content,
-        }, function (err, data) {
-            var bufList = [];
-            var writeStream = new Writable({
-                write: function (chunk, encoding, callback) {
-                    bufList.push(chunk);
-                    callback();
-                },
-            });
-            cos.selectObjectContentStream(selectJsonOpt, function (err, data) {
-                assert.ok(Buffer.concat(bufList).toString() === content + '\n');
-                done();
-            }).pipe(writeStream);
-        });
-    });
-    test('selectObjectContentStream raw', function (done, assert) {
-        var time = Date.now();
-        var content = `{"a":123,"b":"${time}","c":{"d":456}}`;
-        var key = '1.json';
-        cos.putObject({
-            Bucket: config.Bucket,
-            Region: config.Region,
-            Key: key,
-            Body: content,
-        }, function (err, data) {
-            var bufList = [];
-            var writeStream = new Writable({
-                write: function (chunk, encoding, callback) {
-                    bufList.push(chunk);
-                    callback();
-                },
-            });
-            cos.selectObjectContentStream({
-                ...selectJsonOpt,
-                DataType: 'raw',
+            cos.optionsObject({
+                Bucket: config.Bucket, // Bucket 格式：test-1250000000
+                Region: config.Region,
+                Key: '1.jpg',
+                Origin: 'https://qq.com',
+                'AccessControlRequestMethod': 'PUT',
+                'AccessControlRequestHeaders': 'Authorization,x-cos-security-token',
             }, function (err, data) {
-                var result = Buffer.concat(bufList).toString();
-                assert.ok(result.includes('<BytesScanned>') && result.includes(content));
+                assert.ok(data && data.statusCode === 200);
                 done();
-            }).pipe(writeStream);
+            });
+        });
+    });
+    test('delete cors, optionsObject()', function (done, assert) {
+        cos.deleteBucketCors({
+            Bucket: config.Bucket, // Bucket 格式：test-1250000000
+            Region: config.Region,
+        }, function (err, data) {
+            cos.optionsObject({
+                Bucket: config.Bucket, // Bucket 格式：test-1250000000
+                Region: config.Region,
+                Key: '1.jpg',
+                Headers: {
+                    Origin: 'https://qq.com',
+                    'Access-Control-Request-Method': 'PUT',
+                    'Access-Control-Request-Headers': 'Authorization,x-cos-security-token',
+                },
+            }, function (err, data) {
+                assert.ok(err);
+                done();
+            });
         });
     });
 });
+
+group('BucketOrigin', function () {
+    test('putBucketOrigin(),getBucketOrigin()', function (done, assert) {
+        var prefix = Date.now().toString(36) + '/';
+        cos.putBucketOrigin({
+            Bucket: config.Bucket,
+            Region: config.Region,
+            OriginRule: [{
+                OriginType: 'Mirror',
+                OriginCondition: {HTTPStatusCode: 404, Prefix: ''},
+                OriginParameter: {
+                    Protocol: 'HTTP',
+                    FollowQueryString: 'true',
+                    HttpHeader: {
+                        NewHttpHeader: {
+                            Header: [{
+                                Key: 'a',
+                                Value: 'a'
+                            }]
+                        }
+                    },
+                    FollowRedirection: 'true',
+                    HttpRedirectCode: ['301', '302']
+                },
+                OriginInfo: {
+                    HostInfo: {HostName: 'qq.com'},
+                    FileInfo: {
+                        PrefixConfiguration: {Prefix: prefix},
+                        SuffixConfiguration: {Suffix: '.jpg'}
+                    }
+                },
+                RulePriority: 1
+            }]
+        }, function (err, data) {
+            assert.ok(!err);
+            cos.getBucketOrigin({
+                Bucket: config.Bucket,
+                Region: config.Region
+            }, function (err, data) {
+                assert.ok(data.OriginRule[0].OriginInfo.FileInfo.PrefixConfiguration.Prefix === prefix);
+                done();
+            });
+        });
+    });
+    test('deleteBucketOrigin()', function (done, assert) {
+        cos.deleteBucketOrigin({
+            Bucket: config.Bucket,
+            Region: config.Region
+        }, function (err, data) {
+            assert.ok(!err);
+            setTimeout(function () {
+                cos.getBucketOrigin({
+                    Bucket: config.Bucket,
+                    Region: config.Region
+                }, function (err, data) {
+                    assert.ok(err);
+                    done();
+                });
+            }, 2000);
+        });
+    });
+});
+
+group('BucketReferer', function () {
+    test('putBucketReferer(),getBucketReferer()', function (done, assert) {
+        var conf = {
+            Status: 'Enabled',
+            RefererType: 'White-List',
+            DomainList: {
+                Domains: [
+                    Date.now().toString(36) + '.qq.com',
+                    '*.qcloud.com',
+                ]
+            },
+            EmptyReferConfiguration: 'Allow',
+        };
+        cos.putBucketReferer({
+            Bucket: config.Bucket,
+            Region: config.Region,
+            RefererConfiguration: conf
+        }, function (err, data) {
+            assert.ok(!err);
+            setTimeout(function () {
+                cos.getBucketReferer({
+                    Bucket: config.Bucket,
+                    Region: config.Region
+                }, function (err, data) {
+                    assert.ok(comparePlainObject(conf, data.RefererConfiguration));
+                    done();
+                });
+            }, 2000);
+        });
+    });
+});
+
+
+// base.js
+// uploadPartCopy
+// restoreObject
+// multipartAbort
+// putBucketAccelerate
+// getObject onProgress
+// deleteObject err
+// putObjectTagging/getObjectTagging/deleteObjectTagging
+// selectObjectContent
+// selectObjectContentStream
+// multipartListPart
+// getV4Auth
+
+
+// advance.js
+// getChunkETag  续传
+// uploadFiles
+// sliceCopyFile

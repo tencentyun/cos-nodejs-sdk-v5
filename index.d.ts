@@ -646,7 +646,7 @@ declare namespace COS {
   /** putBucketVersioning 接口参数 */
   interface PutBucketVersioningParams extends BucketParams {
     /** 存储桶版本控制开关信息 */
-    VersioningConfiguration,
+    VersioningConfiguration: VersioningConfiguration,
   }
   /** putBucketVersioning 接口返回值 */
   interface PutBucketVersioningResult extends GeneralResult {}
@@ -657,7 +657,7 @@ declare namespace COS {
   /** getBucketVersioning 接口返回值 */
   interface GetBucketVersioningResult extends GeneralResult {
     /** 存储桶版本控制开关信息 */
-    VersioningConfiguration,
+    VersioningConfiguration: VersioningConfiguration,
   }
 
   // putBucketReplication
@@ -686,7 +686,7 @@ declare namespace COS {
   /** putBucketReplication 接口参数 */
   interface PutBucketReplicationParams extends BucketParams {
     /** 说明所有复制配置信息 */
-    ReplicationConfiguration,
+    ReplicationConfiguration: ReplicationConfiguration,
   }
   /** putBucketReplication 接口返回值 */
   interface PutBucketReplicationResult extends GeneralResult {}
@@ -697,7 +697,7 @@ declare namespace COS {
   /** getBucketReplication 接口返回值 */
   interface GetBucketReplicationResult extends GeneralResult {
     /** 说明所有复制配置信息 */
-    ReplicationConfiguration
+    ReplicationConfiguration: ReplicationConfiguration,
   }
 
   // deleteBucketReplication
@@ -939,7 +939,7 @@ declare namespace COS {
   /** putBucketLogging 接口参数 */
   interface PutBucketLoggingParams extends BucketParams {
     /** 说明日志记录配置的状态，如果无子节点信息则意为关闭日志记录 */
-    BucketLoggingStatus,
+    BucketLoggingStatus: BucketLoggingStatus,
   }
   /** putBucketLogging 接口返回值 */
   interface PutBucketLoggingResult extends GeneralResult {}
@@ -950,7 +950,7 @@ declare namespace COS {
   /** getBucketLogging 接口返回值 */
   interface GetBucketLoggingResult extends GeneralResult {
     /** 说明日志记录配置的状态，如果无子节点信息则意为关闭日志记录 */
-    BucketLoggingStatus,
+    BucketLoggingStatus: BucketLoggingStatus,
   }
 
   // putBucketInventory
@@ -1049,7 +1049,7 @@ declare namespace COS {
   /** putBucketAccelerate 接口参数 */
   interface PutBucketAccelerateParams extends BucketParams {
     /** 全球加速的具体信息 */
-    AccelerateConfiguration,
+    AccelerateConfiguration: AccelerateConfiguration,
   }
   /** putBucketAccelerate 接口返回值 */
   interface PutBucketAccelerateResult extends GeneralResult {}
@@ -1060,7 +1060,7 @@ declare namespace COS {
   /** getBucketAccelerate 接口返回值 */
   interface GetBucketAccelerateResult extends GeneralResult {
     /** 全球加速的具体信息 */
-    InventoryConfiguration,
+    InventoryConfiguration: AccelerateConfiguration,
   }
 
   // headObject
@@ -1252,6 +1252,8 @@ declare namespace COS {
   // optionsObject
   /** optionsObject 接口参数 */
   interface OptionsObjectParams extends ObjectParams {
+    /** 发起 CORS 请求所在的页面域名（Origin） */
+    Origin: string,
     /** 发起 CORS 请求所用的方法（Method） */
     AccessControlRequestMethod: Method,
     /** 发起 CORS 请求时使用的 HTTP 请求头部，不区分英文大小写，可使用英文逗号(,)分隔多个头部 */

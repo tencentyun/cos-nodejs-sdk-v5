@@ -596,7 +596,7 @@ function putBucketOrigin() {
                 HttpRedirectCode: ['301', '302']
             },
             OriginInfo: {
-                HostInfo: {HostName: ''},
+                HostInfo: {HostName: 'qq.com'},
                 FileInfo: {
                     PrefixConfiguration: {Prefix: '123/'},
                     SuffixConfiguration: {Suffix: '.jpg'}

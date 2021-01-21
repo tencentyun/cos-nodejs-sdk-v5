@@ -52,6 +52,7 @@ var cos = new COS({
     ProgressInterval: 1,  // 控制 onProgress 回调的间隔
     ChunkRetryTimes: 3,   // 控制文件切片后单片上传失败后重试次数
     UploadCheckContentMd5: true,   // 上传过程计算 Content-MD5
+    ServiceDomain: 'service.cos.myqcloud.com/',
 });
 
 var AppId;
@@ -118,14 +119,16 @@ function prepareBucket() {
 group('getService()', function () {
     test('能正常列出 Bucket', function (done, assert) {
         prepareBucket().then(function () {
-            cos.getService(function (err, data) {
+            cos.getService({
+                Region: config.Region,
+            }, function (err, data) {
                 var hasBucket = false;
                 data.Buckets && data.Buckets.forEach(function (item) {
                     if (item.Name === BucketLongName && (item.Location === config.Region || !item.Location)) {
                         hasBucket = true;
                     }
                 });
-                assert.equal(true, hasBucket);
+                assert.ok(hasBucket);
                 done();
             });
         }).catch(function () {
@@ -245,6 +248,21 @@ group('getBucket()', function () {
             }, function (err, data) {
                 assert.equal(true, data.Name === BucketLongName);
                 assert.equal(data.Contents.constructor, Array);
+                done();
+            });
+        }).catch(function () {
+            assert.fail();
+            done();
+        });
+    });
+    test('正常获取 bucket 里的文件版本列表', function (done, assert) {
+        prepareBucket().then(function () {
+            cos.listObjectVersions({
+                Bucket: config.Bucket,
+                Region: config.Region
+            }, function (err, data) {
+                assert.equal(true, data.Name === BucketLongName);
+                assert.equal(data.Versions.constructor, Array);
                 done();
             });
         }).catch(function () {
@@ -1752,6 +1770,22 @@ group('BucketPolicy', function () {
             });
         });
     });
+    test('deleteBucketPolicy()', function (done, assert) {
+        cos.deleteBucketPolicy({
+            Bucket: config.Bucket,
+            Region: config.Region,
+            Policy: JSON.stringify(Policy)
+        }, function (err, data) {
+            assert.ok(!err);
+            cos.getBucketPolicy({
+                Bucket: config.Bucket,
+                Region: config.Region
+            }, function (err, data) {
+                assert.ok(err.ErrorStatus === 'Policy Not Found');
+                done();
+            });
+        });
+    });
 });
 
 group('BucketLocation', function () {
@@ -2651,22 +2685,22 @@ group('BucketInventory', function () {
         });
     });
 
-    // test('listBucketInventory()', function (done, assert) {
-    //     cos.listBucketInventory({
-    //         Bucket: config.Bucket,
-    //         Region: config.Region
-    //     }, function (err, data) {
-    //         var targetInventory;
-    //         data.InventoryConfigurations.forEach(function (item) {
-    //             if (item.Id === InventoryConfiguration.Id) {
-    //                 targetInventory = item;
-    //             }
-    //         });
-    //         assert.ok(comparePlainObject(InventoryConfiguration, targetInventory));
-    //         assert.ok(data.IsTruncated === 'false' || data.IsTruncated === 'true');
-    //         done();
-    //     });
-    // });
+    test('listBucketInventory()', function (done, assert) {
+        cos.listBucketInventory({
+            Bucket: config.Bucket,
+            Region: config.Region
+        }, function (err, data) {
+            var targetInventory;
+            data.InventoryConfigurations.forEach(function (item) {
+                if (item.Id === InventoryConfiguration.Id) {
+                    targetInventory = item;
+                }
+            });
+            assert.ok(comparePlainObject(InventoryConfiguration, targetInventory));
+            assert.ok(data.IsTruncated === 'false' || data.IsTruncated === 'true');
+            done();
+        });
+    });
 
     test('putBucketInventory() 不设置 SSECOS', function (done, assert) {
         cos.putBucketInventory({
@@ -3154,8 +3188,305 @@ group('selectObjectContent(),selectObjectContentStream()', function () {
             }, function (err, data) {
                 var result = Buffer.concat(bufList).toString();
                 assert.ok(result.includes('<BytesScanned>') && result.includes(content));
+                var selectStream = require('../sdk/select-stream');
+                console.log(selectStream.parseBody(Buffer.from(result)));
+                // assert.ok();
                 done();
             }).pipe(writeStream);
         });
     });
 });
+
+group('putBucketVersioning(),getBucketVersioning()', function () {
+    test('Enabled', function (done, assert) {
+        cos.deleteBucketReplication({
+            Bucket: config.Bucket, // Bucket 格式：test-1250000000
+            Region: config.Region,
+            VersioningConfiguration: {
+                Status: "Enabled"
+            }
+        }, function (err, data) {
+            cos.putBucketVersioning({
+                Bucket: config.Bucket, // Bucket 格式：test-1250000000
+                Region: config.Region,
+                VersioningConfiguration: {
+                    Status: "Enabled"
+                }
+            }, function (err, data) {
+                setTimeout(function () {
+                    cos.getBucketVersioning({
+                        Bucket: config.Bucket,
+                        Region: config.Region,
+                    }, function (err, data) {
+                        assert.ok(data.VersioningConfiguration.Status === 'Enabled');
+                        done();
+                    });
+                }, 2000);
+            });
+        });
+    });
+    test('Suspended', function (done, assert) {
+        cos.putBucketVersioning({
+            Bucket: config.Bucket, // Bucket 格式：test-1250000000
+            Region: config.Region,
+            VersioningConfiguration: {
+                Status: 'Suspended'
+            }
+        }, function (err, data) {
+            assert.ok(!err);
+            setTimeout(function () {
+                cos.getBucketVersioning({
+                    Bucket: config.Bucket,
+                    Region: config.Region,
+                }, function (err, data) {
+                    console.log(data.VersioningConfiguration.Status);
+                    assert.ok(data.VersioningConfiguration.Status === 'Suspended');
+                    done();
+                });
+            }, 2000);
+        });
+    });
+});
+
+group('BucketReplication', function () {
+    var prepared = false;
+    var repBucket = config.Bucket.replace(/^(.*)(-\d+)$/, '$1-replication$2')
+    var repBucketName = repBucket.replace(/(-\d+)$/, '')
+    var repRegion = 'ap-chengdu';
+    var prepareBucket = function (callback) {
+        cos.putBucket({
+            Bucket: repBucket,
+            Region: repRegion,
+        }, function (err, data) {
+            cos.putBucketVersioning({
+                Bucket: config.Bucket,
+                Region: config.Region,
+                VersioningConfiguration: {
+                    Status: 'Enabled'
+                }
+            }, function (err, data) {
+                cos.putBucketVersioning({
+                    Bucket: repBucket,
+                    Region: repRegion,
+                    VersioningConfiguration: {
+                        Status: 'Enabled'
+                    }
+                }, function (err, data) {
+                    prepared = true
+                    callback();
+                });
+            });
+        });
+    };
+    test('putBucketReplication();getBucketReplication()', function (done, assert) {
+        var ruleId = Date.now().toString(36);
+        prepareBucket(function () {
+            cos.putBucketReplication({
+                Bucket: config.Bucket, // Bucket 格式：test-1250000000
+                Region: config.Region,
+                ReplicationConfiguration: {
+                    Role: "qcs::cam::uin/10001:uin/10001",
+                    Rules: [{
+                        ID: ruleId,
+                        Status: "Enabled",
+                        Prefix: "sync/",
+                        Destination: {
+                            Bucket: `qcs:id/0:cos:${repRegion}:appid/${AppId}:${repBucketName}`,
+                        }
+                    }]
+                }
+            }, function (err, data) {
+                assert.ok(!err);
+                cos.getBucketReplication({
+                    Bucket: config.Bucket, // Bucket 格式：test-1250000000
+                    Region: config.Region,
+                }, function (err, data) {
+                    assert.ok(data.ReplicationConfiguration.Rules[0].ID === ruleId);
+                    done();
+                });
+            });
+        });
+    });
+    test('deleteBucketReplication()', function (done, assert) {
+        cos.deleteBucketReplication({
+            Bucket: config.Bucket, // Bucket 格式：test-1250000000
+            Region: config.Region,
+            VersioningConfiguration: {
+                Status: 'Suspended'
+            }
+        }, function (err, data) {
+            assert.ok(!err);
+            setTimeout(function () {
+                cos.getBucketReplication({
+                    Bucket: config.Bucket,
+                    Region: config.Region,
+                }, function (err, data) {
+                    assert.ok(err && err.statusCode === 404);
+                    done();
+                });
+            }, 2000);
+        });
+    });
+});
+
+group('optionsObject()', function () {
+    test('optionsObject()', function (done, assert) {
+        cos.putBucketCors({
+            Bucket: config.Bucket, // Bucket 格式：test-1250000000
+            Region: config.Region,
+            CORSRules: [{
+                "AllowedOrigins": ["*"],
+                "AllowedMethods": ["GET", "POST", "PUT", "DELETE", "HEAD"],
+                "AllowedHeaders": ["*", 'test-' + Date.now().toString(36)],
+                "ExposeHeaders": ['etag'],
+                "MaxAgeSeconds": "5"
+            }],
+        }, function (err, data) {
+            cos.optionsObject({
+                Bucket: config.Bucket, // Bucket 格式：test-1250000000
+                Region: config.Region,
+                Key: '1.jpg',
+                Origin: 'https://qq.com',
+                'AccessControlRequestMethod': 'PUT',
+                'AccessControlRequestHeaders': 'Authorization,x-cos-security-token',
+            }, function (err, data) {
+                assert.ok(data && data.statusCode === 200);
+                done();
+            });
+        });
+    });
+    test('delete cors, optionsObject()', function (done, assert) {
+        cos.deleteBucketCors({
+            Bucket: config.Bucket, // Bucket 格式：test-1250000000
+            Region: config.Region,
+        }, function (err, data) {
+            cos.optionsObject({
+                Bucket: config.Bucket, // Bucket 格式：test-1250000000
+                Region: config.Region,
+                Key: '1.jpg',
+                Headers: {
+                    Origin: 'https://qq.com',
+                    'Access-Control-Request-Method': 'PUT',
+                    'Access-Control-Request-Headers': 'Authorization,x-cos-security-token',
+                },
+            }, function (err, data) {
+                assert.ok(err);
+                done();
+            });
+        });
+    });
+});
+
+group('BucketOrigin', function () {
+    test('putBucketOrigin(),getBucketOrigin()', function (done, assert) {
+        var prefix = Date.now().toString(36) + '/';
+        cos.putBucketOrigin({
+            Bucket: config.Bucket,
+            Region: config.Region,
+            OriginRule: [{
+                OriginType: 'Mirror',
+                OriginCondition: {HTTPStatusCode: 404, Prefix: ''},
+                OriginParameter: {
+                    Protocol: 'HTTP',
+                    FollowQueryString: 'true',
+                    HttpHeader: {
+                        NewHttpHeader: {
+                            Header: [{
+                                Key: 'a',
+                                Value: 'a'
+                            }]
+                        }
+                    },
+                    FollowRedirection: 'true',
+                    HttpRedirectCode: ['301', '302']
+                },
+                OriginInfo: {
+                    HostInfo: {HostName: 'qq.com'},
+                    FileInfo: {
+                        PrefixConfiguration: {Prefix: prefix},
+                        SuffixConfiguration: {Suffix: '.jpg'}
+                    }
+                },
+                RulePriority: 1
+            }]
+        }, function (err, data) {
+            assert.ok(!err);
+            cos.getBucketOrigin({
+                Bucket: config.Bucket,
+                Region: config.Region
+            }, function (err, data) {
+                assert.ok(data.OriginRule[0].OriginInfo.FileInfo.PrefixConfiguration.Prefix === prefix);
+                done();
+            });
+        });
+    });
+    test('deleteBucketOrigin()', function (done, assert) {
+        cos.deleteBucketOrigin({
+            Bucket: config.Bucket,
+            Region: config.Region
+        }, function (err, data) {
+            assert.ok(!err);
+            setTimeout(function () {
+                cos.getBucketOrigin({
+                    Bucket: config.Bucket,
+                    Region: config.Region
+                }, function (err, data) {
+                    assert.ok(err);
+                    done();
+                });
+            }, 2000);
+        });
+    });
+});
+
+group('BucketReferer', function () {
+    test('putBucketReferer(),getBucketReferer()', function (done, assert) {
+        var conf = {
+            Status: 'Enabled',
+            RefererType: 'White-List',
+            DomainList: {
+                Domains: [
+                    Date.now().toString(36) + '.qq.com',
+                    '*.qcloud.com',
+                ]
+            },
+            EmptyReferConfiguration: 'Allow',
+        };
+        cos.putBucketReferer({
+            Bucket: config.Bucket,
+            Region: config.Region,
+            RefererConfiguration: conf
+        }, function (err, data) {
+            assert.ok(!err);
+            setTimeout(function () {
+                cos.getBucketReferer({
+                    Bucket: config.Bucket,
+                    Region: config.Region
+                }, function (err, data) {
+                    assert.ok(comparePlainObject(conf, data.RefererConfiguration));
+                    done();
+                });
+            }, 2000);
+        });
+    });
+});
+
+
+// base.js
+// uploadPartCopy
+// restoreObject
+// multipartAbort
+// putBucketAccelerate
+// getObject onProgress
+// deleteObject err
+// putObjectTagging/getObjectTagging/deleteObjectTagging
+// selectObjectContent
+// selectObjectContentStream
+// multipartListPart
+// getV4Auth
+
+
+// advance.js
+// getChunkETag  续传
+// uploadFiles
+// sliceCopyFile

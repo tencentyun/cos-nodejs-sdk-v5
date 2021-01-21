@@ -55,7 +55,7 @@ function getV4Auth() {
 
 function getObjectUrl() {
     var url = cos.getObjectUrl({
-        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Bucket: config.Bucket,
         Region: config.Region,
         Key: '1mb.zip',
         Expires: 60,
@@ -86,7 +86,7 @@ function putBucket() {
 
 function getBucket() {
     cos.getBucket({
-        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Bucket: config.Bucket,
         Region: config.Region
     }, function (err, data) {
         console.log(err || data);
@@ -95,7 +95,7 @@ function getBucket() {
 
 function headBucket() {
     cos.headBucket({
-        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Bucket: config.Bucket,
         Region: config.Region
     }, function (err, data) {
         console.log(err || data);
@@ -113,7 +113,7 @@ function deleteBucket() {
 
 function putBucketAcl() {
     cos.putBucketAcl({
-        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Bucket: config.Bucket,
         Region: config.Region,
         // GrantFullControl: 'id="qcs::cam::uin/1001:uin/1001",id="qcs::cam::uin/1002:uin/1002"',
         // GrantWrite: 'id="qcs::cam::uin/1001:uin/1001",id="qcs::cam::uin/1002:uin/1002"',
@@ -157,7 +157,7 @@ function putBucketAcl() {
 
 function getBucketAcl() {
     cos.getBucketAcl({
-        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Bucket: config.Bucket,
         Region: config.Region
     }, function (err, data) {
         console.log(err || data);
@@ -166,7 +166,7 @@ function getBucketAcl() {
 
 function putBucketCors() {
     cos.putBucketCors({
-        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Bucket: config.Bucket,
         Region: config.Region,
         CORSRules: [{
             "AllowedOrigin": ["*"],
@@ -182,7 +182,7 @@ function putBucketCors() {
 
 function getBucketCors() {
     cos.getBucketCors({
-        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Bucket: config.Bucket,
         Region: config.Region
     }, function (err, data) {
         console.log(err || data);
@@ -191,7 +191,7 @@ function getBucketCors() {
 
 function deleteBucketCors() {
     cos.deleteBucketCors({
-        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Bucket: config.Bucket,
         Region: config.Region
     }, function (err, data) {
         console.log(err || data);
@@ -260,7 +260,7 @@ function putBucketPolicy() {
                 "resource": ["qcs::cos:" + config.Region + ":uid/" + AppId + ":" + config.Bucket + "/*"] // 1250000000 是 appid
             }]
         },
-        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Bucket: config.Bucket,
         Region: config.Region
     }, function (err, data) {
         console.log(err || data);
@@ -269,7 +269,7 @@ function putBucketPolicy() {
 
 function getBucketPolicy() {
     cos.getBucketPolicy({
-        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Bucket: config.Bucket,
         Region: config.Region
     }, function (err, data) {
         console.log(err || data);
@@ -278,7 +278,7 @@ function getBucketPolicy() {
 
 function deleteBucketPolicy() {
     cos.deleteBucketPolicy({
-        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Bucket: config.Bucket,
         Region: config.Region
     }, function (err, data) {
         console.log(err || data);
@@ -287,7 +287,7 @@ function deleteBucketPolicy() {
 
 function getBucketLocation() {
     cos.getBucketLocation({
-        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Bucket: config.Bucket,
         Region: config.Region
     }, function (err, data) {
         console.log(err || data);
@@ -296,7 +296,7 @@ function getBucketLocation() {
 
 function putBucketTagging() {
     cos.putBucketTagging({
-        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Bucket: config.Bucket,
         Region: config.Region,
         Tags: [
             {"Key": "k1", "Value": "v1"},
@@ -309,7 +309,7 @@ function putBucketTagging() {
 
 function getBucketTagging() {
     cos.getBucketTagging({
-        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Bucket: config.Bucket,
         Region: config.Region
     }, function (err, data) {
         console.log(err || data);
@@ -318,7 +318,7 @@ function getBucketTagging() {
 
 function deleteBucketTagging() {
     cos.deleteBucketTagging({
-        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Bucket: config.Bucket,
         Region: config.Region
     }, function (err, data) {
         console.log(err || data);
@@ -327,7 +327,7 @@ function deleteBucketTagging() {
 
 function putBucketLifecycle() {
     cos.putBucketLifecycle({
-        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Bucket: config.Bucket,
         Region: config.Region,
         Rules: [{
             "ID": "1",
@@ -369,7 +369,7 @@ function putBucketLifecycle() {
 
 function getBucketLifecycle() {
     cos.getBucketLifecycle({
-        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Bucket: config.Bucket,
         Region: config.Region
     }, function (err, data) {
         console.log(err || data);
@@ -378,7 +378,7 @@ function getBucketLifecycle() {
 
 function deleteBucketLifecycle() {
     cos.deleteBucketLifecycle({
-        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Bucket: config.Bucket,
         Region: config.Region
     }, function (err, data) {
         console.log(err || data);
@@ -387,7 +387,7 @@ function deleteBucketLifecycle() {
 
 function putBucketVersioning() {
     cos.putBucketVersioning({
-        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Bucket: config.Bucket,
         Region: config.Region,
         VersioningConfiguration: {
             Status: "Enabled"
@@ -399,7 +399,7 @@ function putBucketVersioning() {
 
 function getBucketVersioning() {
     cos.getBucketVersioning({
-        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Bucket: config.Bucket,
         Region: config.Region
     }, function (err, data) {
         console.log(err || data);
@@ -409,7 +409,7 @@ function getBucketVersioning() {
 function putBucketReplication() {
     var AppId = config.Bucket.substr(config.Bucket.lastIndexOf('-') + 1);
     cos.putBucketReplication({
-        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Bucket: config.Bucket,
         Region: config.Region,
         ReplicationConfiguration: {
             Role: "qcs::cam::uin/10001:uin/10001",
@@ -430,7 +430,7 @@ function putBucketReplication() {
 
 function getBucketReplication() {
     cos.getBucketReplication({
-        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Bucket: config.Bucket,
         Region: config.Region
     }, function (err, data) {
         console.log(err || data);
@@ -439,7 +439,7 @@ function getBucketReplication() {
 
 function deleteBucketReplication() {
     cos.deleteBucketReplication({
-        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Bucket: config.Bucket,
         Region: config.Region
     }, function (err, data) {
         console.log(err || data);
@@ -448,7 +448,7 @@ function deleteBucketReplication() {
 
 function putBucketWebsite() {
     cos.putBucketWebsite({
-        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Bucket: config.Bucket,
         Region: config.Region,
         WebsiteConfiguration: {
             IndexDocument: {
@@ -493,7 +493,7 @@ function putBucketWebsite() {
 
 function getBucketWebsite() {
     cos.getBucketWebsite({
-        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Bucket: config.Bucket,
         Region: config.Region
     },function(err, data){
         console.log(err || data);
@@ -502,7 +502,7 @@ function getBucketWebsite() {
 
 function deleteBucketWebsite() {
     cos.deleteBucketWebsite({
-        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Bucket: config.Bucket,
         Region: config.Region
     },function(err, data){
         console.log(err || data);
@@ -511,7 +511,7 @@ function deleteBucketWebsite() {
 
 function putBucketReferer() {
     cos.putBucketReferer({
-        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Bucket: config.Bucket,
         Region: config.Region,
         RefererConfiguration: {
             Status: 'Enabled',
@@ -531,7 +531,7 @@ function putBucketReferer() {
 
 function getBucketReferer() {
     cos.getBucketReferer({
-        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Bucket: config.Bucket,
         Region: config.Region
     },function(err, data){
         console.log(err || JSON.stringify(data, null, '    '));
@@ -540,7 +540,7 @@ function getBucketReferer() {
 
 function putBucketDomain() {
     cos.putBucketDomain({
-        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Bucket: config.Bucket,
         Region: config.Region,
         DomainRule:[{
             Status: "DISABLED",
@@ -558,7 +558,7 @@ function putBucketDomain() {
 
 function getBucketDomain() {
     cos.getBucketDomain({
-        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Bucket: config.Bucket,
         Region: config.Region
     },function(err, data){
         console.log(err || data);
@@ -567,7 +567,7 @@ function getBucketDomain() {
 
 function deleteBucketDomain() {
     cos.deleteBucketDomain({
-        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Bucket: config.Bucket,
         Region: config.Region
     },function(err, data){
         console.log(err || data);
@@ -576,7 +576,7 @@ function deleteBucketDomain() {
 
 function putBucketOrigin() {
     cos.putBucketOrigin({
-        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Bucket: config.Bucket,
         Region: config.Region,
         OriginRule: [{
             OriginType: 'Mirror',
@@ -630,7 +630,7 @@ function deleteBucketOrigin() {
 function putBucketLogging() {
     var AppId = config.Bucket.substr(config.Bucket.lastIndexOf('-') + 1);
     cos.putBucketLogging({
-        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Bucket: config.Bucket,
         Region: config.Region,
         BucketLoggingStatus: {
             LoggingEnabled: {
@@ -645,7 +645,7 @@ function putBucketLogging() {
 
 function getBucketLogging() {
     cos.getBucketLogging({
-        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Bucket: config.Bucket,
         Region: config.Region
     }, function (err, data) {
         console.log(err || data);
@@ -654,7 +654,7 @@ function getBucketLogging() {
 
 function deleteBucketLogging() {
     cos.putBucketLogging({
-        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Bucket: config.Bucket,
         Region: config.Region,
         BucketLoggingStatus: ''
     }, function (err, data) {
@@ -665,7 +665,7 @@ function deleteBucketLogging() {
 function putBucketInventory() {
     var AppId = config.Bucket.substr(config.Bucket.lastIndexOf('-') + 1);
     cos.putBucketInventory({
-        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Bucket: config.Bucket,
         Region: config.Region,
         Id: 'inventory_test',
         InventoryConfiguration: {
@@ -760,7 +760,7 @@ function putObject() {
     util.createFile(filepath, 1024 * 1024, function (err) {
         // 调用方法
         cos.putObject({
-            Bucket: config.Bucket, /* 必须 */ // Bucket 格式：test-1250000000
+            Bucket: config.Bucket, /* 必须 */
             Region: config.Region,
             Key: filename, /* 必须 */
             onTaskReady: function (tid) {
@@ -783,7 +783,7 @@ function putObject() {
 
 function putObjectCopy() {
     cos.putObjectCopy({
-        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Bucket: config.Bucket,
         Region: config.Region,
         Key: '1mb.copy.zip',
         CopySource: config.Bucket + '.cos.' + config.Region + '.myqcloud.com/' + camSafeUrlEncode('1mb.zip').replace(/%2F/g, '/'),
@@ -799,7 +799,7 @@ function getObject() {
 
     // file1 获取对象字节到内存变量
     cos.getObject({
-        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Bucket: config.Bucket,
         Region: config.Region,
         Key: '1mb.zip',
         onProgress: function (progressData) {
@@ -811,7 +811,7 @@ function getObject() {
 
     // file2 获取对象到本地文件
     cos.getObject({
-        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Bucket: config.Bucket,
         Region: config.Region,
         Key: '1mb.zip',
         Output: fs.createWriteStream(filepath2),
@@ -824,7 +824,7 @@ function getObject() {
 
     // file3 pipe 格式获取对象到本地文件
     var stream = cos.getObjectStream({
-        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Bucket: config.Bucket,
         Region: config.Region,
         Key: '1mb.zip',
         onProgress: function (progressData) {
@@ -838,7 +838,7 @@ function getObject() {
 
 function headObject() {
     cos.headObject({
-        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Bucket: config.Bucket,
         Region: config.Region,
         Key: '1mb.zip'
     }, function (err, data) {
@@ -848,7 +848,7 @@ function headObject() {
 
 function listObjectVersions() {
     cos.listObjectVersions({
-        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Bucket: config.Bucket,
         Region: config.Region,
         // Prefix: "",
         // Delimiter: '/'
@@ -859,7 +859,7 @@ function listObjectVersions() {
 
 function putObjectAcl() {
     cos.putObjectAcl({
-        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Bucket: config.Bucket,
         Region: config.Region,
         Key: '1mb.zip',
         // GrantFullControl: 'id="qcs::cam::uin/1001:uin/1001",id="qcs::cam::uin/1002:uin/1002"',
@@ -888,7 +888,7 @@ function putObjectAcl() {
 
 function getObjectAcl() {
     cos.getObjectAcl({
-        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Bucket: config.Bucket,
         Region: config.Region,
         Key: '1mb.zip'
     }, function (err, data) {
@@ -898,7 +898,7 @@ function getObjectAcl() {
 
 function deleteObject() {
     cos.deleteObject({
-        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Bucket: config.Bucket,
         Region: config.Region,
         Key: '1mb.zip'
     }, function (err, data) {
@@ -908,7 +908,7 @@ function deleteObject() {
 
 function deleteMultipleObject() {
     cos.deleteMultipleObject({
-        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Bucket: config.Bucket,
         Region: config.Region,
         Objects: [
             {Key: '中文/中文.txt'},
@@ -921,7 +921,7 @@ function deleteMultipleObject() {
 
 function restoreObject() {
     cos.restoreObject({
-        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Bucket: config.Bucket,
         Region: config.Region,
         Key: '1.txt',
         RestoreRequest: {
@@ -936,7 +936,7 @@ function restoreObject() {
 }
 
 var selectCsvOpt = {
-    Bucket: config.Bucket, // Bucket 格式：test-1250000000
+    Bucket: config.Bucket,
     Region: config.Region,
     Key: '1.csv',
     SelectType: 2,
@@ -969,7 +969,7 @@ var selectCsvOpt = {
 };
 
 var selectJsonOpt = {
-    Bucket: config.Bucket, // Bucket 格式：test-1250000000
+    Bucket: config.Bucket,
     Region: config.Region,
     Key: '1.json',
     SelectType: 2,
@@ -1083,7 +1083,7 @@ function multipartAbort() {
 
 function abortUploadTask() {
     cos.abortUploadTask({
-        Bucket: config.Bucket, /* 必须 */ // Bucket 格式：test-1250000000
+        Bucket: config.Bucket, /* 必须 */
         Region: config.Region, /* 必须 */
         // 格式1，删除单个上传任务
         // Level: 'task',
@@ -1106,7 +1106,7 @@ function sliceUploadFile() {
     util.createFile(filepath, 1024 * 1024 * 10, function (err) {
         // 调用方法
         cos.sliceUploadFile({
-            Bucket: config.Bucket, /* 必须 */ // Bucket 格式：test-1250000000
+            Bucket: config.Bucket, /* 必须 */
             Region: config.Region,
             Key: filename, /* 必须 */
             FilePath: filepath, /* 必须 */
@@ -1147,17 +1147,17 @@ function uploadFiles() {
         var filename = 'mb.zip';
         cos.uploadFiles({
             files: [{
-                Bucket: config.Bucket, // Bucket 格式：test-1250000000
+                Bucket: config.Bucket,
                 Region: config.Region,
                 Key: '1' + filename,
                 FilePath: filepath,
             }, {
-                Bucket: config.Bucket, // Bucket 格式：test-1250000000
+                Bucket: config.Bucket,
                 Region: config.Region,
                 Key: '2' + filename,
                 FilePath: filepath,
             // }, {
-            //     Bucket: config.Bucket, // Bucket 格式：test-1250000000
+            //     Bucket: config.Bucket,
             //     Region: config.Region,
             //     Key: '3' + filename,
             //     FilePath: filepath,
@@ -1186,7 +1186,7 @@ function sliceCopyFile() {
     var sourcePath = config.Bucket + '.cos.' + config.Region + '.myqcloud.com/'+ camSafeUrlEncode(sourceName).replace(/%2F/g, '/');
 
     cos.sliceCopyFile({
-        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Bucket: config.Bucket,
         Region: config.Region,
         Key: Key,
         CopySource: sourcePath,
@@ -1247,7 +1247,7 @@ function uploadFolder() {
         var files = list.map(function (filename) {
             var Key = remotePrefix + filename;
             return {
-                Bucket: config.Bucket, // Bucket 格式：test-1250000000
+                Bucket: config.Bucket,
                 Region: config.Region,
                 Key: Key,
                 FilePath: path.resolve(localFolder, filename),

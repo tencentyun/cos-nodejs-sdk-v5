@@ -45,9 +45,7 @@ function getService(params, callback) {
         method: 'GET',
         headers: params.Headers,
     }, function (err, data) {
-        if (err) {
-            return callback(err);
-        }
+        if (err) return callback(err);
         var buckets = (data && data.ListAllMyBucketsResult && data.ListAllMyBucketsResult.Buckets
             && data.ListAllMyBucketsResult.Buckets.Bucket) || [];
         buckets = util.isArray(buckets) ? buckets : [buckets];
@@ -95,9 +93,7 @@ function putBucket(params, callback) {
         headers: params.Headers,
         body: xml,
     }, function (err, data) {
-        if (err) {
-            return callback(err);
-        }
+        if (err) return callback(err);
         var url = getUrl({
             protocol: self.options.Protocol,
             domain: self.options.Domain,
@@ -131,9 +127,7 @@ function headBucket(params, callback) {
         Region: params.Region,
         headers: params.Headers,
         method: 'HEAD',
-    }, function (err, data) {
-        callback(err, data);
-    });
+    }, callback);
 }
 
 /**
@@ -168,9 +162,7 @@ function getBucket(params, callback) {
         headers: params.Headers,
         qs: reqParams,
     }, function (err, data) {
-        if (err) {
-            return callback(err);
-        }
+        if (err) return callback(err);
         var ListBucketResult = data.ListBucketResult || {};
         var Contents = ListBucketResult.Contents || [];
         var CommonPrefixes = ListBucketResult.CommonPrefixes || [];
@@ -266,9 +258,7 @@ function putBucketAcl(params, callback) {
         action: 'acl',
         body: xml,
     }, function (err, data) {
-        if (err) {
-            return callback(err);
-        }
+        if (err) return callback(err);
         callback(null, {
             statusCode: data.statusCode,
             headers: data.headers,
@@ -296,9 +286,7 @@ function getBucketAcl(params, callback) {
         headers: params.Headers,
         action: 'acl',
     }, function (err, data) {
-        if (err) {
-            return callback(err);
-        }
+        if (err) return callback(err);
         var AccessControlPolicy = data.AccessControlPolicy || {};
         var Owner = AccessControlPolicy.Owner || {};
         var Grant = AccessControlPolicy.AccessControlList.Grant || [];
@@ -357,9 +345,7 @@ function putBucketCors(params, callback) {
         action: 'cors',
         headers: headers,
     }, function (err, data) {
-        if (err) {
-            return callback(err);
-        }
+        if (err) return callback(err);
         callback(null, {
             statusCode: data.statusCode,
             headers: data.headers,
@@ -467,26 +453,17 @@ function getBucketLocation(params, callback) {
         Region: params.Region,
         headers: params.Headers,
         action: 'location',
-    }, function (err, data) {
-        if (err) {
-            return callback(err);
-        }
-        callback(null, data);
-    });
+    }, callback);
 }
 
 function putBucketPolicy(params, callback) {
     var Policy = params['Policy'];
-    var PolicyStr = Policy;
     try {
-        if (typeof Policy === 'string') {
-            Policy = JSON.parse(PolicyStr);
-        } else {
-            PolicyStr = JSON.stringify(Policy);
-        }
+        if (typeof Policy === 'string') Policy = JSON.parse(Policy);
     } catch (e) {
-        callback({error: 'Policy format error'});
     }
+    if (!Policy || typeof Policy === 'string') return callback(util.error(new Error('Policy format error')));
+    var PolicyStr = JSON.stringify(Policy);
     if (!Policy.version) Policy.version = '2.0';
 
     var headers = params.Headers;
@@ -499,9 +476,8 @@ function putBucketPolicy(params, callback) {
         Bucket: params.Bucket,
         Region: params.Region,
         action: 'policy',
-        body: util.isBrowser ? PolicyStr : Policy,
+        body: PolicyStr,
         headers: headers,
-        json: true,
     }, function (err, data) {
         if (err && err.statusCode === 204) {
             return callback(null, {statusCode: err.statusCode});
@@ -536,13 +512,13 @@ function getBucketPolicy(params, callback) {
     }, function (err, data) {
         if (err) {
             if (err.statusCode && err.statusCode === 403) {
-                return callback({ErrorStatus: 'Access Denied'});
+                return callback(util.error(err, {ErrorStatus: 'Access Denied'}));
             }
             if (err.statusCode && err.statusCode === 405) {
-                return callback({ErrorStatus: 'Method Not Allowed'});
+                return callback(util.error(err, {ErrorStatus: 'Method Not Allowed'}));
             }
             if (err.statusCode && err.statusCode === 404) {
-                return callback({ErrorStatus: 'Policy Not Found'});
+                return callback(util.error(err, {ErrorStatus: 'Policy Not Found'}));
             }
             return callback(err);
         }
@@ -799,7 +775,7 @@ function deleteBucketLifecycle(params, callback) {
 function putBucketVersioning(params, callback) {
 
     if (!params['VersioningConfiguration']) {
-        callback({error: 'missing param VersioningConfiguration'});
+        callback(util.error(new Error('missing param VersioningConfiguration')));
         return;
     }
     var VersioningConfiguration = params['VersioningConfiguration'] || {};
@@ -948,7 +924,7 @@ function deleteBucketReplication(params, callback) {
 function putBucketWebsite(params, callback) {
 
     if (!params['WebsiteConfiguration']) {
-        callback({ error: 'missing param WebsiteConfiguration' });
+        callback(util.error(new Error('missing param WebsiteConfiguration')));
         return;
     }
 
@@ -1082,7 +1058,7 @@ function deleteBucketWebsite(params, callback) {
 function putBucketReferer(params, callback) {
 
     if (!params['RefererConfiguration']) {
-        callback({ error: 'missing param RefererConfiguration' });
+        callback(util.error(new Error('missing param RefererConfiguration')));
         return;
     }
 
@@ -1227,9 +1203,7 @@ function getBucketDomain(params, callback) {
         headers: params.Headers,
         action: 'domain',
     }, function (err, data) {
-        if (err) {
-            return callback(err);
-        }
+        if (err) return callback(err);
 
         var DomainRule = [];
         try {
@@ -1335,9 +1309,7 @@ function getBucketOrigin(params, callback) {
         headers: params.Headers,
         action: 'origin',
     }, function (err, data) {
-        if (err) {
-            return callback(err);
-        }
+        if (err) return callback(err);
 
         var OriginRule = [];
         try {
@@ -1442,9 +1414,7 @@ function getBucketLogging(params, callback) {
         headers: params.Headers,
         action: 'logging',
     }, function (err, data) {
-        if (err) {
-            return callback(err);
-        }
+        if (err) return callback(err);
         callback(null, {
             BucketLoggingStatus: data.BucketLoggingStatus,
             statusCode: data.statusCode,
@@ -1539,9 +1509,7 @@ function getBucketInventory(params, callback) {
             id: params['Id']
         }
     }, function (err, data) {
-        if (err) {
-            return callback(err);
-        }
+        if (err) return callback(err);
 
         var InventoryConfiguration = data['InventoryConfiguration'];
         if (InventoryConfiguration && InventoryConfiguration.OptionalFields && InventoryConfiguration.OptionalFields.Field) {
@@ -1592,9 +1560,7 @@ function listBucketInventory(params, callback) {
             'continuation-token': params['ContinuationToken']
         }
     }, function (err, data) {
-        if (err) {
-            return callback(err);
-        }
+        if (err) return callback(err);
         var ListInventoryConfigurationResult = data['ListInventoryConfigurationResult'];
         var InventoryConfigurations = ListInventoryConfigurationResult.InventoryConfiguration || [];
         InventoryConfigurations = util.isArray(InventoryConfigurations) ? InventoryConfigurations : [InventoryConfigurations];
@@ -1666,7 +1632,7 @@ function deleteBucketInventory(params, callback) {
 function putBucketAccelerate(params, callback) {
 
     if (!params['AccelerateConfiguration']) {
-        callback({error: 'missing param AccelerateConfiguration'});
+        callback(util.error(new Error('missing param AccelerateConfiguration')));
         return;
     }
 
@@ -1688,9 +1654,7 @@ function putBucketAccelerate(params, callback) {
         action: 'accelerate',
         headers: headers,
     }, function (err, data) {
-        if (err) {
-            return callback(err);
-        }
+        if (err) return callback(err);
         callback(null, {
             statusCode: data.statusCode,
             headers: data.headers,
@@ -1775,9 +1739,7 @@ function listObjectVersions(params, callback) {
         qs: reqParams,
         action: 'versions',
     }, function (err, data) {
-        if (err) {
-            return callback(err);
-        }
+        if (err) return callback(err);
         var ListVersionsResult = data.ListVersionsResult || {};
         var DeleteMarkers = ListVersionsResult.DeleteMarker || [];
         DeleteMarkers = util.isArray(DeleteMarkers) ? DeleteMarkers : [DeleteMarkers];
@@ -2073,9 +2035,7 @@ function getObjectAcl(params, callback) {
         headers: params.Headers,
         action: 'acl',
     }, function (err, data) {
-        if (err) {
-            return callback(err);
-        }
+        if (err) return callback(err);
         var AccessControlPolicy = data.AccessControlPolicy || {};
         var Owner = AccessControlPolicy.Owner || {};
         var Grant = AccessControlPolicy.AccessControlList && AccessControlPolicy.AccessControlList.Grant || [];
@@ -2139,9 +2099,7 @@ function putObjectAcl(params, callback) {
         headers: headers,
         body: xml,
     }, function (err, data) {
-        if (err) {
-            return callback(err);
-        }
+        if (err) return callback(err);
         callback(null, {
             statusCode: data.statusCode,
             headers: data.headers,
@@ -2233,7 +2191,7 @@ function putObjectCopy(params, callback) {
     var CopySource = params.CopySource || '';
     var m = CopySource.match(/^([^.]+-\d+)\.cos(v6)?\.([^.]+)\.[^/]+\/(.+)$/);
     if (!m) {
-        callback({error: 'CopySource format error'});
+        callback(util.error(new Error('CopySource format error')));
         return;
     }
 
@@ -2260,9 +2218,7 @@ function putObjectCopy(params, callback) {
         VersionId: params.VersionId,
         headers: params.Headers,
     }, function (err, data) {
-        if (err) {
-            return callback(err);
-        }
+        if (err) return callback(err);
         var result = util.clone(data.CopyObjectResult || {});
         util.extend(result, {
             statusCode: data.statusCode,
@@ -2277,7 +2233,7 @@ function uploadPartCopy(params, callback) {
     var CopySource = params.CopySource || '';
     var m = CopySource.match(/^([^.]+-\d+)\.cos(v6)?\.([^.]+)\.[^/]+\/(.+)$/);
     if (!m) {
-        callback({error: 'CopySource format error'});
+        callback(util.error(new Error('CopySource format error')));
         return;
     }
 
@@ -2308,9 +2264,7 @@ function uploadPartCopy(params, callback) {
         },
         headers: params.Headers,
     }, function (err, data) {
-        if (err) {
-            return callback(err);
-        }
+        if (err) return callback(err);
         var result = util.clone(data.CopyPartResult || {});
         util.extend(result, {
             statusCode: data.statusCode,
@@ -2349,9 +2303,7 @@ function deleteMultipleObject(params, callback) {
         action: 'delete',
         headers: headers,
     }, function (err, data) {
-        if (err) {
-            return callback(err);
-        }
+        if (err) return callback(err);
         var DeleteResult = data.DeleteResult || {};
         var Deleted = DeleteResult.Deleted || [];
         var Errors = DeleteResult.Error || [];
@@ -2373,7 +2325,7 @@ function deleteMultipleObject(params, callback) {
 function restoreObject(params, callback) {
     var headers = params.Headers;
     if (!params['RestoreRequest']) {
-        callback({error: 'missing param RestoreRequest'});
+        callback(util.error(new Error('missing param RestoreRequest')));
         return;
     }
 
@@ -2393,9 +2345,7 @@ function restoreObject(params, callback) {
         body: xml,
         action: 'restore',
         headers: headers,
-    }, function (err, data) {
-        callback(err, data);
-    });
+    }, callback);
 }
 
 /**
@@ -2537,7 +2487,7 @@ function deleteObjectTagging(params, callback) {
  */
 function selectObjectContent(params, callback) {
     var SelectType = params['SelectType'];
-    if (!SelectType) return callback({error: 'missing param SelectType'});
+    if (!SelectType) return callback(util.error(new Error('missing param SelectType')));
 
     var SelectRequest = params['SelectRequest'] || {};
     var xml = util.json2xml({SelectRequest: SelectRequest});
@@ -2678,9 +2628,7 @@ function multipartInit(params, callback) {
         headers: params.Headers,
         qs: params.Query,
     }, function (err, data) {
-        if (err) {
-            return callback(err);
-        }
+        if (err) return callback(err);
         data = util.clone(data || {});
         if (data && data.InitiateMultipartUploadResult) {
             return callback(null, util.extend(data.InitiateMultipartUploadResult, {
@@ -2792,9 +2740,7 @@ function multipartComplete(params, callback) {
         body: xml,
         headers: headers,
     }, function (err, data) {
-        if (err) {
-            return callback(err);
-        }
+        if (err) return callback(err);
         var url = getUrl({
             ForcePathStyle: self.options.ForcePathStyle,
             protocol: self.options.Protocol,
@@ -2854,9 +2800,7 @@ function multipartList(params, callback) {
         qs: reqParams,
         action: 'uploads',
     }, function (err, data) {
-        if (err) {
-            return callback(err);
-        }
+        if (err) return callback(err);
 
         if (data && data.ListMultipartUploadsResult) {
             var Upload = data.ListMultipartUploadsResult.Upload || [];
@@ -2904,9 +2848,7 @@ function multipartListPart(params, callback) {
         headers: params.Headers,
         qs: reqParams,
     }, function (err, data) {
-        if (err) {
-            return callback(err);
-        }
+        if (err) return callback(err);
         var ListPartsResult = data.ListPartsResult || {};
         var Part = ListPartsResult.Part || [];
         Part = util.isArray(Part) ? Part : [Part];
@@ -2945,9 +2887,7 @@ function multipartAbort(params, callback) {
         headers: params.Headers,
         qs: reqParams,
     }, function (err, data) {
-        if (err) {
-            return callback(err);
-        }
+        if (err) return callback(err);
         callback(null, {
             statusCode: data.statusCode,
             headers: data.headers,
@@ -3030,7 +2970,7 @@ function getObjectUrl(params, callback) {
         var signUrl = url;
         signUrl += '?' + (AuthData.Authorization.indexOf('q-signature') > -1 ?
             AuthData.Authorization : 'sign=' + encodeURIComponent(AuthData.Authorization));
-        AuthData.XCosSecurityToken && (signUrl += '&x-cos-security-token=' + AuthData.XCosSecurityToken);
+        AuthData.SecurityToken && (signUrl += '&x-cos-security-token=' + AuthData.SecurityToken);
         AuthData.ClientIP && (signUrl += '&clientIP=' + AuthData.ClientIP);
         AuthData.ClientUA && (signUrl += '&clientUA=' + AuthData.ClientUA);
         AuthData.Token && (signUrl += '&token=' + AuthData.Token);
@@ -3040,7 +2980,7 @@ function getObjectUrl(params, callback) {
     });
     if (AuthData) {
         return url + '?' + AuthData.Authorization +
-            (AuthData.XCosSecurityToken ? '&x-cos-security-token=' + AuthData.XCosSecurityToken : '');
+            (AuthData.SecurityToken ? '&x-cos-security-token=' + AuthData.SecurityToken : '');
     } else {
         return url;
     }
@@ -3170,38 +3110,12 @@ function getAuthorizationAsync(params, callback) {
         (v === '' || ['content-type', 'cache-control', 'expires'].indexOf(k.toLowerCase())) && delete headers[k];
     });
 
-    var cb = function (AuthData) {
-
-        // 检查签名格式
-        var formatAllow = false;
-        var auth = AuthData.Authorization;
-        if (auth) {
-            if (auth.indexOf(' ') > -1) {
-                formatAllow = false;
-            } else if (auth.indexOf('q-sign-algorithm=') > -1 &&
-                auth.indexOf('q-ak=') > -1 &&
-                auth.indexOf('q-sign-time=') > -1 &&
-                auth.indexOf('q-key-time=') > -1 &&
-                auth.indexOf('q-url-param-list=') > -1) {
-                formatAllow = true;
-            } else {
-                try {
-                    auth = Buffer.from(auth, 'base64').toString();
-                    if (auth.indexOf('a=') > -1 &&
-                        auth.indexOf('k=') > -1 &&
-                        auth.indexOf('t=') > -1 &&
-                        auth.indexOf('r=') > -1 &&
-                        auth.indexOf('b=') > -1) {
-                        formatAllow = true;
-                    }
-                } catch (e) {}
-            }
-        }
-        if (formatAllow) {
-            callback && callback(null, AuthData);
-        } else {
-            callback && callback({error: 'authorization error'});
-        }
+    // 获取凭证的回调，避免用户 callback 多次
+    var cbDone = false;
+    var cb = function (err, AuthData) {
+        if (cbDone) return;
+        cbDone = true;
+        callback && callback(err, AuthData);
     };
 
     var self = this;
@@ -3264,12 +3178,50 @@ function getAuthorizationAsync(params, callback) {
         });
         var AuthData = {
             Authorization: Authorization,
-            XCosSecurityToken: StsData.XCosSecurityToken || '',
+            SecurityToken: StsData.SecurityToken || StsData.XCosSecurityToken || '',
             Token: StsData.Token || '',
             ClientIP: StsData.ClientIP || '',
             ClientUA: StsData.ClientUA || '',
         };
-        cb(AuthData);
+        cb(null, AuthData);
+    };
+    var checkAuthError = function (AuthData) {
+        if (AuthData.Authorization) {
+            // 检查签名格式
+            var formatAllow = false;
+            var auth = AuthData.Authorization;
+            if (auth) {
+                if (auth.indexOf(' ') > -1) {
+                    formatAllow = false;
+                } else if (auth.indexOf('q-sign-algorithm=') > -1 &&
+                    auth.indexOf('q-ak=') > -1 &&
+                    auth.indexOf('q-sign-time=') > -1 &&
+                    auth.indexOf('q-key-time=') > -1 &&
+                    auth.indexOf('q-url-param-list=') > -1) {
+                    formatAllow = true;
+                } else {
+                    try {
+                        auth = Buffer.from(auth, 'base64').toString();
+                        if (auth.indexOf('a=') > -1 &&
+                            auth.indexOf('k=') > -1 &&
+                            auth.indexOf('t=') > -1 &&
+                            auth.indexOf('r=') > -1 &&
+                            auth.indexOf('b=') > -1) {
+                            formatAllow = true;
+                        }
+                    } catch (e) {}
+                }
+            }
+            if (!formatAllow) return util.error(new Error('getAuthorization callback params format error'));
+        } else {
+            if (!AuthData.TmpSecretId) return util.error(new Error('getAuthorization callback params missing "TmpSecretId"'));
+            if (!AuthData.TmpSecretKey) return util.error(new Error('getAuthorization callback params missing "TmpSecretKey"'));
+            if (!AuthData.SecurityToken && !AuthData.XCosSecurityToken) return util.error(new Error('getAuthorization callback params missing "SecurityToken"'));
+            if (!AuthData.ExpiredTime) return util.error(new Error('getAuthorization callback params missing "ExpiredTime"'));
+            if (AuthData.ExpiredTime && AuthData.ExpiredTime.toString().length !== 10) return util.error(new Error('getAuthorization callback params "ExpiredTime" should be 10 digits'));
+            if (AuthData.StartTime && AuthData.StartTime.toString().length !== 10) return util.error(new Error('getAuthorization callback params "StartTime" should be 10 StartTime'));
+        }
+        return false;
     };
 
     // 先判断是否有临时密钥
@@ -3287,20 +3239,17 @@ function getAuthorizationAsync(params, callback) {
             Scope: Scope,
             SystemClockOffset: self.options.SystemClockOffset,
         }, function (AuthData) {
-            if (typeof AuthData === 'string') {
-                AuthData = {Authorization: AuthData};
-            }
-            if (AuthData.TmpSecretId &&
-                AuthData.TmpSecretKey &&
-                AuthData.XCosSecurityToken &&
-                AuthData.ExpiredTime) {
+            if (typeof AuthData === 'string') AuthData = {Authorization: AuthData};
+            var AuthError = checkAuthError(AuthData);
+            if (AuthError) return cb(AuthError);
+            if (AuthData.Authorization) {
+                cb(null, AuthData);
+            } else {
                 StsData = AuthData || {};
                 StsData.Scope = Scope;
                 StsData.ScopeKey = ScopeKey;
                 self._StsCache.push(StsData);
                 calcAuthByTmpKey();
-            } else {
-                cb(AuthData);
             }
         });
     } else if (self.options.getSTS) { // 外部获取临时密钥
@@ -3311,8 +3260,10 @@ function getAuthorizationAsync(params, callback) {
             StsData = data || {};
             StsData.Scope = Scope;
             StsData.ScopeKey = ScopeKey;
-            StsData.TmpSecretId = StsData.SecretId;
-            StsData.TmpSecretKey = StsData.SecretKey;
+            if (!StsData.TmpSecretId) StsData.TmpSecretId = StsData.SecretId;
+            if (!StsData.TmpSecretKey) StsData.TmpSecretKey = StsData.SecretKey;
+            var AuthError = checkAuthError(StsData);
+            if (AuthError) return cb(AuthError);
             self._StsCache.push(StsData);
             calcAuthByTmpKey();
         });
@@ -3331,9 +3282,9 @@ function getAuthorizationAsync(params, callback) {
             });
             var AuthData = {
                 Authorization: Authorization,
-                XCosSecurityToken: self.options.XCosSecurityToken,
+                SecurityToken: self.options.SecurityToken || self.options.XCosSecurityToken,
             };
-            cb(AuthData);
+            cb(null, AuthData);
             return AuthData;
         })();
     }
@@ -3479,7 +3430,7 @@ function _submitRequest(params, callback) {
     params.AuthData.Token && (opt.headers['token'] = params.AuthData.Token);
     params.AuthData.ClientIP && (opt.headers['clientIP'] = params.AuthData.ClientIP);
     params.AuthData.ClientUA && (opt.headers['clientUA'] = params.AuthData.ClientUA);
-    params.AuthData.XCosSecurityToken && (opt.headers['x-cos-security-token'] = params.AuthData.XCosSecurityToken);
+    params.AuthData.SecurityToken && (opt.headers['x-cos-security-token'] = params.AuthData.SecurityToken);
 
     // 清理 undefined 和 null 字段
     opt.headers && (opt.headers = util.clearKey(opt.headers));
@@ -3570,7 +3521,7 @@ function _submitRequest(params, callback) {
 
     sender.on('error', function (err) {
         markLastBytesWritten();
-        cb({error: err});
+        cb(util.error(err));
     });
     sender.on('response', function (response) {
         retResponse = response;
@@ -3583,7 +3534,7 @@ function _submitRequest(params, callback) {
                 cb(null, {});
             });
         } else if (responseContentLength >= process.binding('buffer').kMaxLength && opt.method !== 'HEAD') {
-            cb({error: 'file size large than ' + process.binding('buffer').kMaxLength + ', please use "Output" Stream to getObject.'});
+            cb(util.error(new Error('file size large than ' + process.binding('buffer').kMaxLength + ', please use "Output" Stream to getObject.')));
         } else {
             var dataHandler = function (chunk) {
                 chunkList.push(chunk);
@@ -3593,17 +3544,39 @@ function _submitRequest(params, callback) {
                 try {
                     var body = Buffer.concat(chunkList);
                 } catch (e) {
-                    cb({error: e});
+                    cb(util.error(e));
                     return;
                 }
                 var bodyStr = body.toString();
+                var createBodyError = function (err, json) {
+                    var cosError = json && json.Error;
+                    if (cosError) {
+                        cosError = util.error(err, {
+                            code: cosError.Code,
+                            message: cosError.Message,
+                            error: cosError,
+                            RequestId: cosError.RequestId,
+                            Scope: params.Scope,
+                        });
+                    } else if (response.statusCode) {
+                        cosError = util.error(err, {
+                            code: response.statusCode,
+                            message: response.statusMessage
+                        });
+                    } else {
+                        cosError = util.error(err, {
+                            message: response.statusMessage || 'statusCode error'
+                        });
+                    }
+                    return cosError;
+                };
                 if (statusSuccess) {
                     if (rawBody) { // 不对 body 进行转换，body 直接挂载返回
                         cb(null, {body: body});
                     } else if (body.length) {
                         json = xml2json(body.toString());
                         if (json && json.Error) {
-                            cb({error: json.Error});
+                            cb(createBodyError(new Error(), json));
                         } else {
                             cb(null, json);
                         }
@@ -3612,7 +3585,7 @@ function _submitRequest(params, callback) {
                     }
                 } else {
                     bodyStr && (json = xml2json(bodyStr));
-                    cb({error: json && json.Error || response.statusMessage || 'statusCode error'});
+                    cb(createBodyError(new Error(), json))
                 }
                 chunkList = null;
             };

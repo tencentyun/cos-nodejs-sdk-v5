@@ -2040,7 +2040,7 @@ group('params check Region', function () {
             Bucket: config.Bucket,
             Region: 'cos.ap-guangzhou'
         }, function (err, data) {
-            assert.ok(err.error === 'param Region should not be start with "cos."');
+            assert.ok(err.message === 'param Region should not be start with "cos."');
             done();
         });
     });
@@ -2093,7 +2093,7 @@ group('Bucket 格式有误', function () {
             Bucket: '中文-1250000000',
             Region: config.Region,
         }, function (err, data) {
-            assert.ok(err && err.error === 'Bucket should format as "test-1250000000".');
+            assert.ok(err && err.message === 'Bucket should format as "test-1250000000".');
             done();
         });
     });
@@ -2102,7 +2102,7 @@ group('Bucket 格式有误', function () {
             Bucket: 'te/st-1250000000',
             Region: config.Region,
         }, function (err, data) {
-            assert.ok(err && err.error === 'Bucket should format as "test-1250000000".');
+            assert.ok(err && err.message === 'Bucket should format as "test-1250000000".');
             done();
         });
     });
@@ -2111,7 +2111,7 @@ group('Bucket 格式有误', function () {
             Bucket: 'te.st-1250000000',
             Region: config.Region,
         }, function (err, data) {
-            assert.ok(err && err.error === 'Bucket should format as "test-1250000000".');
+            assert.ok(err && err.message === 'Bucket should format as "test-1250000000".');
             done();
         });
     });
@@ -2120,7 +2120,7 @@ group('Bucket 格式有误', function () {
             Bucket: 'te:st-1250000000',
             Region: config.Region,
         }, function (err, data) {
-            assert.ok(err && err.error === 'Bucket should format as "test-1250000000".');
+            assert.ok(err && err.message === 'Bucket should format as "test-1250000000".');
             done();
         });
     });
@@ -2132,7 +2132,7 @@ group('Region 格式有误', function () {
             Bucket: 'test-1250000000',
             Region: '中文',
         }, function (err, data) {
-            assert.ok(err && err.error === 'Region format error.');
+            assert.ok(err && err.message === 'Region format error.');
             done();
         });
     });
@@ -2141,7 +2141,7 @@ group('Region 格式有误', function () {
             Bucket: 'test-1250000000',
             Region: 'test/',
         }, function (err, data) {
-            assert.ok(err && err.error === 'Region format error.');
+            assert.ok(err && err.message === 'Region format error.');
             done();
         });
     });
@@ -2150,7 +2150,7 @@ group('Region 格式有误', function () {
             Bucket: 'test-1250000000',
             Region: 'test:',
         }, function (err, data) {
-            assert.ok(err && err.error === 'Region format error.');
+            assert.ok(err && err.message === 'Region format error.');
             done();
         });
     });
@@ -3028,7 +3028,7 @@ group('Promise', function () {
             assert.ok(!data);
             done();
         }).catch(function (err) {
-            assert.ok(err && err.error === 'Region format error.');
+            assert.ok(err && err.message === 'Region format error.');
             done();
         });
     });

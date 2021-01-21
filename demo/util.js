@@ -4,7 +4,7 @@ var fs = require('fs');
 var platform = os.platform();
 var createFile = function (filepath, size, callback) {
     var cb = function (err) {
-        callback && callback();
+        callback && callback(err);
     };
     if (fs.existsSync(filepath)) {
         cb('file existed.');

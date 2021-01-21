@@ -116,7 +116,7 @@ declare namespace COS {
     /** 固定密钥的 SecretKey  @see https://console.cloud.tencent.com/cam/capi */
     SecretKey?: string,
     /** 如果传入 SecretId、SecretKey 是临时密钥，需要再传入一个临时密钥的 sessionToken */
-    XCosSecurityToken?: string,
+    SecurityToken?: string,
     /** 分块上传及分块复制时，出错重试次数，默认值3（加第一次，请求共4次） */
     ChunkRetryTimes?: number,
     /** 同一个实例下上传的文件并发数，默认值3 */
@@ -221,7 +221,7 @@ declare namespace COS {
     /** 临时密钥 tmpSecretKey */
     TmpSecretKey: string,
     /** 临时密钥 sessonToken */
-    XCosSecurityToken: string,
+    SecurityToken: string,
     /** 获取临时密钥时，服务端的时间，该时间用于计算签名，可以避免设备时间有偏差导致请求错误 */
     StartTime: number,
     /** 获取临时密钥的过期时间戳 */
@@ -240,8 +240,12 @@ declare namespace COS {
     statusCode?: number,
     /** 请求返回的 header 字段 */
     headers?: Headers,
+    /** 错误码 */
+    code: string,
+    /** 错误信息 */
+    message: string,
     /** 错误信息，可能是参数错误、客户端出错、或服务端返回的错误 */
-    error: string | Error | { Code: string, Message: string }
+    error: string | Error | { Code: string, Message: string },
   }
   /** 一般接口的返回结果 */
   interface GeneralResult {

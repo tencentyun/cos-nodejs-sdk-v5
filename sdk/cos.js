@@ -11,7 +11,7 @@ var defaultOptions = {
     AppId: '', // AppId 已废弃，请拼接到 Bucket 后传入，例如：test-1250000000
     SecretId: '',
     SecretKey: '',
-    XCosSecurityToken: '', // 使用临时密钥需要注意自行刷新 Token
+    SecurityToken: '', // 使用临时密钥需要注意自行刷新 Token
     ChunkRetryTimes: 2,
     FileParallelLimit: 3,
     ChunkParallelLimit: 3,

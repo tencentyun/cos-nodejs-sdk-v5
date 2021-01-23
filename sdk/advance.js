@@ -142,12 +142,7 @@ function sliceUploadFile(params, callback) {
         params.Body = '';
         params.ContentLength = 0;
         params.SkipTask = true;
-        self.putObject(params, function (err, data) {
-            if (err) {
-                return callback(err);
-            }
-            callback(null, data);
-        });
+        self.putObject(params, callback);
     } else {
         ep.emit('get_file_size_finish');
     }
@@ -185,17 +180,17 @@ function getUploadIdAndPartList(params, callback) {
         } else {
             util.fileSlice(params.FilePath, start, end, function (chunkItem) {
                 util.getFileMd5(chunkItem, function (err, md5) {
-                    if (err) return callback(err);
+                    if (err) return callback(util.error(err));
                     var ETag = '"' + md5 + '"';
                     ETagMap[PartNumber] = ETag;
                     FinishSliceCount += 1;
                     FinishSize += ChunkSize;
-                    callback(err, {
+                    onHashProgress({loaded: FinishSize, total: FileSize});
+                    callback(null, {
                         PartNumber: PartNumber,
                         ETag: ETag,
                         Size: ChunkSize
                     });
-                    onHashProgress({loaded: FinishSize, total: FileSize});
                 });
             });
         }
@@ -285,7 +280,7 @@ function getUploadIdAndPartList(params, callback) {
             if (err) return ep.emit('error', err);
             var UploadId = data.UploadId;
             if (!UploadId) {
-                return callback({Message: 'no upload id'});
+                return callback(util.error(new Error('no such upload id')));
             }
             ep.emit('upload_id_available', {UploadId: UploadId, PartList: []});
         });
@@ -396,7 +391,7 @@ function getUploadIdAndPartList(params, callback) {
     });
 
     // 获取线上 UploadId 列表
-    ep.on('get_remote_upload_id_list', function (RemoteUploadIdList) {
+    ep.on('get_remote_upload_id_list', function () {
         // 获取符合条件的 UploadId 列表，因为同一个文件可以有多个上传任务。
         wholeMultipartList.call(self, {
             Bucket: Bucket,
@@ -404,9 +399,7 @@ function getUploadIdAndPartList(params, callback) {
             Key: Key,
         }, function (err, data) {
             if (!self._isRunningTask(TaskId)) return;
-            if (err) {
-                return ep.emit('error', err);
-            }
+            if (err) return ep.emit('error', err);
             // 整理远端 UploadId 列表
             var RemoteUploadIdList = util.filter(data.UploadList, function (item) {
                 return item.Key === Key && (!StorageClass || item.StorageClass.toUpperCase() === StorageClass.toUpperCase());
@@ -544,6 +537,7 @@ function uploadSliceList(params, cb) {
                 FinishSize += currentSize - preAddSize;
                 SliceItem.ETag = data.ETag;
             }
+            onProgress({loaded: FinishSize, total: FileSize});
             asyncCallback(err || null, data);
         });
     }, function (err) {
@@ -603,12 +597,9 @@ function uploadSliceItem(params, callback) {
                         ContentMD5: contentMd5,
                     }, function (err, data) {
                         if (!self._isRunningTask(TaskId)) return;
-                        if (err) {
-                            return tryCallback(err);
-                        } else {
-                            PartItem.Uploaded = true;
-                            return tryCallback(null, data);
-                        }
+                        if (err) return tryCallback(err);
+                        PartItem.Uploaded = true;
+                        return tryCallback(null, data);
                     });
                 });
             }, function (err, data) {
@@ -679,12 +670,7 @@ function abortUploadTask(params, callback) {
             Headers: params.Headers,
             AsyncLimit: AsyncLimit,
             AbortArray: AbortArray
-        }, function (err, data) {
-            if (err) {
-                return callback(err);
-            }
-            callback(null, data);
-        });
+        }, callback);
     });
 
     if (Level === 'bucket') {
@@ -693,34 +679,30 @@ function abortUploadTask(params, callback) {
             Bucket: Bucket,
             Region: Region
         }, function (err, data) {
-            if (err) {
-                return callback(err);
-            }
+            if (err) return callback(err);
             ep.emit('get_abort_array', data.UploadList || []);
         });
     } else if (Level === 'file') {
         // 文件级别的任务抛弃，抛弃该文件的全部上传任务
-        if (!Key) return callback({error: 'abort_upload_task_no_key'});
+        if (!Key) return callback(util.error(new Error('abort_upload_task_no_key')));
         wholeMultipartList.call(self, {
             Bucket: Bucket,
             Region: Region,
             Key: Key
         }, function (err, data) {
-            if (err) {
-                return callback(err);
-            }
+            if (err) return callback(err);
             ep.emit('get_abort_array', data.UploadList || []);
         });
     } else if (Level === 'task') {
         // 单个任务级别的任务抛弃，抛弃指定 UploadId 的上传任务
-        if (!UploadId) return callback({error: 'abort_upload_task_no_id'});
-        if (!Key) return callback({error: 'abort_upload_task_no_key'});
+        if (!UploadId) return callback(util.error(new Error('abort_upload_task_no_id')));
+        if (!Key) return callback(util.error(new Error('abort_upload_task_no_key')));
         ep.emit('get_abort_array', [{
             Key: Key,
             UploadId: UploadId
         }]);
     } else {
-        return callback({error: 'abort_unknown_level'});
+        return callback(util.error(new Error('abort_unknown_level')));
     }
 }
 
@@ -736,11 +718,11 @@ function abortUploadTaskArray(params, callback) {
 
     var index = 0;
     var resultList = new Array(AbortArray.length);
-    Async.eachLimit(AbortArray, AsyncLimit, function (AbortItem, callback) {
+    Async.eachLimit(AbortArray, AsyncLimit, function (AbortItem, nextItem) {
         var eachIndex = index;
         if (Key && Key !== AbortItem.Key) {
             resultList[eachIndex] = {error: {KeyNotMatch: true}};
-            callback(null);
+            nextItem(null);
             return;
         }
         var UploadId = AbortItem.UploadId || AbortItem.UploadID;
@@ -751,7 +733,7 @@ function abortUploadTaskArray(params, callback) {
             Key: AbortItem.Key,
             Headers: params.Headers,
             UploadId: UploadId
-        }, function (err, data) {
+        }, function (err) {
             var task = {
                 Bucket: Bucket,
                 Region: Region,
@@ -759,14 +741,12 @@ function abortUploadTaskArray(params, callback) {
                 UploadId: UploadId
             };
             resultList[eachIndex] = {error: err, task: task};
-            callback(null);
+            nextItem(null);
         });
         index++;
 
     }, function (err) {
-        if (err) {
-            return callback(err);
-        }
+        if (err) return callback(err);
 
         var successList = [];
         var errorList = [];
@@ -815,9 +795,7 @@ function uploadFiles(params, callback) {
             data: data
         };
         if (--unFinishCount <= 0 && callback) {
-            callback(null, {
-                files: resultList,
-            });
+            callback(null, {files: resultList});
         }
     };
 
@@ -893,7 +871,7 @@ function sliceCopyFile(params, callback) {
     var CopySource = params.CopySource;
     var m = CopySource.match(/^([^.]+-\d+)\.cos(v6)?\.([^.]+)\.[^/]+\/(.+)$/);
     if (!m) {
-        callback({error: 'CopySource format error'});
+        callback(util.error(new Error('CopySource format error')));
         return;
     }
 
@@ -912,12 +890,18 @@ function sliceCopyFile(params, callback) {
 
     // 分片复制完成，开始 multipartComplete 操作
     ep.on('copy_slice_complete', function (UploadData) {
+        var Parts = util.map(UploadData.PartList, function (item) {
+            return {
+                PartNumber: item.PartNumber,
+                ETag: item.ETag,
+            };
+        });
         self.multipartComplete({
             Bucket: Bucket,
             Region: Region,
             Key: Key,
             UploadId: UploadData.UploadId,
-            Parts: UploadData.PartList,
+            Parts: Parts,
         },function (err, data) {
             if (err) {
                 onProgress(null, true);
@@ -949,9 +933,7 @@ function sliceCopyFile(params, callback) {
                     onProgress({loaded: FinishSize, total: FileSize});
                 }
             },function (err,data) {
-                if (err) {
-                    return asyncCallback(err);
-                }
+                if (err) return asyncCallback(err);
                 onProgress({loaded: FinishSize, total: FileSize});
 
                 FinishSize += currentSize - preAddSize;
@@ -1010,7 +992,7 @@ function sliceCopyFile(params, callback) {
         if (SourceHeaders['x-cos-storage-class'] === 'ARCHIVE' || SourceHeaders['x-cos-storage-class'] === 'DEEP_ARCHIVE') {
             var restoreHeader = SourceHeaders['x-cos-restore'];
             if (!restoreHeader || restoreHeader === 'ongoing-request="true"') {
-                callback({ error: 'Unrestored archive object is not allowed to be copied' });
+                callback(util.error(new Error('Unrestored archive object is not allowed to be copied')));
                 return;
             }
         }
@@ -1030,9 +1012,7 @@ function sliceCopyFile(params, callback) {
             Key: Key,
             Headers: TargetHeader,
         },function (err,data) {
-            if (err) {
-                return callback(err);
-            }
+            if (err) return callback(err);
             params.UploadId = data.UploadId;
             ep.emit('get_copy_data_finish', params);
         });
@@ -1046,7 +1026,7 @@ function sliceCopyFile(params, callback) {
     },function(err, data) {
         if (err) {
             if (err.statusCode && err.statusCode === 404) {
-                callback({ErrorStatus: SourceKey + ' Not Exist'});
+                callback(util.error(err, {ErrorStatus: SourceKey + ' Not Exist'}));
             } else {
                 callback(err);
             }
@@ -1055,7 +1035,7 @@ function sliceCopyFile(params, callback) {
 
         FileSize = params.FileSize = data.headers['content-length'];
         if (FileSize === undefined || !FileSize) {
-            callback({error: 'get Content-Length error, please add "Content-Length" to CORS ExposeHeader setting.'});
+            callback(util.error(new Error('get Content-Length error, please add "Content-Length" to CORS ExposeHeader setting.')));
             return;
         }
 

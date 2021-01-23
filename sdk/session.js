@@ -8,15 +8,26 @@ var store;
 var cache;
 var timer;
 
-var init = function () {
-    if (cache) return;
-    var opt = {configName: 'cos-nodejs-sdk-v5-storage'};
+var getCache = function () {
+    var val, opt = {configName: 'cos-nodejs-sdk-v5-storage'};
     if (this.options.ConfCwd) opt.cwd = this.options.ConfCwd;
     try {
         store = new Conf(opt);
-        cache = store.get(cacheKey);
+        val = store.get(cacheKey);
     } catch (e) {}
-    if (!cache || !(cache instanceof Array)) cache = [];
+    if (!val || !(val instanceof Array)) val = [];
+    cache = val;
+};
+var setCache = function () {
+    try {
+        localStorage.setItem(cacheKey, JSON.stringify(cache))
+    } catch (e) {
+    }
+};
+
+var init = function () {
+    if (cache) return;
+    getCache.call(this);
     // 清理太老旧的数据
     var changed = false;
     var now = Math.round(Date.now() / 1000);
@@ -27,18 +38,14 @@ var init = function () {
             changed = true;
         }
     }
-    try {
-        changed && store.set(cacheKey, cache);
-    } catch (e) {}
+    changed && setCache();
 };
 
 // 把缓存存到本地
 var save = function () {
     if (timer) return;
     timer = setTimeout(function () {
-        try {
-            store.set(cacheKey, cache);
-        } catch (e) {}
+        setCache();
         timer = null;
     }, 400);
 };

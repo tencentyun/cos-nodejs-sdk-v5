@@ -917,7 +917,6 @@ function sliceCopyFile(params, callback) {
             var PartNumber = SliceItem.PartNumber;
             var CopySourceRange = SliceItem.CopySourceRange;
             var currentSize = SliceItem.end - SliceItem.start;
-            var preAddSize = 0;
 
             copySliceItem.call(self, {
                 Bucket: Bucket,
@@ -927,16 +926,10 @@ function sliceCopyFile(params, callback) {
                 UploadId: UploadData.UploadId,
                 PartNumber: PartNumber,
                 CopySourceRange: CopySourceRange,
-                onProgress: function (data) {
-                    FinishSize += data.loaded - preAddSize;
-                    preAddSize = data.loaded;
-                    onProgress({loaded: FinishSize, total: FileSize});
-                }
             },function (err,data) {
                 if (err) return asyncCallback(err);
+                FinishSize += currentSize;
                 onProgress({loaded: FinishSize, total: FileSize});
-
-                FinishSize += currentSize - preAddSize;
                 SliceItem.ETag = data.ETag;
                 asyncCallback(err || null, data);
             });
@@ -1099,7 +1092,6 @@ function copySliceItem(params, callback) {
             UploadId: UploadId,
             PartNumber:PartNumber,
             CopySourceRange:CopySourceRange,
-            onProgress:params.onProgress,
         },function (err,data) {
             tryCallback(err || null, data);
         })

@@ -1998,9 +1998,7 @@ function deleteObject(params, callback) {
     }, function (err, data) {
         if (err) {
             var statusCode = err.statusCode;
-            if (statusCode && statusCode === 204) {
-                return callback(null, {statusCode: statusCode});
-            } else if (statusCode && statusCode === 404) {
+            if (statusCode && statusCode === 404) {
                 return callback(null, {BucketNotFound: true, statusCode: statusCode,});
             } else {
                 return callback(err);

@@ -212,8 +212,12 @@ var getFileMd5 = function (readStream, callback) {
 
 function clone(obj) {
     return map(obj, function (v) {
-        return typeof v === 'object' ? clone(v) : v;
+        return typeof v === 'object' && v !== null ? clone(v) : v;
     });
+}
+
+function attr(obj, name, defaultValue) {
+    return obj && name in obj ? obj[name] : defaultValue;
 }
 
 function extend(target, source) {
@@ -448,8 +452,7 @@ var apiWrapper = function (apiName, apiFn) {
         var errMsg = checkParams();
         var isSync = apiName === 'getAuth' || apiName === 'getV4Auth' || apiName === 'getObjectUrl'
             || apiName.indexOf('Stream') > -1;
-        var Promise = global.Promise;
-        if (!isSync && Promise && !callback) {
+        if (Promise && !isSync && !callback) {
             return new Promise(function (resolve, reject) {
                 callback = function (err, data) {
                     err ? reject(err) : resolve(data);
@@ -633,14 +636,15 @@ var util = {
     map: map,
     filter: filter,
     clone: clone,
+    attr: attr,
     uuid: uuid,
     camSafeUrlEncode: camSafeUrlEncode,
     throttleOnProgress: throttleOnProgress,
     getFileSize: getFileSize,
     getSkewTime: getSkewTime,
-    callbackAfterStreamFinish: callbackAfterStreamFinish,
     error: error,
     getAuth: getAuth,
+    callbackAfterStreamFinish: callbackAfterStreamFinish,
     getV4Auth: getV4Auth,
     isBrowser: false,
 };

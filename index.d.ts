@@ -31,9 +31,9 @@ declare namespace COS {
   /** COS API 使用的时间字符串，为 ISO8601 格式，例如2019-05-24T10:56:40Z */
   type IsoDateTime = string;
   /** 请求里的 Url Query 参数 */
-  type Query = object;
+  type Query = Record<string, any>;
   /** 请求里的 Header 参数 */
-  type Headers = object;
+  type Headers = Record<string, any>;
   /** 一个字符的分隔符，常用 / 字符，用于对对象键进行分组。所有对象键中从 prefix 或从头（如未指定 prefix）到首个 delimiter 之间相同的部分将作为 CommonPrefixes 下的一个 Prefix 节点。被分组的对象键不再出现在后续对象列表中 */
   type Delimiter = '/' | string;
   /** 规定返回值的编码方式，可选值：url，代表返回的对象键为 URL 编码（百分号编码）后的值，例如“腾讯云”将被编码为%E8%85%BE%E8%AE%AF%E4%BA%91 */

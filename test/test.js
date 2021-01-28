@@ -162,7 +162,7 @@ group('putBucket()', function () {
     });
 });
 
-group('getAuth()', function () {
+group('getAuth();getV4Auth()', function () {
     test('getAuth()', function (done, assert) {
         var content = Date.now().toString();
         var key = '1.txt';
@@ -182,6 +182,31 @@ group('getAuth()', function () {
             var link = 'http://' + config.Bucket + '.cos.' + config.Region + '.myqcloud.com' + '/' +
                 camSafeUrlEncode(key).replace(/%2F/g, '/') + '?' + AuthData.Authorization +
                 (AuthData.XCosSecurityToken ? '&x-cos-security-token=' + AuthData.XCosSecurityToken : '');
+            request({
+                url: link,
+                proxy: proxy,
+            }, function (err, response, body) {
+                assert.ok(response.statusCode === 200);
+                assert.ok(body === content);
+                done();
+            });
+        });
+    });
+    test('getV4Auth()', function (done, assert) {
+        var content = Date.now().toString();
+        var key = '1.txt';
+        cos.putObject({
+            Bucket: config.Bucket,
+            Region: config.Region,
+            Key: key,
+            Body: content,
+        }, function (err, data) {
+            var sign = cos.getV4Auth({
+                Bucket: config.Bucket,
+                Key: key
+            });
+            var link = 'http://' + config.Bucket + '.cos.' + config.Region + '.myqcloud.com' + '/' +
+                camSafeUrlEncode(key).replace(/%2F/g, '/') + '?sign=' + encodeURIComponent(sign);
             request({
                 url: link,
                 proxy: proxy,
@@ -341,9 +366,6 @@ group('sliceUploadFile() 完整上传文件', function () {
             });
         });
     });
-});
-
-group('sliceUploadFile(),pauseTask(),restartTask()', function () {
     test('sliceUploadFile(),pauseTask(),restartTask()', function (done, assert) {
         var filename = '10m.zip';
         var filePath = createFileSync(path.resolve(__dirname, filename), 1024 * 1024 * 10);
@@ -385,9 +407,47 @@ group('sliceUploadFile(),pauseTask(),restartTask()', function () {
             });
         });
     });
-});
-
-group('sliceUploadFile(),cancelTask()', function () {
+    test('sliceUploadFile(),cancelTask(),restartTask()', function (done, assert) {
+        var filename = '10m.zip';
+        var filePath = createFileSync(path.resolve(__dirname, filename), 1024 * 1024 * 10);
+        var paused = false;
+        var restarted = false;
+        cos.abortUploadTask({
+            Bucket: config.Bucket,
+            Region: config.Region,
+            Key: filename,
+            Level: 'file',
+        }, function (err, data) {
+            var TaskId;
+            cos.sliceUploadFile({
+                Bucket: config.Bucket,
+                Region: config.Region,
+                Key: filename,
+                FilePath: filePath,
+                onTaskReady: function (taskId) {
+                    TaskId = taskId;
+                },
+                onProgress: function (info) {
+                    if (!paused && info.percent > 0.6) {
+                        cos.cancelTask(TaskId);
+                        setTimeout(function () {
+                            cos.sliceUploadFile({
+                                Bucket: config.Bucket,
+                                Region: config.Region,
+                                Key: filename,
+                                FilePath: filePath,
+                            }, function (err, data) {
+                                assert.ok(!err);
+                                fs.unlinkSync(filePath);
+                                done();
+                            });
+                        }, 10);
+                    }
+                }
+            }, function (err, data) {
+            });
+        });
+    });
     test('sliceUploadFile(),cancelTask()', function (done, assert) {
         var filename = '3m.zip';
         var filePath = createFileSync(path.resolve(__dirname, filename), 1024 * 1024 * 3)
@@ -567,6 +627,8 @@ group('putObject()', function () {
                 Bucket: config.Bucket,
                 Region: config.Region,
                 Key: filename,
+                onProgress: function (info) {
+                },
                 Output: outputStream
             }, function (err, data) {
                 var content = objectContent.toString();
@@ -887,6 +949,19 @@ group('getObject(),getObjectStream()', function () {
     });
 });
 
+group('deleteObject() 404', function () {
+    test('deleteObject() 404', function (done, assert) {
+        cos.deleteObject({
+            Bucket: config.Bucket,
+            Region: config.Region,
+            Key: Date.now().toString(36),
+        }, function (err, data) {
+            assert.ok(data.statusCode === 204);
+            done();
+        });
+    });
+});
+
 group('Key 特殊字符', function () {
     test('Key 特殊字符', function (done, assert) {
         cos.putObject({
@@ -982,7 +1057,7 @@ group('sliceCopyFile()', function () {
                     Region: config.Region,
                     Key: Key,
                     CopySource: config.Bucket + '.cos.' + config.Region + '.myqcloud.com/'+ filename,
-                    SliceSize: 5 * 1024 * 1024,
+                    CopySliceSize: 5 * 1024 * 1024,
                 },function (err, data) {
                     if (err) throw err;
                     assert.ok(data.ETag.length > 0);
@@ -1066,6 +1141,36 @@ group('sliceCopyFile()', function () {
                 done();
             });
         }, 2000);
+    });
+    test('CopySource nor found', function (done, assert) {
+        cos.sliceCopyFile({
+            Bucket: config.Bucket,
+            Region: config.Region,
+            Key: Key,
+            CopySource: config.Bucket + '.cos.' + config.Region + '.myqcloud.com/' + Date.now(),
+        }, function (err, data) {
+            assert.ok(err);
+            done();
+        });
+    });
+    test('复制归档文件', function (done, assert) {
+        var sourceKey = Date.now().toString(36);
+        cos.putObject({
+            Bucket: config.Bucket,
+            Region: config.Region,
+            Key: sourceKey,
+            StorageClass: 'ARCHIVE',
+        }, function () {
+            cos.sliceCopyFile({
+                Bucket: config.Bucket,
+                Region: config.Region,
+                Key: Key,
+                CopySource: config.Bucket + '.cos.' + config.Region + '.myqcloud.com/' + sourceKey,
+            }, function (err, data) {
+                assert.ok(err);
+                done();
+            });
+        });
     });
 });
 
@@ -3143,6 +3248,22 @@ group('selectObjectContent(),selectObjectContentStream()', function () {
             });
         });
     });
+    test('selectObjectContent', function (done, assert) {
+        var time = Date.now();
+        var content = `{"a":123,"b":"${time}","c":{"d":456}`;
+        cos.putObject({
+            Bucket: config.Bucket,
+            Region: config.Region,
+            Key: key,
+            Body: content,
+        }, function (err, data) {
+            var bufList = [];
+            cos.selectObjectContent(selectJsonOpt, function (err, data) {
+                assert.ok(err);
+                done();
+            });
+        });
+    });
     test('selectObjectContentStream', function (done, assert) {
         var time = Date.now();
         var content = `{"a":123,"b":"${time}","c":{"d":456}}`;
@@ -3161,36 +3282,6 @@ group('selectObjectContent(),selectObjectContentStream()', function () {
             });
             cos.selectObjectContentStream(selectJsonOpt, function (err, data) {
                 assert.ok(Buffer.concat(bufList).toString() === content + '\n');
-                done();
-            }).pipe(writeStream);
-        });
-    });
-    test('selectObjectContentStream raw', function (done, assert) {
-        var time = Date.now();
-        var content = `{"a":123,"b":"${time}","c":{"d":456}}`;
-        var key = '1.json';
-        cos.putObject({
-            Bucket: config.Bucket,
-            Region: config.Region,
-            Key: key,
-            Body: content,
-        }, function (err, data) {
-            var bufList = [];
-            var writeStream = new Writable({
-                write: function (chunk, encoding, callback) {
-                    bufList.push(chunk);
-                    callback();
-                },
-            });
-            cos.selectObjectContentStream({
-                ...selectJsonOpt,
-                DataType: 'raw',
-            }, function (err, data) {
-                var result = Buffer.concat(bufList).toString();
-                assert.ok(result.includes('<BytesScanned>') && result.includes(content));
-                var selectStream = require('../sdk/select-stream');
-                console.log(selectStream.parseBody(Buffer.from(result)));
-                // assert.ok();
                 done();
             }).pipe(writeStream);
         });
@@ -3471,22 +3562,120 @@ group('BucketReferer', function () {
     });
 });
 
+group('restoreObject()', function () {
+    test('restoreObject()', function (done, assert) {
+        cos.putObject({
+            Bucket: config.Bucket,
+            Region: config.Region,
+            Key: '1.jpg',
+            Body: '123',
+            StorageClass: 'ARCHIVE'
+        }, function (err, data) {
+            assert.ok(!err);
+            cos.restoreObject({
+                Bucket: config.Bucket,
+                Region: config.Region,
+                Key: '1.jpg',
+                RestoreRequest: {
+                    Days: 1,
+                    CASJobParameters: {
+                        Tier: 'Expedited'
+                    }
+                },
+            }, function (err, data) {
+                assert.ok(data && Math.floor(data.statusCode / 100) === 2);
+                done();
+            });
+        });
+    });
+});
 
-// base.js
-// uploadPartCopy
-// restoreObject
-// multipartAbort
-// putBucketAccelerate
-// getObject onProgress
-// deleteObject err
-// putObjectTagging/getObjectTagging/deleteObjectTagging
-// selectObjectContent
-// selectObjectContentStream
-// multipartListPart
-// getV4Auth
+group('uploadFiles()', function () {
+    test('uploadFiles()', function (done, assert) {
+        var filename = '1.zip';
+        var filepath = path.resolve(__dirname, filename);
+        util.createFile(filepath, 1, function (err) {
+            cos.uploadFiles({
+                files: [{
+                    Bucket: config.Bucket,
+                    Region: config.Region,
+                    Key: filename,
+                    FilePath: filepath,
+                }],
+            }, function (err, data) {
+                assert.ok(!data.files.error);
+                fs.unlinkSync(filepath);
+                done();
+            });
+        });
+    });
+});
+
+group('multipartAbort()', function () {
+    test('multipartAbort()', function (done, assert) {
+        var Key = '1.jpg'
+        cos.multipartInit({
+            Bucket: config.Bucket,
+            Region: config.Region,
+            Key: Key,
+        }, function (err, data) {
+            assert.ok(!err);
+            var UploadId = data.UploadId;
+            cos.multipartAbort({
+                Bucket: config.Bucket,
+                Region: config.Region,
+                Key: Key,
+                UploadId: UploadId,
+            }, function (err, data) {
+                assert.ok(!err);
+                cos.multipartListPart({
+                    Bucket: config.Bucket,
+                    Region: config.Region,
+                    Key: Key,
+                    UploadId: UploadId,
+                }, function (err, data) {
+                    assert.ok(err);
+                    done();
+                });
+            });
+        });
+    });
+});
 
 
-// advance.js
-// getChunkETag  续传
-// uploadFiles
-// sliceCopyFile
+group('sliceUploadFile() 续传', function () {
+    test('multipartAbort()', function (done, assert) {
+        var Key = '3.zip'
+        var filepath = path.resolve(__dirname, Key);
+        createFileSync(filepath, 1024 * 1024 * 3);
+        cos.multipartInit({
+            Bucket: config.Bucket,
+            Region: config.Region,
+            Key: Key,
+        }, function (err, data) {
+            assert.ok(!err);
+            var UploadId = data.UploadId;
+            cos.multipartUpload({
+                Bucket: config.Bucket,
+                Region: config.Region,
+                Key: Key,
+                UploadId: UploadId,
+                PartNumber: 1,
+                Body: Buffer.from(Array(0, 1024 * 1024)),
+            }, function (err, data) {
+                assert.ok(!err);
+                cos.sliceUploadFile({
+                    Bucket: config.Bucket,
+                    Region: config.Region,
+                    Key: Key,
+                    FilePath: filepath,
+                    ChunkSize: 1024 * 1024,
+                }, function (err, data) {
+                    assert.ok(data);
+                    fs.unlinkSync(filepath);
+                    done();
+                });
+            });
+        });
+    });
+});

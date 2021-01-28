@@ -35,12 +35,18 @@ function sliceUploadFile(params, callback) {
 
     // 上传分块完成，开始 uploadSliceComplete 操作
     ep.on('upload_slice_complete', function (UploadData) {
+        var metaHeaders = {};
+        util.each(params.Headers, function (val, k) {
+            var shortKey = k.toLowerCase();
+            if (shortKey.indexOf('x-cos-meta-') === 0 || shortKey === 'pic-operations') metaHeaders[k] = val;
+        });
         uploadSliceComplete.call(self, {
             Bucket: Bucket,
             Region: Region,
             Key: Key,
             UploadId: UploadData.UploadId,
             SliceList: UploadData.SliceList,
+            Headers: metaHeaders,
         }, function (err, data) {
             if (!self._isRunningTask(TaskId)) return;
             session.removeUsing(UploadData.UploadId);
@@ -620,6 +626,7 @@ function uploadSliceComplete(params, callback) {
     var SliceList = params.SliceList;
     var self = this;
     var ChunkRetryTimes = this.options.ChunkRetryTimes + 1;
+    var Headers = params.Headers;
     var Parts = SliceList.map(function (item) {
         return {
             PartNumber: item.PartNumber,
@@ -633,7 +640,8 @@ function uploadSliceComplete(params, callback) {
             Region: Region,
             Key: Key,
             UploadId: UploadId,
-            Parts: Parts
+            Parts: Parts,
+            Headers: Headers,
         }, tryCallback);
     }, function (err, data) {
         callback(err, data);
@@ -890,6 +898,10 @@ function sliceCopyFile(params, callback) {
 
     // 分片复制完成，开始 multipartComplete 操作
     ep.on('copy_slice_complete', function (UploadData) {
+        var metaHeaders = {};
+        util.each(params.Headers, function (val, k) {
+            if (k.toLowerCase().indexOf('x-cos-meta-') === 0) metaHeaders[k] = val;
+        });
         var Parts = util.map(UploadData.PartList, function (item) {
             return {
                 PartNumber: item.PartNumber,
@@ -917,7 +929,6 @@ function sliceCopyFile(params, callback) {
             var PartNumber = SliceItem.PartNumber;
             var CopySourceRange = SliceItem.CopySourceRange;
             var currentSize = SliceItem.end - SliceItem.start;
-            var preAddSize = 0;
 
             copySliceItem.call(self, {
                 Bucket: Bucket,
@@ -927,16 +938,10 @@ function sliceCopyFile(params, callback) {
                 UploadId: UploadData.UploadId,
                 PartNumber: PartNumber,
                 CopySourceRange: CopySourceRange,
-                onProgress: function (data) {
-                    FinishSize += data.loaded - preAddSize;
-                    preAddSize = data.loaded;
-                    onProgress({loaded: FinishSize, total: FileSize});
-                }
             },function (err,data) {
                 if (err) return asyncCallback(err);
+                FinishSize += currentSize;
                 onProgress({loaded: FinishSize, total: FileSize});
-
-                FinishSize += currentSize - preAddSize;
                 SliceItem.ETag = data.ETag;
                 asyncCallback(err || null, data);
             });
@@ -1099,7 +1104,6 @@ function copySliceItem(params, callback) {
             UploadId: UploadId,
             PartNumber:PartNumber,
             CopySourceRange:CopySourceRange,
-            onProgress:params.onProgress,
         },function (err,data) {
             tryCallback(err || null, data);
         })

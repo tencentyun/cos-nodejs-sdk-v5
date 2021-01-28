@@ -322,7 +322,7 @@ function putBucketCors(params, callback) {
     var CORSRules = CORSConfiguration['CORSRules'] || params['CORSRules'] || [];
     CORSRules = util.clone(util.isArray(CORSRules) ? CORSRules : [CORSRules]);
     util.each(CORSRules, function (rule) {
-        util.each(['AllowedOrigin', 'AllowedHeader', 'AllowedMethod', 'ExposeHeader'], function (key, k) {
+        util.each(['AllowedOrigin', 'AllowedHeader', 'AllowedMethod', 'ExposeHeader'], function (key) {
             var sKey = key + 's';
             var val = rule[sKey] || rule[key] || [];
             delete rule[sKey];
@@ -390,7 +390,7 @@ function getBucketCors(params, callback) {
         CORSRules = util.clone(util.isArray(CORSRules) ? CORSRules : [CORSRules]);
 
         util.each(CORSRules, function (rule) {
-            util.each(['AllowedOrigin', 'AllowedHeader', 'AllowedMethod', 'ExposeHeader'], function (key, j) {
+            util.each(['AllowedOrigin', 'AllowedHeader', 'AllowedMethod', 'ExposeHeader'], function (key) {
                 var sKey = key + 's';
                 var val = rule[sKey] || rule[key] || [];
                 delete rule[key];
@@ -1645,7 +1645,6 @@ function putBucketAccelerate(params, callback) {
     headers['Content-MD5'] = util.binaryBase64(util.md5(xml));
 
     submitRequest.call(this, {
-        Interface: 'putBucketAccelerate',
         Action: 'name/cos:PutBucketAccelerate',
         method: 'PUT',
         Bucket: params.Bucket,
@@ -1664,7 +1663,6 @@ function putBucketAccelerate(params, callback) {
 
 function getBucketAccelerate(params, callback) {
     submitRequest.call(this, {
-        Interface: 'getBucketAccelerate',
         Action: 'name/cos:GetBucketAccelerate',
         method: 'GET',
         Bucket: params.Bucket,
@@ -1712,9 +1710,7 @@ function headObject(params, callback) {
             }
             return callback(err);
         }
-        if (data.headers && data.headers.etag) {
-            data.ETag = data.headers && data.headers.etag;
-        }
+        data.ETag = util.attr(data.headers, 'etag', '');
         callback(null, data);
     });
 }
@@ -1879,10 +1875,8 @@ function getObject(params, callback) {
                 result.Body = data.body;
             }
         }
-        if (data.headers && data.headers.etag) {
-            result.ETag = data.headers && data.headers.etag;
-        }
         util.extend(result, {
+            ETag: util.attr(data.headers, 'etag', ''),
             statusCode: data.statusCode,
             headers: data.headers,
         });
@@ -1930,7 +1924,7 @@ function putObject(params, callback) {
     var FileSize = params.ContentLength;
     var onProgress = util.throttleOnProgress.call(self, FileSize, params.onProgress);
 
-    // 特殊处理 Cache-Control
+    // 特殊处理 Cache-Control、Content-Type，避免代理更改这两个字段导致写入到 Object 属性里
     var headers = params.Headers;
     if (!headers['Cache-Control'] && !headers['cache-control']) headers['Cache-Control'] = '';
 
@@ -1998,9 +1992,7 @@ function deleteObject(params, callback) {
     }, function (err, data) {
         if (err) {
             var statusCode = err.statusCode;
-            if (statusCode && statusCode === 204) {
-                return callback(null, {statusCode: statusCode});
-            } else if (statusCode && statusCode === 404) {
+            if (statusCode && statusCode === 404) {
                 return callback(null, {BucketNotFound: true, statusCode: statusCode,});
             } else {
                 return callback(err);
@@ -2168,8 +2160,8 @@ function optionsObject(params, callback) {
  *     @param  {String}  MetadataDirective              是否拷贝元数据，枚举值：Copy, Replaced，默认值Copy。假如标记为Copy，忽略Header中的用户元数据信息直接复制；假如标记为Replaced，按Header信息修改元数据。当目标路径和原路径一致，即用户试图修改元数据时，必须为Replaced
  *     @param  {String}  CopySourceIfModifiedSince      当Object在指定时间后被修改，则执行操作，否则返回412。可与x-cos-copy-source-If-None-Match一起使用，与其他条件联合使用返回冲突。
  *     @param  {String}  CopySourceIfUnmodifiedSince    当Object在指定时间后未被修改，则执行操作，否则返回412。可与x-cos-copy-source-If-Match一起使用，与其他条件联合使用返回冲突。
- *     @param  {String}  CopySourceIfMatch              当Object的Etag和给定一致时，则执行操作，否则返回412。可与x-cos-copy-source-If-Unmodified-Since一起使用，与其他条件联合使用返回冲突。
- *     @param  {String}  CopySourceIfNoneMatch          当Object的Etag和给定不一致时，则执行操作，否则返回412。可与x-cos-copy-source-If-Modified-Since一起使用，与其他条件联合使用返回冲突。
+ *     @param  {String}  CopySourceIfMatch              当Object的ETag和给定一致时，则执行操作，否则返回412。可与x-cos-copy-source-If-Unmodified-Since一起使用，与其他条件联合使用返回冲突。
+ *     @param  {String}  CopySourceIfNoneMatch          当Object的ETag和给定不一致时，则执行操作，否则返回412。可与x-cos-copy-source-If-Modified-Since一起使用，与其他条件联合使用返回冲突。
  *     @param  {String}  StorageClass                   存储级别，枚举值：存储级别，枚举值：Standard, Standard_IA，Archive；默认值：Standard
  *     @param  {String}  CacheControl                   指定所有缓存机制在整个请求/响应链中必须服从的指令。
  *     @param  {String}  ContentDisposition             MIME 协议的扩展，MIME 协议指示 MIME 用户代理如何显示附加的文件
@@ -2370,7 +2362,6 @@ function putObjectTagging(params, callback) {
     headers['Content-MD5'] = util.binaryBase64(util.md5(xml));
 
     submitRequest.call(this, {
-        Interface: 'putObjectTagging',
         Action: 'name/cos:PutObjectTagging',
         method: 'PUT',
         Bucket: params.Bucket,
@@ -2405,7 +2396,6 @@ function putObjectTagging(params, callback) {
 function getObjectTagging(params, callback) {
 
     submitRequest.call(this, {
-        Interface: 'getObjectTagging',
         Action: 'name/cos:GetObjectTagging',
         method: 'GET',
         Key: params.Key,
@@ -2453,7 +2443,6 @@ function getObjectTagging(params, callback) {
  */
 function deleteObjectTagging(params, callback) {
     submitRequest.call(this, {
-        Interface: 'deleteObjectTagging',
         Action: 'name/cos:DeleteObjectTagging',
         method: 'DELETE',
         Bucket: params.Bucket,
@@ -2514,7 +2503,6 @@ function selectObjectContent(params, callback) {
         });
     }
     submitRequest.call(this, {
-        Interface: 'selectObjectContent',
         Action: 'name/cos:GetObject',
         method: 'POST',
         Bucket: params.Bucket,
@@ -2616,7 +2604,10 @@ function multipartInit(params, callback) {
 
     // 特殊处理 Cache-Control
     var headers = params.Headers;
+
+    // 特殊处理 Cache-Control、Content-Type
     if (!headers['Cache-Control'] && !headers['cache-control']) headers['Cache-Control'] = '';
+    if (!headers['Content-Type'] && !headers['content-type']) headers['Content-Type'] = params.Body && params.Body.type || '';
 
     submitRequest.call(this, {
         Action: 'name/cos:InitiateMultipartUpload',
@@ -2677,12 +2668,9 @@ function multipartUpload(params, callback) {
                 onProgress: params.onProgress,
                 body: params.Body || null
             }, function (err, data) {
-                if (err) {
-                    return callback(err);
-                }
-                data['headers'] = data['headers'] || {};
+                if (err) return callback(err);
                 callback(null, {
-                    ETag: data['headers']['etag'] || '',
+                    ETag: util.attr(data.headers, 'etag', ''),
                     statusCode: data.statusCode,
                     headers: data.headers,
                 });
@@ -2750,8 +2738,23 @@ function multipartComplete(params, callback) {
             object: params.Key,
             isLocation: true,
         });
-        var CompleteMultipartUploadResult = data.CompleteMultipartUploadResult || {};
-        var result = util.extend(CompleteMultipartUploadResult, {
+        var res = data.CompleteMultipartUploadResult || {};
+        if (res.ProcessResults) {
+            if (res && res.ProcessResults) {
+                res.UploadResult = {
+                    OriginalInfo: {
+                        Key: res.Key,
+                        Location: url,
+                        ETag: res.ETag,
+                        ImageInfo: res.ImageInfo,
+                    },
+                    ProcessResults: res.ProcessResults,
+                };
+                delete res.ImageInfo;
+                delete res.ProcessResults;
+            }
+        }
+        var result = util.extend(res, {
             Location: url,
             statusCode: data.statusCode,
             headers: data.headers,
@@ -3353,10 +3356,7 @@ function submitRequest(params, callback) {
             ResourceKey: params.ResourceKey,
             Scope: params.Scope,
         }, function (err, AuthData) {
-            if (err) {
-                callback(err);
-                return;
-            }
+            if (err) return callback(err);
             params.AuthData = AuthData;
             _submitRequest.call(self, params, function (err, data) {
                 if (err &&
@@ -3393,7 +3393,6 @@ function _submitRequest(params, callback) {
     var method = params.method || 'GET';
     var url = params.url;
     var body = params.body;
-    var json = params.json;
     var rawBody = params.rawBody;
 
     // 处理 readStream and body
@@ -3422,7 +3421,6 @@ function _submitRequest(params, callback) {
         headers: params.headers,
         qs: params.qs,
         body: body,
-        json: json,
     };
 
     // 获取签名

@@ -22,7 +22,6 @@ var defaultOptions = {
     CopySliceSize: 1024 * 1024 * 10,
     MaxPartNumber: 10000,
     ProgressInterval: 1000,
-    UploadQueueSize: 1000,
     Domain: '',
     ServiceDomain: '',
     Protocol: '',
@@ -33,6 +32,7 @@ var defaultOptions = {
     CorrectClockSkew: true,
     SystemClockOffset: 0, // 单位毫秒，ms
     UploadCheckContentMd5: false,
+    UploadQueueSize: 1000,
     UploadIdCacheLimit: 500,
     Proxy: '',
     Ip: '',

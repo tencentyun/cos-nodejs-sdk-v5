@@ -3538,52 +3538,34 @@ function _submitRequest(params, callback) {
                 chunkList.push(chunk);
             };
             var endHandler = function () {
-                var json;
                 try {
-                    var body = Buffer.concat(chunkList);
+                    var bodyBuf = Buffer.concat(chunkList);
                 } catch (e) {
                     cb(util.error(e));
                     return;
                 }
-                var bodyStr = body.toString();
-                var createBodyError = function (err, json) {
-                    var cosError = json && json.Error;
-                    if (cosError) {
-                        cosError = util.error(err, {
-                            code: cosError.Code,
-                            message: cosError.Message,
-                            error: cosError,
-                            RequestId: cosError.RequestId,
-                            Scope: params.Scope,
-                        });
-                    } else if (response.statusCode) {
-                        cosError = util.error(err, {
-                            code: response.statusCode,
-                            message: response.statusMessage
-                        });
-                    } else {
-                        cosError = util.error(err, {
-                            message: response.statusMessage || 'statusCode error'
-                        });
-                    }
-                    return cosError;
-                };
-                if (statusSuccess) {
-                    if (rawBody) { // 不对 body 进行转换，body 直接挂载返回
-                        cb(null, {body: body});
-                    } else if (body.length) {
-                        json = xml2json(body.toString());
-                        if (json && json.Error) {
-                            cb(createBodyError(new Error(), json));
-                        } else {
-                            cb(null, json);
-                        }
-                    } else {
-                        cb(null, {});
-                    }
-                } else {
-                    bodyStr && (json = xml2json(bodyStr));
-                    cb(createBodyError(new Error(), json))
+                var body = bodyBuf.toString();
+
+                // 不对 body 进行转换，body 直接挂载返回
+                if (rawBody && statusSuccess) return cb(null, {body: bodyBuf});
+
+                // 解析 xml body
+                var json = {};
+                try {
+                    json = body && body.indexOf('<') > -1 && body.indexOf('>') > -1 && util.xml2json(body) || {};
+                } catch (e) {
+                }
+
+                // 处理返回值
+                var xmlError = json && json.Error;
+                if (statusSuccess) { // 正确返回，状态码 2xx 时，body 不会有 Error
+                    cb(null, json);
+                } else if (xmlError) { // 正常返回了 xml body，且有 Error 节点
+                    cb(util.error(new Error(xmlError.Message), {code: xmlError.Code, error: xmlError}));
+                } else if (statusCode) { // 有错误的状态码
+                    cb(util.error(new Error(response.statusMessage), {code: '' + statusCode}));
+                } else if (statusCode) { // 无状态码，或者获取不到状态码
+                    cb(util.error(new Error('statusCode error')));
                 }
                 chunkList = null;
             };

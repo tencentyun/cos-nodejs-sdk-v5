@@ -172,9 +172,9 @@ declare namespace COS {
     /** 获取签名的回调方法，如果没有 SecretId、SecretKey 时，必选 */
     getAuthorization?: (
       options: GetAuthorizationOptions,
-      /** 获取完签名或临时密钥后，回传给 SDK 的方法 */
+      /** callback 获取完签名或临时密钥后，回传给 SDK 的方法 */
       callback: (
-        /** 回传给 SDK 的签名或获取临时密钥 */
+        /** params 回传给 SDK 的签名或获取临时密钥 */
         params: GetAuthorizationCallbackParams
       ) => void
     ) => void,
@@ -217,6 +217,7 @@ declare namespace COS {
     /** 校正时间的偏移值，单位 ms(毫秒)，计算签名时会用设备当前时间戳加上该偏移值，在设备时间有误时可用于校正签名用的时间参数。 */
     SystemClockOffset: number,
   }
+  /** 请求凭证，包含临时密钥信息 */
   interface Credentials {
     /** 临时密钥 tmpSecretId */
     TmpSecretId: string,
@@ -238,12 +239,17 @@ declare namespace COS {
   type Authorization = string;
   /** SDK 用于请求的凭证，可以是签名，也可以是临时密钥信息 */
   type GetAuthorizationCallbackParams = Authorization | Credentials;
-  /** 错误格式，其中服务端返回错误码可查看 @see https://cloud.tencent.com/document/product/436/7730 */
-  type CosError = null | {
+  /** 一般接口的返回结果 */
+  interface GeneralResult {
     /** 请求返回的 HTTP 状态码 */
     statusCode?: number,
     /** 请求返回的 header 字段 */
     headers?: Headers,
+    /** 请求的唯一标识 */
+    RequestId?: string,
+  }
+  /** SDK 的错误格式，其中服务端返回错误码可查看 @see https://cloud.tencent.com/document/product/436/7730 */
+  interface CosSdkError extends GeneralResult {
     /** 错误码 */
     code: string,
     /** 错误信息 */
@@ -251,13 +257,9 @@ declare namespace COS {
     /** 错误信息，可能是参数错误、客户端出错、或服务端返回的错误 */
     error: string | Error | { Code: string, Message: string },
   }
-  /** 一般接口的返回结果 */
-  interface GeneralResult {
-    /** 请求返回的 HTTP 状态码 */
-    statusCode?: number,
-    /** 请求返回的 header 字段 */
-    headers?: Headers,
-  }
+  /** 回调的错误格式，其中服务端返回错误码可查看 @see https://cloud.tencent.com/document/product/436/7730 */
+  type CosError = null | CosSdkError;
+  /** 存储桶操作接口的公共参数 */
   interface BucketParams {
     /** 存储桶的名称，格式为<bucketname-appid>，例如examplebucket-1250000000 */
     Bucket: Bucket,
@@ -266,6 +268,7 @@ declare namespace COS {
     /** 请求时带上的 Header 字段 */
     Headers?: Headers,
   }
+  /** 对象操作接口的公共参数 */
   interface ObjectParams {
     /** 存储桶的名称，格式为<bucketname-appid>，例如examplebucket-1250000000 */
     Bucket: Bucket,

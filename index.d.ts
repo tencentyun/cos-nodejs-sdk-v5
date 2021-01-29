@@ -198,7 +198,7 @@ declare namespace COS {
     /** 校正时间的偏移值，单位 ms(毫秒)，计算签名时会用设备当前时间戳加上该偏移值，在设备时间有误时可用于校正签名用的时间参数。 */
     SystemClockOffset?: number,
     /** 签名有效时间戳区间，如果传入了该参数，会赋值给在签名里的 q-key-time 和 q-sign-time 字段，格式如：1611915436;1611916336 */
-    KeyTime: string,
+    KeyTime?: string,
   }
   /** 计算签名或获取临时密钥可能需要的参数列表 */
   interface GetAuthorizationOptions {

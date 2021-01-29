@@ -189,12 +189,16 @@ declare namespace COS {
     Method?: Method,
     /** 请求路径，最前面带 /，例如 /images/1.jpg，可选 */
     Pathname?: Pathname,
+    /** 请求的对象键，最前面不带 /，例如 images/1.jpg，可选 */
+    Key?: Key,
     /** 要参与签名计算的 Url Query 参数，可选 */
     Query?: Query,
     /** 要参与签名计算的 Header 参数，可选 */
     Headers?: Headers,
     /** 校正时间的偏移值，单位 ms(毫秒)，计算签名时会用设备当前时间戳加上该偏移值，在设备时间有误时可用于校正签名用的时间参数。 */
     SystemClockOffset?: number,
+    /** 签名有效时间戳区间，如果传入了该参数，会赋值给在签名里的 q-key-time 和 q-sign-time 字段，格式如：1611915436;1611916336 */
+    KeyTime: string,
   }
   /** 计算签名或获取临时密钥可能需要的参数列表 */
   interface GetAuthorizationOptions {

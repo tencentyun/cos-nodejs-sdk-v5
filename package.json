@@ -38,6 +38,7 @@
   },
   "devDependencies": {
     "mocha": "^4.0.1",
+    "nyc": "^15.1.0",
     "qcloud-cos-sts": "^3.0.0"
   }
 }

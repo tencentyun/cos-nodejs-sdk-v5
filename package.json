@@ -9,7 +9,7 @@
     "demo-sts": "node demo/demo-sts.js",
     "demo-sts-scope": "node demo/demo-sts-scope.js",
     "test": "mocha test/test.js",
-    "nyc": "nyc --reporter=html mocha test/test.js",
+    "nyc": "nyc --reporter=clover --reporter=cobertura mocha --reporter xunit --reporter-options output=mocha.xml test/test.js",
     "csp": "mocha test/csp.js"
   },
   "repository": {

@@ -2119,6 +2119,7 @@ declare class COS {
 
   /** 获取文件下载链接 @see https://cloud.tencent.com/document/product/436/35651 */
   getObjectUrl(params: COS.GetObjectUrlParams, callback: (err: COS.CosError, data: COS.GetObjectUrlResult) => void): string;
+  getObjectUrl(params: COS.GetObjectUrlParams): Promise<COS.GetObjectUrlResult>;
 
   /** 获取 COS JSON API (v4) 签名 @see https://cloud.tencent.com/document/product/436/6054 */
   getV4Auth(params: COS.GetV4AuthParams): COS.Authorization;

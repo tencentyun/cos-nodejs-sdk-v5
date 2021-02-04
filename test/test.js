@@ -1620,6 +1620,54 @@ group('ObjectAcl', function () {
     });
 });
 
+group('optionsObject()', function () {
+    test('optionsObject()', function (done, assert) {
+        cos.putBucketCors({
+            Bucket: config.Bucket, // Bucket 格式：test-1250000000
+            Region: config.Region,
+            CORSRules: [{
+                "AllowedOrigins": ["*"],
+                "AllowedMethods": ["GET", "POST", "PUT", "DELETE", "HEAD"],
+                "AllowedHeaders": ["*", 'test-' + Date.now().toString(36)],
+                "ExposeHeaders": ['etag'],
+                "MaxAgeSeconds": "5"
+            }],
+        }, function (err, data) {
+            cos.optionsObject({
+                Bucket: config.Bucket, // Bucket 格式：test-1250000000
+                Region: config.Region,
+                Key: '1.jpg',
+                Origin: 'https://qq.com',
+                'AccessControlRequestMethod': 'PUT',
+                'AccessControlRequestHeaders': 'Authorization,x-cos-security-token',
+            }, function (err, data) {
+                assert.ok(data && data.statusCode === 200);
+                done();
+            });
+        });
+    });
+    test('delete cors, optionsObject()', function (done, assert) {
+        cos.deleteBucketCors({
+            Bucket: config.Bucket, // Bucket 格式：test-1250000000
+            Region: config.Region,
+        }, function (err, data) {
+            cos.optionsObject({
+                Bucket: config.Bucket, // Bucket 格式：test-1250000000
+                Region: config.Region,
+                Key: '1.jpg',
+                Headers: {
+                    Origin: 'https://qq.com',
+                    'Access-Control-Request-Method': 'PUT',
+                    'Access-Control-Request-Headers': 'Authorization,x-cos-security-token',
+                },
+            }, function (err, data) {
+                assert.ok(err);
+                done();
+            });
+        });
+    });
+});
+
 group('BucketCors', function () {
     var CORSRules = [{
         "AllowedOrigins": ["*"],
@@ -3439,54 +3487,6 @@ group('BucketReplication', function () {
                     done();
                 });
             }, 2000);
-        });
-    });
-});
-
-group('optionsObject()', function () {
-    test('optionsObject()', function (done, assert) {
-        cos.putBucketCors({
-            Bucket: config.Bucket, // Bucket 格式：test-1250000000
-            Region: config.Region,
-            CORSRules: [{
-                "AllowedOrigins": ["*"],
-                "AllowedMethods": ["GET", "POST", "PUT", "DELETE", "HEAD"],
-                "AllowedHeaders": ["*", 'test-' + Date.now().toString(36)],
-                "ExposeHeaders": ['etag'],
-                "MaxAgeSeconds": "5"
-            }],
-        }, function (err, data) {
-            cos.optionsObject({
-                Bucket: config.Bucket, // Bucket 格式：test-1250000000
-                Region: config.Region,
-                Key: '1.jpg',
-                Origin: 'https://qq.com',
-                'AccessControlRequestMethod': 'PUT',
-                'AccessControlRequestHeaders': 'Authorization,x-cos-security-token',
-            }, function (err, data) {
-                assert.ok(data && data.statusCode === 200);
-                done();
-            });
-        });
-    });
-    test('delete cors, optionsObject()', function (done, assert) {
-        cos.deleteBucketCors({
-            Bucket: config.Bucket, // Bucket 格式：test-1250000000
-            Region: config.Region,
-        }, function (err, data) {
-            cos.optionsObject({
-                Bucket: config.Bucket, // Bucket 格式：test-1250000000
-                Region: config.Region,
-                Key: '1.jpg',
-                Headers: {
-                    Origin: 'https://qq.com',
-                    'Access-Control-Request-Method': 'PUT',
-                    'Access-Control-Request-Headers': 'Authorization,x-cos-security-token',
-                },
-            }, function (err, data) {
-                assert.ok(err);
-                done();
-            });
         });
     });
 });

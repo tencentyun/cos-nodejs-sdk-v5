@@ -3665,7 +3665,6 @@ group('multipartAbort()', function () {
     });
 });
 
-
 group('sliceUploadFile() 续传', function () {
     test('multipartAbort()', function (done, assert) {
         var Key = '3.zip'
@@ -3699,6 +3698,21 @@ group('sliceUploadFile() 续传', function () {
                     done();
                 });
             });
+        });
+    });
+});
+
+group('getStream() 流式下载 ECONNREFUSED 错误', function () {
+    test('getStream() 流式下载 ECONNREFUSED 错误', function (done, assert) {
+        cos.options.Domain = '127.0.0.1:12345';
+        cos.getObject({
+            Bucket: config.Bucket,
+            Region: config.Region,
+            Key: '1.jpg',
+        }, function (err, data) {
+            assert.ok(err.code === 'ECONNREFUSED');
+            cos.options.Domain = '';
+            done();
         });
     });
 });

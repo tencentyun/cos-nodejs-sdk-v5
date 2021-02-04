@@ -570,10 +570,9 @@ var getSkewTime = function (offset) {
 // 重写 callback，等待流结束后才 callback
 var callbackAfterStreamFinish = function (stream, callback) {
     if (!stream) return callback;
-    var err, data, count = 2, loaded;
+    var err, data, count = 2, loaded = false;
     var cb = function (e, d) {
-        if (loaded) return false;
-        loaded = true;
+        if (loaded) return;
         // 如果有数据，且没有错误，清理 设置错误
         if (d && !data || e || err) {
             data = d;
@@ -582,8 +581,10 @@ var callbackAfterStreamFinish = function (stream, callback) {
             err = e;
             data = null;
         }
-        if (err) return callback(err, data);
-        else --count === 0 && callback(err, data);
+        if (err || --count === 0) {
+            loaded = true;
+            callback(err, data);
+        }
     };
     stream.on('error', function (err) {
         cb(err);

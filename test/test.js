@@ -3359,57 +3359,6 @@ group('selectObjectContent(),selectObjectContentStream()', function () {
     });
 });
 
-group('putBucketVersioning(),getBucketVersioning()', function () {
-    test('Enabled', function (done, assert) {
-        cos.deleteBucketReplication({
-            Bucket: config.Bucket, // Bucket 格式：test-1250000000
-            Region: config.Region,
-            VersioningConfiguration: {
-                Status: "Enabled"
-            }
-        }, function (err, data) {
-            cos.putBucketVersioning({
-                Bucket: config.Bucket, // Bucket 格式：test-1250000000
-                Region: config.Region,
-                VersioningConfiguration: {
-                    Status: "Enabled"
-                }
-            }, function (err, data) {
-                setTimeout(function () {
-                    cos.getBucketVersioning({
-                        Bucket: config.Bucket,
-                        Region: config.Region,
-                    }, function (err, data) {
-                        assert.ok(data.VersioningConfiguration.Status === 'Enabled');
-                        done();
-                    });
-                }, 2000);
-            });
-        });
-    });
-    test('Suspended', function (done, assert) {
-        cos.putBucketVersioning({
-            Bucket: config.Bucket, // Bucket 格式：test-1250000000
-            Region: config.Region,
-            VersioningConfiguration: {
-                Status: 'Suspended'
-            }
-        }, function (err, data) {
-            assert.ok(!err);
-            setTimeout(function () {
-                cos.getBucketVersioning({
-                    Bucket: config.Bucket,
-                    Region: config.Region,
-                }, function (err, data) {
-                    console.log(data.VersioningConfiguration.Status);
-                    assert.ok(data.VersioningConfiguration.Status === 'Suspended');
-                    done();
-                });
-            }, 2000);
-        });
-    });
-});
-
 group('BucketReplication', function () {
     var prepared = false;
     var repBucket = config.Bucket.replace(/^(.*)(-\d+)$/, '$1-replication$2')
@@ -3484,6 +3433,57 @@ group('BucketReplication', function () {
                     Region: config.Region,
                 }, function (err, data) {
                     assert.ok(err && err.statusCode === 404);
+                    done();
+                });
+            }, 2000);
+        });
+    });
+});
+
+group('putBucketVersioning(),getBucketVersioning()', function () {
+    test('Enabled', function (done, assert) {
+        cos.deleteBucketReplication({
+            Bucket: config.Bucket, // Bucket 格式：test-1250000000
+            Region: config.Region,
+            VersioningConfiguration: {
+                Status: "Enabled"
+            }
+        }, function (err, data) {
+            cos.putBucketVersioning({
+                Bucket: config.Bucket, // Bucket 格式：test-1250000000
+                Region: config.Region,
+                VersioningConfiguration: {
+                    Status: "Enabled"
+                }
+            }, function (err, data) {
+                setTimeout(function () {
+                    cos.getBucketVersioning({
+                        Bucket: config.Bucket,
+                        Region: config.Region,
+                    }, function (err, data) {
+                        assert.ok(data.VersioningConfiguration.Status === 'Enabled');
+                        done();
+                    });
+                }, 2000);
+            });
+        });
+    });
+    test('Suspended', function (done, assert) {
+        cos.putBucketVersioning({
+            Bucket: config.Bucket, // Bucket 格式：test-1250000000
+            Region: config.Region,
+            VersioningConfiguration: {
+                Status: 'Suspended'
+            }
+        }, function (err, data) {
+            assert.ok(!err);
+            setTimeout(function () {
+                cos.getBucketVersioning({
+                    Bucket: config.Bucket,
+                    Region: config.Region,
+                }, function (err, data) {
+                    console.log(data.VersioningConfiguration.Status);
+                    assert.ok(data.VersioningConfiguration.Status === 'Suspended');
                     done();
                 });
             }, 2000);

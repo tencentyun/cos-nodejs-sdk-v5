@@ -987,10 +987,10 @@ var selectJsonOpt = {
 
 function selectObjectContentStream() {
     // 查询 JSON
-    var selectStream = cos.selectObjectContentStream({
-        ...selectJsonOpt,
+    var opt = Object.assign({
         // DataType: 'raw',
-    }, function (err, data) {
+    }, selectJsonOpt);
+    var selectStream = cos.selectObjectContentStream(opt, function (err, data) {
         console.log(err || data);
     });
     var outFile = './result.txt';

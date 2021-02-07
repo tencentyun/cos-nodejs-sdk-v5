@@ -1,6 +1,4 @@
-var Conf = require('conf');
 var util = require('./util');
-
 // 按照文件特征值，缓存 UploadId
 var cacheKey = 'cos_sdk_upload_cache';
 var expires = 30 * 24 * 3600;
@@ -12,6 +10,7 @@ var getCache = function () {
     var val, opt = {configName: 'cos-nodejs-sdk-v5-storage'};
     if (this.options.ConfCwd) opt.cwd = this.options.ConfCwd;
     try {
+        var Conf = require('conf');
         store = new Conf(opt);
         val = store.get(cacheKey);
     } catch (e) {}
@@ -20,7 +19,7 @@ var getCache = function () {
 };
 var setCache = function () {
     try {
-        localStorage.setItem(cacheKey, JSON.stringify(cache))
+        store.set(cacheKey, cache);
     } catch (e) {
     }
 };

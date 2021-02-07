@@ -24,10 +24,7 @@ SelectStream.prototype = {
      */
     processChunk(chunk, encoding, callback) {
         Object.assign(this, {
-            chunk: Buffer.concat(
-                [this.chunk, chunk],
-                this.chunk.length + chunk.length,
-            ),
+            chunk: Buffer.concat([this.chunk, chunk], this.chunk.length + chunk.length),
             encoding,
             callback,
         });
@@ -78,17 +75,9 @@ SelectStream.prototype = {
             var offset = 0;
             while (offset < this.headerLength) {
                 var headerNameLength = this.chunk[offset] * 1;
-                var headerName = this.chunk.toString(
-                    'ascii',
-                    offset + 1,
-                    offset + 1 + headerNameLength,
-                );
+                var headerName = this.chunk.toString('ascii', offset + 1, offset + 1 + headerNameLength);
                 var headerValueLength = this.chunk.readInt16BE(offset + headerNameLength + 2);
-                var headerValue = this.chunk.toString(
-                    'ascii',
-                    offset + headerNameLength + 4,
-                    offset + headerNameLength + 4 + headerValueLength,
-                );
+                var headerValue = this.chunk.toString('ascii', offset + headerNameLength + 4, offset + headerNameLength + 4 + headerValueLength);
                 header[headerName] = headerValue;
                 offset += headerNameLength + 4 + headerValueLength;
             }

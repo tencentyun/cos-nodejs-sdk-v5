@@ -1,6 +1,6 @@
 {
   "name": "cos-nodejs-sdk-v5",
-  "version": "2.9.5",
+  "version": "2.9.6",
   "description": "cos nodejs sdk v5",
   "main": "index.js",
   "types": "types",
@@ -31,7 +31,7 @@
   "homepage": "https://github.com/tencentyun/cos-nodejs-sdk-v5#readme",
   "dependencies": {
     "@types/node": "^14.14.20",
-    "conf": "^7.1.2",
+    "conf": "^9.0.0",
     "mime-types": "^2.1.24",
     "request": "^2.88.2",
     "xml2js": "^0.4.19"
@@ -40,5 +40,8 @@
     "mocha": "^4.0.1",
     "nyc": "^15.1.0",
     "qcloud-cos-sts": "^3.0.0"
+  },
+  "engines": {
+    "node": ">= 6"
   }
 }

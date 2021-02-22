@@ -1169,7 +1169,7 @@ declare namespace COS {
     /** 包括用户自定义元数据头部后缀和用户自定义元数据信息，将作为对象元数据保存，大小限制为2KB，注意：用户自定义元数据信息支持下划线（_），但用户自定义元数据头部后缀不支持下划线，仅支持减号（-） */
     'x-cos-meta-*'?: string,
     /** 任务开始上传的回调方法 */
-    onTaskReady?: () => void,
+    onTaskReady?: (TaskId: COS.TaskId) => void,
     /** 上传的进度回调方法 */
     onProgress?: onProgress,
   }
@@ -1631,7 +1631,7 @@ Bulk：批量模式，恢复时间为24 - 48小时。 */
     /** 包括用户自定义元数据头部后缀和用户自定义元数据信息，将作为对象元数据保存，大小限制为2KB，注意：用户自定义元数据信息支持下划线（_），但用户自定义元数据头部后缀不支持下划线，仅支持减号（-） */
     'x-cos-meta-*'?: string,
     /** 任务开始上传的回调方法 */
-    onTaskReady?: () => void,
+    onTaskReady?: (TaskId: COS.TaskId) => void,
     /** 上传的进度回调方法 */
     onProgress?: onProgress,
     /** 续传校验的进度回调方法 */

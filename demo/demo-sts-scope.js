@@ -55,7 +55,7 @@ var cos = new COS({
                 callback({
                     TmpSecretId: credentials.tmpSecretId,
                     TmpSecretKey: credentials.tmpSecretKey,
-                    XCosSecurityToken: credentials.sessionToken,
+                    SecurityToken: credentials.sessionToken,
                     ExpiredTime: data.expiredTime,
                     ScopeLimit: true, // 设为 true 可限制密钥只在相同请求可重用，默认不限制一直可重用，细粒度控制权限需要设为 true
                 });

@@ -47,7 +47,7 @@ var cos = new COS({
                 callback({
                     TmpSecretId: credentials.tmpSecretId,
                     TmpSecretKey: credentials.tmpSecretKey,
-                    XCosSecurityToken: credentials.sessionToken,
+                    SecurityToken: credentials.sessionToken,
                     ExpiredTime: data.expiredTime,
                 });
             }

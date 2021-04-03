@@ -38,6 +38,7 @@ var defaultOptions = {
     Ip: '',
     StrictSsl: true,
     KeepAlive: true,
+    FollowRedirect: true,
     UserAgent: '',
     ConfCwd: '',
 };

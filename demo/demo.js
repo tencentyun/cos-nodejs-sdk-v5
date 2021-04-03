@@ -17,6 +17,7 @@ var cos = new COS({
     ChunkSize: 1024 * 1024 * 8,  // 控制分片大小，单位 B，在同园区上传可以设置较大的分片大小
     Proxy: '',
     Protocol: 'https:',
+    FollowRedirect: false,
 });
 
 var TaskId;
@@ -830,6 +831,14 @@ function putObjectCopy() {
     });
 }
 
+cos.deleteObject({
+    Bucket: config.Bucket,
+    Region: config.Region,
+    Key: 'pingjs/ext2020/qqindex2018/dist/img/qq_logo_2x.png',
+}, function (err, data) {
+    getObject();
+});
+
 function getObject() {
     var filepath1 = path.resolve(__dirname, '1mb.out1.zip');
     var filepath2 = path.resolve(__dirname, '1mb.out2.zip');
@@ -839,39 +848,16 @@ function getObject() {
     cos.getObject({
         Bucket: config.Bucket,
         Region: config.Region,
-        Key: '1mb.zip',
+        Key: 'pingjs/ext2020/qqindex2018/dist/img/qq_logo_2x.png',
         onProgress: function (progressData) {
             console.log(JSON.stringify(progressData));
         }
     }, function (err, data) {
-        fs.writeFileSync(filepath1, data.Body);
+        console.log(err);
+        console.log(data);
+        // fs.writeFileSync(filepath1, data.Body);
     });
 
-    // file2 获取对象到本地文件
-    cos.getObject({
-        Bucket: config.Bucket,
-        Region: config.Region,
-        Key: '1mb.zip',
-        Output: fs.createWriteStream(filepath2),
-        onProgress: function (progressData) {
-            console.log(JSON.stringify(progressData));
-        }
-    }, function (err, data) {
-        console.log(err || data);
-    });
-
-    // file3 pipe 格式获取对象到本地文件
-    var stream = cos.getObjectStream({
-        Bucket: config.Bucket,
-        Region: config.Region,
-        Key: '1mb.zip',
-        onProgress: function (progressData) {
-            console.log(JSON.stringify(progressData));
-        }
-    }, function (err, data) {
-        console.log(err || data);
-    });
-    stream.pipe(fs.createWriteStream(filepath3))
 }
 
 function headObject() {

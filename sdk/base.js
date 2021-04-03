@@ -3537,6 +3537,9 @@ function _submitRequest(params, callback) {
     if (this.options.KeepAlive) {
         opt.forever = true;
     }
+    if (!this.options.FollowRedirect) {
+        opt.followRedirect = false;
+    }
 
     // 修复 Content-Type: false 的 Bug，原因 request 模块会获取 request('mime-types).lookup(readStream.path) 作为 Content-Type
     // 问题代码位置：https://github.com/request/request/blob/v2.88.1/request.js#L500

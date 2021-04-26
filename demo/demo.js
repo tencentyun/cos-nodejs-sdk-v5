@@ -793,31 +793,31 @@ function putObject() {
     var filename = '1mb.zip';
     var filepath = path.resolve(__dirname, filename);
     util.createFile(filepath, 1024 * 1024, function (err) {
-        // 调用方法
-        cos.putObject({
-            Bucket: config.Bucket, /* 必须 */
-            Region: config.Region,
-            Key: filename, /* 必须 */
-            onTaskReady: function (tid) {
-                TaskId = tid;
-            },
-            onProgress: function (progressData) {
-                console.log(JSON.stringify(progressData));
-            },
-            // 格式1. 传入文件内容
-            // Body: fs.readFileSync(filepath),
-            // 格式2. 传入文件流，必须需要传文件大小
-            Body: fs.createReadStream(filepath),
-            ContentLength: fs.statSync(filepath).size,
-            Headers: {
-                // 万象持久化接口，上传时持久化
-                // 'Pic-Operations': '{"is_pic_info": 1, "rules": [{"fileid": "test.jpg", "rule": "imageMogr2/thumbnail/!50p"}]}'
-            },
-        }, function (err, data) {
-            console.log(err || data);
-            fs.unlinkSync(filepath);
-        });
-    });
+      // 调用方法
+      cos.putObject({
+          Bucket: config.Bucket, /* 必须 */
+          Region: config.Region,
+          Key: filename, /* 必须 */
+          onTaskReady: function (tid) {
+              TaskId = tid;
+          },
+          onProgress: function (progressData) {
+              console.log(JSON.stringify(progressData));
+          },
+          // 格式1. 传入文件内容
+          // Body: fs.readFileSync(filepath),
+          // 格式2. 传入文件流，必须需要传文件大小
+          Body: fs.createReadStream(filepath),
+          ContentLength: fs.statSync(filepath).size,
+          Headers: {
+              // 万象持久化接口，上传时持久化
+              // 'Pic-Operations': '{"is_pic_info": 1, "rules": [{"fileid": "test.jpg", "rule": "imageMogr2/thumbnail/!50p"}]}'
+          },
+      }, function (err, data) {
+          console.log(err || data);
+          fs.unlinkSync(filepath);
+      });
+  });
 }
 
 function putObjectCopy() {
@@ -831,14 +831,6 @@ function putObjectCopy() {
     });
 }
 
-cos.deleteObject({
-    Bucket: config.Bucket,
-    Region: config.Region,
-    Key: 'pingjs/ext2020/qqindex2018/dist/img/qq_logo_2x.png',
-}, function (err, data) {
-    getObject();
-});
-
 function getObject() {
     var filepath1 = path.resolve(__dirname, '1mb.out1.zip');
     var filepath2 = path.resolve(__dirname, '1mb.out2.zip');
@@ -848,14 +840,16 @@ function getObject() {
     cos.getObject({
         Bucket: config.Bucket,
         Region: config.Region,
-        Key: 'pingjs/ext2020/qqindex2018/dist/img/qq_logo_2x.png',
+        Key: '1mb.zip',
         onProgress: function (progressData) {
             console.log(JSON.stringify(progressData));
         }
     }, function (err, data) {
-        console.log(err);
-        console.log(data);
-        // fs.writeFileSync(filepath1, data.Body);
+        if(data){
+          fs.writeFileSync(filepath1, data.Body);
+        } else {
+          console.log(err);
+        }
     });
 
 }
@@ -1387,6 +1381,24 @@ function deleteFolder() {
     }, function (err, data) {
         console.log(err || data);
     });
+}
+
+function request() {
+  // 对云上数据进行图片处理
+  var filename = 'exampleImage.png';
+  cos.request({
+      Bucket: config.Bucket,
+      Region: config.Region,
+      Key: filename,
+      Method: 'POST',
+      Action: 'image_process',
+      Headers: {
+        // 万象持久化接口，上传时持久化
+        'Pic-Operations': '{"is_pic_info": 1, "rules": [{"fileid": "desample_photo.jpg", "rule": "imageMogr2/thumbnail/200x/"}]}'
+      },
+  }, function (err, data) {
+      console.log(err || data);
+  });
 }
 
 // getService();

@@ -1858,6 +1858,7 @@ function listObjectVersions(params, callback) {
  */
 function getObject(params, callback) {
     var reqParams = params.Query || {};
+    var reqParamsStr = params.QueryString || '';
 
     reqParams['response-content-type'] = params['ResponseContentType'];
     reqParams['response-content-language'] = params['ResponseContentLanguage'];
@@ -1933,6 +1934,7 @@ function getObject(params, callback) {
         VersionId: params.VersionId,
         headers: params.Headers,
         qs: reqParams,
+        qsStr: reqParamsStr,
         rawBody: true,
         outputStream: outputStream,
         onDownloadProgress: onDownloadProgress,
@@ -2978,6 +2980,36 @@ function multipartAbort(params, callback) {
 }
 
 /**
+ * cos 内置请求
+ * @param  {Object}  params                 参数对象，必须
+ *     @param  {String}  params.Bucket      Bucket名称，必须
+ *     @param  {String}  params.Region      地域名称，必须
+ *     @param  {String}  params.Key         object名称，必须
+ * @param  {Function}  callback             回调函数，必须
+ *     @return  {Object}    err             请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
+ *     @return  {Object}    data            返回的数据
+ */
+ function request(params, callback) {
+  submitRequest.call(this, {
+      method: params.Method,
+      Bucket: params.Bucket,
+      Region: params.Region,
+      Key: params.Key,
+      action: params.Action,
+      headers: params.Headers,
+      qs: params.Query,
+      body: params.Body,
+  }, function (err, data) {
+      if (err) return callback(err);
+      if (data && data.body) {
+          data.Body = data.body;
+          delete data.body;
+      }
+      callback(err, data);
+  });
+}
+
+/**
  * 获取签名
  * @param  {Object}  params             参数对象，必须
  *     @param  {String}  params.Method  请求方法，必须
@@ -3032,10 +3064,22 @@ function getObjectUrl(params, callback) {
         region: params.Region,
         object: params.Key,
     });
-    if (params.Sign !== undefined && !params.Sign) {
-        callback(null, {Url: url});
-        return url;
+
+    var queryParamsStr = '';
+    if(params.Query){
+      queryParamsStr += util.obj2str(params.Query);
     }
+    if(params.QueryString){
+      queryParamsStr += (queryParamsStr ? '&' : '') + params.QueryString;
+    }
+
+    var syncUrl = url;
+    if (params.Sign !== undefined && !params.Sign) {
+        queryParamsStr && (syncUrl += '?' + queryParamsStr);
+        callback(null, {Url: syncUrl});
+        return syncUrl;
+    }
+
     var AuthData = getAuthorizationAsync.call(this, {
         Action: ((params.Method || '').toUpperCase() === 'PUT' ? 'name/cos:PutObject' : 'name/cos:GetObject'),
         Bucket: params.Bucket || '',
@@ -3056,16 +3100,18 @@ function getObjectUrl(params, callback) {
         AuthData.ClientIP && (signUrl += '&clientIP=' + AuthData.ClientIP);
         AuthData.ClientUA && (signUrl += '&clientUA=' + AuthData.ClientUA);
         AuthData.Token && (signUrl += '&token=' + AuthData.Token);
+        queryParamsStr && (signUrl += '&' + queryParamsStr);
         setTimeout(function () {
             callback(null, {Url: signUrl});
         });
     });
+
     if (AuthData) {
-        return url + '?' + AuthData.Authorization +
+        syncUrl += '?' + AuthData.Authorization +
             (AuthData.SecurityToken ? '&x-cos-security-token=' + AuthData.SecurityToken : '');
-    } else {
-        return url;
+        queryParamsStr && (syncUrl += '&' + queryParamsStr);
     }
+    return syncUrl;
 }
 
 
@@ -3498,6 +3544,13 @@ function _submitRequest(params, callback) {
     if (params.action) {
         url = url + '?' + params.action;
     }
+    if (params.qsStr) {
+        if(url.indexOf('?') > -1){
+          url = url + '&' + params.qsStr;
+        }else{
+          url = url + '?' + params.qsStr;
+        }
+    }
 
     var opt = {
         method: method,
@@ -3828,6 +3881,7 @@ var API_MAP = {
     multipartAbort: multipartAbort,
 
     // 工具方法
+    request: request,
     getObjectUrl: getObjectUrl,
     getAuth: getAuth,
     getV4Auth: getV4Auth,

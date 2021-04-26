@@ -34,6 +34,8 @@ declare namespace COS {
   type Query = Record<string, any>;
   /** 请求里的 Header 参数 */
   type Headers = Record<string, any>;
+  /** 请求里的 URL 中对象存储 API 接口名，如 acl、tagging 等 */
+  type Action = string;
   /** 一个字符的分隔符，常用 / 字符，用于对对象键进行分组。所有对象键中从 prefix 或从头（如未指定 prefix）到首个 delimiter 之间相同的部分将作为 CommonPrefixes 下的一个 Prefix 节点。被分组的对象键不再出现在后续对象列表中 */
   type Delimiter = '/' | string;
   /** 规定返回值的编码方式，可选值：url，代表返回的对象键为 URL 编码（百分号编码）后的值，例如“腾讯云”将被编码为%E8%85%BE%E8%AE%AF%E4%BA%91 */
@@ -87,7 +89,7 @@ declare namespace COS {
   /** 当前需要用凭证的请求，需要的最小权限 */
   type Scope = {
     /** 需要的权限 */
-    action: string,
+    COSOptions: string,
     /** 操作的存储桶的名称，命名规则为 BucketName-APPID，例如 examplebucket-1250000000 */
     bucket: Bucket,
     /** 存储桶所在地域 @see https://cloud.tencent.com/document/product/436/6224 */
@@ -169,6 +171,8 @@ declare namespace COS {
     UploadIdCacheLimit?: number,
     /** 分片上传缓存的 UploadId 列表时，保存的本地缓存文件目录路径，nodejs-sdk 默认 500 个，js-sdk 默认 50 */
     ConfCwd?: string,
+    /** 301/302 回源跟随配置。 */
+    FollowRedirect?: boolean,
     /** 获取签名的回调方法，如果没有 SecretId、SecretKey 时，必选 */
     getAuthorization?: (
       options: GetAuthorizationOptions,
@@ -1094,8 +1098,10 @@ declare namespace COS {
     BodyType?: 'text' | 'blob' | 'arraybuffer',
     /** 写入流，可以传本地文件写入流 */
     Output?: Stream,
-    /** 请求里的 Url Query 参数 */
+    /** 请求里的 Url Query 参数，传入该值中的 key/value 将会被 URLEncode */
     Query?: Query,
+    /** 请求里的 Url Query 参数。传入该值将直接拼接在 Url 上，不会对其进行 URLEncode */
+    QueryString?: string,
     /** 当对象在指定时间后被修改，则返回对象，否则返回 HTTP 状态码为304（Not Modified） */
     IfModifiedSince?: string,
     /** 当对象在指定时间后未被修改，则返回对象，否则返回 HTTP 状态码为412（Precondition Failed） */
@@ -1745,6 +1751,21 @@ Bulk：批量模式，恢复时间为24 - 48小时。 */
   /** 上传任务列表 */
   type TaskList = Task[]
 
+  // request
+  /** request 接口参数 */
+  interface RequestParams extends ObjectParams {
+    /** 操作方法，如 get，post，delete， head 等 HTTP 方法 */
+    Method: string,
+    /** 请求里的 Url Query 参数 */
+    Query?: Query,
+    /** 请求里的 Body 参数 */
+    Body?: Body,
+    /** 请求的 API 动作接口(可理解为不带 = 的 Query 参数)，如 acl、tagging、image_process 等 */
+    Action: Action
+  }
+  /** Request 接口返回值 */
+  interface RequestResult extends GeneralResult {}
+
   // getObjectUrl
   /** getObjectUrl 接口参数 */
   interface GetObjectUrlParams extends ObjectParams {
@@ -1752,8 +1773,10 @@ Bulk：批量模式，恢复时间为24 - 48小时。 */
     Sign?: boolean,
     /** 请求方法 */
     Method?: Method,
-    /** 请求里的 Url Query 参数 */
+    /** 请求里的 Url Query 参数，传入该值中的 key/value 将会被 URLEncode */
     Query?: Query,
+    /** 请求里的 Url Query 参数。传入该值将直接拼接在 Url 上，不会对其进行 URLEncode */
+    QueryString?: string,
     /** 签名几秒后失效，默认为900秒 */
     Expires?: number,
   }
@@ -2116,6 +2139,10 @@ declare class COS {
 
   /** 判断上传队列是否有未完成的任务 */
   isUploadRunning(): boolean;
+
+  /** 分片复制文件 */
+  request(params: COS.RequestParams, callback: (err: COS.CosError, data: COS.RequestResult) => void): void;
+  request(params: COS.RequestParams): Promise<COS.RequestResult>;
 
   /** 获取文件下载链接 @see https://cloud.tencent.com/document/product/436/35651 */
   getObjectUrl(params: COS.GetObjectUrlParams, callback: (err: COS.CosError, data: COS.GetObjectUrlResult) => void): string;

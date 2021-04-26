@@ -15,6 +15,34 @@ function camSafeUrlEncode(str) {
         .replace(/\*/g, '%2A');
 }
 
+var getObjectKeys = function (obj, forKey) {
+  var list = [];
+  for (var key in obj) {
+      if (obj.hasOwnProperty(key)) {
+          list.push(forKey ? camSafeUrlEncode(key).toLowerCase() : key);
+      }
+  }
+  return list.sort(function (a, b) {
+      a = a.toLowerCase();
+      b = b.toLowerCase();
+      return a === b ? 0 : (a > b ? 1 : -1);
+  });
+};
+
+var obj2str = function (obj) {
+  var i, key, val;
+  var list = [];
+  var keyList = getObjectKeys(obj);
+  for (i = 0; i < keyList.length; i++) {
+      key = keyList[i];
+      val = (obj[key] === undefined || obj[key] === null) ? '' : ('' + obj[key]);
+      key = camSafeUrlEncode(key).toLowerCase();
+      val = camSafeUrlEncode(val) || '';
+      list.push(key + '=' + val)
+  }
+  return list.join('&');
+};
+
 //测试用的key后面可以去掉
 var getAuth = function (opt) {
     opt = opt || {};
@@ -37,34 +65,6 @@ var getAuth = function (opt) {
 
     if (!SecretId) throw new Error('missing param SecretId');
     if (!SecretKey) throw new Error('missing param SecretKey');
-
-    var getObjectKeys = function (obj, forKey) {
-        var list = [];
-        for (var key in obj) {
-            if (obj.hasOwnProperty(key)) {
-                list.push(forKey ? camSafeUrlEncode(key).toLowerCase() : key);
-            }
-        }
-        return list.sort(function (a, b) {
-            a = a.toLowerCase();
-            b = b.toLowerCase();
-            return a === b ? 0 : (a > b ? 1 : -1);
-        });
-    };
-
-    var obj2str = function (obj) {
-        var i, key, val;
-        var list = [];
-        var keyList = getObjectKeys(obj);
-        for (i = 0; i < keyList.length; i++) {
-            key = keyList[i];
-            val = (obj[key] === undefined || obj[key] === null) ? '' : ('' + obj[key]);
-            key = camSafeUrlEncode(key).toLowerCase();
-            val = camSafeUrlEncode(val) || '';
-            list.push(key + '=' + val)
-        }
-        return list.join('&');
-    };
 
     // 签名有效起止时间
     var now = Math.round(getSkewTime(opt.SystemClockOffset) / 1000) - 1;
@@ -652,6 +652,7 @@ var util = {
     callbackAfterStreamFinish: callbackAfterStreamFinish,
     getV4Auth: getV4Auth,
     isBrowser: false,
+    obj2str: obj2str,
 };
 
 module.exports = util;

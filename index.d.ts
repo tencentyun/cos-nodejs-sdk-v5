@@ -89,7 +89,7 @@ declare namespace COS {
   /** 当前需要用凭证的请求，需要的最小权限 */
   type Scope = {
     /** 需要的权限 */
-    COSOptions: string,
+    action: string,
     /** 操作的存储桶的名称，命名规则为 BucketName-APPID，例如 examplebucket-1250000000 */
     bucket: Bucket,
     /** 存储桶所在地域 @see https://cloud.tencent.com/document/product/436/6224 */

@@ -128,28 +128,29 @@ function putBucketAcl() {
         "Owner": { // AccessControlPolicy 里必须有 owner
             "ID": 'qcs::cam::uin/10001:uin/10001' // 10001 是 Bucket 所属用户的 QQ 号
         },
-        "Grants": [{
-            "Grantee": {
-                "ID": "qcs::cam::uin/1001:uin/1001", // 10002 是 QQ 号
-                "DisplayName": "qcs::cam::uin/1001:uin/1001" // 10002 是 QQ 号
+        "Grants": [
+            {
+                "Grantee": {
+                    "URI": "http://cam.qcloud.com/groups/global/AllUsers", // 10002 是 QQ 号
+                },
+                "Permission": "READ"
             },
-            "Permission": "READ"
-        }, {
-            "Grantee": {
-                "ID": "qcs::cam::uin/10002:uin/10002", // 10002 是 QQ 号
-            },
-            "Permission": "WRITE"
-        }, {
-            "Grantee": {
-                "ID": "qcs::cam::uin/10002:uin/10002", // 10002 是 QQ 号
-            },
-            "Permission": "READ_ACP"
-        }, {
-            "Grantee": {
-                "ID": "qcs::cam::uin/10002:uin/10002", // 10002 是 QQ 号
-            },
-            "Permission": "WRITE_ACP"
-        }]
+            {
+                "Grantee": {
+                    "ID": "qcs::cam::uin/1001:uin/1001", // 10002 是 QQ 号
+                },
+                "Permission": "READ"
+            },  {
+                "Grantee": {
+                    "ID": "qcs::cam::uin/10002:uin/10002", // 10002 是 QQ 号
+                },
+                "Permission": "READ_ACP"
+            }, {
+                "Grantee": {
+                    "ID": "qcs::cam::uin/10002:uin/10002", // 10002 是 QQ 号
+                },
+                "Permission": "WRITE_ACP"
+            }]
         }
     }, function (err, data) {
         console.log(err || data);
@@ -657,7 +658,8 @@ function deleteBucketLogging() {
     cos.putBucketLogging({
         Bucket: config.Bucket,
         Region: config.Region,
-        BucketLoggingStatus: ''
+        BucketLoggingStatus: {
+        }
     }, function (err, data) {
         console.log(err || data);
     });

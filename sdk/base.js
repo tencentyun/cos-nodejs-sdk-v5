@@ -3533,6 +3533,10 @@ function _submitRequest(params, callback) {
     }
 
     // url
+
+    if (this.options.UseAccelerate) {
+        region = 'accelerate';
+    }
     url = url || getUrl({
         ForcePathStyle: self.options.ForcePathStyle,
         protocol: self.options.Protocol,

@@ -131,7 +131,7 @@ function putBucketAcl() {
         "Grants": [
             {
                 "Grantee": {
-                    "URI": "http://cam.qcloud.com/groups/global/AllUsers", // 10002 是 QQ 号
+                    "URI": "http://cam.qcloud.com/groups/global/AllUsers", // 允许匿名用户组访问
                 },
                 "Permission": "READ"
             },

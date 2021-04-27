@@ -3110,6 +3110,8 @@ function getObjectUrl(params, callback) {
         syncUrl += '?' + AuthData.Authorization +
             (AuthData.SecurityToken ? '&x-cos-security-token=' + AuthData.SecurityToken : '');
         queryParamsStr && (syncUrl += '&' + queryParamsStr);
+    } else{
+        queryParamsStr && (syncUrl += '?' + queryParamsStr);
     }
     return syncUrl;
 }

@@ -139,7 +139,7 @@ function putBucketAcl() {
                 "Grantee": {
                     "ID": "qcs::cam::uin/1001:uin/1001", // 10002 是 QQ 号
                 },
-                "Permission": "READ"
+                "Permission": "WRITE"
             },  {
                 "Grantee": {
                     "ID": "qcs::cam::uin/10002:uin/10002", // 10002 是 QQ 号

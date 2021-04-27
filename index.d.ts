@@ -71,7 +71,7 @@ declare namespace COS {
   /** 被授权者信息与权限信息 */
   interface Grants {
     /** 所有者的信息 */
-    Grantee: Owner|GroupOwner,
+    Grantee: Owner | GroupOwner,
     /** 权限信息，枚举值：READ | WRITE | READ_ACP | WRITE_ACP | FULL_CONTROL 腾讯云对象存储 COS 在资源 ACL 上支持的操作实际上是一系列的操作集合，对于存储桶和对象 ACL 来说分别代表不同的含义。 */
     Permission: Permission,
   }

@@ -1383,6 +1383,31 @@ function deleteFolder() {
     });
 }
 
+function downloadFile() {
+    // 单文件分片并发下载
+    var Key = 'windows_7_ultimate_x64.iso';
+    cos.downloadFile({
+        Bucket: config.Bucket,
+        Region: config.Region,
+        Key: Key,
+        FilePath: './' + Key,
+        ChunkSize: 1024 * 1024 * 8, // 文件大于 8MB 用分片下载
+        ParallelLimit: 5, // 分片并发数
+        RetryTimes: 3, // 分片失败重试次数
+        onTaskReady: function (taskId) {
+            console.log(taskId);
+        },
+        onProgress: function (progressData) {
+            console.log(JSON.stringify(progressData));
+        },
+    }, function (err, data) {
+        console.log(err || data);
+    });
+
+    // 取消下载任务
+    // cos.emit('inner-kill-task', {TaskId: '123'});
+}
+
 function request() {
   // 对云上数据进行图片处理
   var filename = 'exampleImage.png';
@@ -1478,3 +1503,5 @@ function request() {
 // uploadFolder();
 // listFolder();
 // deleteFolder();
+// downloadFile();
+// request();

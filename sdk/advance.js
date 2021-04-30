@@ -1112,12 +1112,242 @@ function copySliceItem(params, callback) {
     });
 }
 
+// 分片下载文件
+function downloadFile(params, callback) {
+    var self = this;
+    var TaskId = params.TaskId || util.uuid();
+    var Bucket = params.Bucket;
+    var Region = params.Region;
+    var Key = params.Key;
+    var FilePath = params.FilePath;
+    var FileSize;
+    var FinishSize = 0;
+    var onProgress;
+    var ChunkSize = params.ChunkSize || 1024 * 1024;
+    var ParallelLimit = params.ParallelLimit || 5;
+    var RetryTimes = params.RetryTimes || 3;
+    var ep = new EventProxy();
+    var PartList;
+    var aborted = false;
+    var head = {};
+
+    ep.on('error', function (err) {
+        callback(err);
+    });
+
+    ep.on('get_file_info', function () {
+        // 获取远端复制源文件的大小
+        self.headObject({
+            Bucket: Bucket,
+            Region: Region,
+            Key: Key,
+        },function(err, data) {
+            if (err) return ep.emit('error', err);
+
+            // 获取文件大小
+            FileSize = params.FileSize = parseInt(data.headers['content-length']);
+            if (FileSize === undefined || !FileSize) {
+                callback(util.error(new Error('get Content-Length error, please add "Content-Length" to CORS ExposeHeader setting.')));
+                return;
+            }
+
+            // 归档文件不支持下载
+            const resHeaders = data.headers;
+            const storageClass = resHeaders['x-cos-storage-class'] || '';
+            const restoreStatus = resHeaders['x-cos-restore'] || '';
+            if (
+                ['DEEP_ARCHIVE', 'ARCHIVE'].includes(storageClass) &&
+                (!restoreStatus || restoreStatus === 'ongoing-request="true"')
+            ) {
+                return callback({statusCode, header: resHeaders, code: 'CannotDownload', message: 'Archive object can not download, please restore to Standard storage class.'});
+            }
+
+            // 整理文件信息
+            head = {
+                ETag: data.ETag,
+                size: FileSize,
+                mtime: resHeaders['last-modified'],
+                crc64ecma: resHeaders['x-cos-hash-crc64ecma'],
+            };
+
+            // 处理进度反馈
+            onProgress = util.throttleOnProgress.call(self, FileSize, function (info) {
+                if (aborted) return;
+                params.onProgress(info);
+            });
+
+            if (FileSize <= ChunkSize) {
+                // 小文件直接单请求下载
+                self.getObject({
+                    TaskId: TaskId,
+                    Bucket: Bucket,
+                    Region: Region,
+                    Key: Key,
+                    onProgress: onProgress,
+                    Output: fs.createWriteStream(FilePath),
+                }, function (err, data) {
+                    if (err) {
+                        onProgress(null, true);
+                        return callback(err);
+                    }
+                    onProgress({loaded: FileSize, total: FileSize}, true);
+                    callback(err, data);
+                });
+            } else {
+                // 大文件分片下载
+                ep.emit('calc_suitable_chunk_size');
+            }
+        });
+    });
+
+    // 计算合适的分片大小
+    ep.on('calc_suitable_chunk_size', function (SourceHeaders) {
+
+        // 控制分片大小
+        var SIZE = [1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 1024 * 2, 1024 * 4, 1024 * 5];
+        var AutoChunkSize = 1024 * 1024;
+        for (var i = 0; i < SIZE.length; i++) {
+            AutoChunkSize = SIZE[i] * 1024 * 1024;
+            if (FileSize / AutoChunkSize <= self.options.MaxPartNumber) break;
+        }
+        params.ChunkSize = ChunkSize = Math.max(ChunkSize, AutoChunkSize);
+
+        var ChunkCount = Math.ceil(FileSize / ChunkSize);
+
+        var list = [];
+        for (var partNumber = 1; partNumber <= ChunkCount; partNumber++) {
+            var start = (partNumber - 1) * ChunkSize;
+            var end = partNumber * ChunkSize < FileSize ? (partNumber * ChunkSize - 1) : FileSize - 1;
+            var item = {
+                PartNumber: partNumber,
+                start: start,
+                end: end,
+            };
+            list.push(item);
+        }
+        PartList = list;
+
+        ep.emit('prepare_file');
+    });
+
+    // 准备要下载的空文件
+    ep.on('prepare_file', function (SourceHeaders) {
+        fs.writeFile(FilePath, '', err => {
+            if (err) {
+                ep.emit('error', err.code === 'EISDIR' ? { code: 'exist_same_dir', message: FilePath } : err);
+            } else {
+                ep.emit('start_download_chunks');
+            }
+        });
+    });
+
+    // 计算合适的分片大小
+    var result;
+    ep.on('start_download_chunks', function (SourceHeaders) {
+        onProgress({loaded: 0, total: FileSize}, true);
+        var maxPartNumber = PartList.length;
+        Async.eachLimit(PartList, ParallelLimit, function (part, nextChunk) {
+            if (aborted) return;
+            Async.retry(RetryTimes, function (tryCallback) {
+                if (aborted) return;
+                // FinishSize
+                var Headers = util.clone(params.Headers);
+                Headers.Range = "bytes=" + part.start + "-" + part.end;
+                const writeStream = fs.createWriteStream(FilePath, {
+                    start: part.start,
+                    flags: 'r+'
+                });
+                var preAddSize = 0;
+                var chunkReadSize = part.end - part.start;
+                self.getObject({
+                    TaskId: TaskId,
+                    Bucket: params.Bucket,
+                    Region: params.Region,
+                    Key: params.Key,
+                    Query: params.Query,
+                    Headers: Headers,
+                    onProgress: function (data) {
+                        if (aborted) return;
+                        FinishSize += data.loaded - preAddSize;
+                        preAddSize = data.loaded;
+                        onProgress({loaded: FinishSize, total: FileSize});
+                    },
+                    Output: writeStream,
+                }, function (err, data) {
+                    if (aborted) return;
+
+                    // 处理错误和进度
+                    if (err) {
+                        FinishSize -= preAddSize;
+                        return tryCallback(err);
+                    }
+
+                    // 处理返回值
+                    if (part.PartNumber === maxPartNumber) result = data;
+                    var chunkHeaders = data.headers || {};
+
+
+                    var contentRanges = chunkHeaders['content-range'] || ''; // content-range 格式："bytes 3145728-4194303/68577051"
+                    var totalSize = parseInt(contentRanges.split('/')[1] || 0);
+
+                    // 只校验文件大小和 crc64 是否有变更
+                    var changed;
+                    if (chunkHeaders['x-cos-hash-crc64ecma'] !== head.crc64ecma) changed = 'download error, x-cos-hash-crc64ecma has changed.';
+                    else if (totalSize !== head.size) changed = 'download error, Last-Modified has changed.';
+                    // else if (data.ETag !== head.ETag) error = 'download error, ETag has changed.';
+                    // else if (chunkHeaders['last-modified'] !== head.mtime) error = 'download error, Last-Modified has changed.';
+
+                    // 如果
+                    if (changed) {
+                        FinishSize -= preAddSize;
+                        onProgress({loaded: FinishSize, total: FileSize});
+                        ep.emit('error', {
+                            code: 'ObjectHasChanged',
+                            message: changed,
+                            statusCode: data.statusCode,
+                            header: chunkHeaders,
+                        });
+                        self.emit('inner-kill-task', {TaskId: TaskId});
+                    } else {
+                        FinishSize += chunkReadSize - preAddSize;
+                        part.loaded = true;
+                        onProgress({loaded: FinishSize, total: FileSize});
+                        tryCallback(err, data);
+                    }
+                });
+            }, function (err, data) {
+                if (aborted) return;
+                nextChunk(err, data);
+            });
+        }, function (err, data) {
+            if (aborted) return;
+            onProgress({loaded: FileSize, total: FileSize}, true);
+            if (err) return ep.emit('error', err);
+            ep.emit('download_chunks_complete');
+        });
+    });
+
+    // 下载已完成
+    ep.on('download_chunks_complete', function () {
+        callback(null, result);
+    });
+
+    // 监听 取消任务
+    var killTask = function () {
+        aborted = true;
+    };
+    TaskId && self.on('inner-kill-task', killTask);
+
+    ep.emit('get_file_info');
+}
+
 
 var API_MAP = {
     sliceUploadFile: sliceUploadFile,
     abortUploadTask: abortUploadTask,
     uploadFiles: uploadFiles,
     sliceCopyFile: sliceCopyFile,
+    downloadFile: downloadFile,
 };
 
 module.exports.init = function (COS, task) {

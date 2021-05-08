@@ -1412,7 +1412,7 @@ function downloadFile() {
 
 function request() {
   // 对云上数据进行图片处理
-  var filename = 'exampleImage.png';
+  var filename = 'example_photo.png';
   cos.request({
       Bucket: config.Bucket,
       Region: config.Region,
@@ -1421,11 +1421,116 @@ function request() {
       Action: 'image_process',
       Headers: {
         // 万象持久化接口，上传时持久化
-        'Pic-Operations': '{"is_pic_info": 1, "rules": [{"fileid": "desample_photo.jpg", "rule": "imageMogr2/thumbnail/200x/"}]}'
+        'Pic-Operations': '{"is_pic_info": 1, "rules": [{"fileid": "example_photo_ci_result.png", "rule": "imageMogr2/thumbnail/200x/"}]}'
       },
   }, function (err, data) {
       console.log(err || data);
   });
+}
+
+/**
+ * function CIExample1
+ * @description 上传时使用图片处理
+ */
+function CIExample1(){
+    var filename = 'example_photo.png'
+    var filepath = path.resolve(__dirname, filename);
+    cos.putObject({
+        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Region: config.Region,
+        Key: filename,
+        Body: fs.readFileSync(filepath),
+        Headers: {
+            // 通过 imageMogr2 接口使用图片缩放功能：指定图片宽度为 100，宽度等比压缩
+            'Pic-Operations':
+            '{"is_pic_info": 1, "rules": [{"fileid": "example_photo_ci_result.png", "rule": "imageMogr2/thumbnail/200x/"}]}',
+        },
+        onTaskReady: function (tid) {
+            TaskId = tid;
+        },
+        onProgress: function (progressData) {
+            console.log(JSON.stringify(progressData));
+        },
+    }, function (err, data) {
+        console.log(err || data);
+    });
+}
+
+/**
+ * function CIExample2
+ * @description 对云上数据进行图片处理
+ */
+function CIExample2(){
+    var filename = 'example_photo.png';
+    cos.request({
+        Bucket: config.Bucket,
+        Region: config.Region,
+        Key: filename,
+        Method: 'POST',
+        Action: 'image_process',
+        Headers: {
+        // 通过 imageMogr2 接口使用图片缩放功能：指定图片宽度为 200，宽度等比压缩
+            'Pic-Operations': '{"is_pic_info": 1, "rules": [{"fileid": "example_photo_ci_result.png", "rule": "imageMogr2/thumbnail/200x/"}]}'
+        },
+    }, function (err, data) {
+        console.log(err || data);
+    });
+}
+
+/**
+ * function CIExample3
+ * @description 下载时使用图片处理
+ */
+function CIExample3(){
+    var filepath = path.resolve(__dirname, 'example_photo_ci_result.png');
+    cos.getObject({
+            Bucket: config.Bucket,
+            Region: config.Region,
+            Key: 'example_photo.png',
+            QueryString: `imageMogr2/thumbnail/200x/`,
+        },
+        function (err, data) {
+            if(data){
+              fs.writeFileSync(filepath, data.Body);
+            } else {
+              console.log(err);
+            }
+        },
+    );
+}
+
+/**
+ * function CIExample4
+ * @description 生成带图片处理参数的签名 URL
+ */
+function CIExample4(){
+
+    // 生成带图片处理参数的文件签名URL，过期时间设置为 30 分钟。
+    cos.getObjectUrl({
+            Bucket: config.Bucket,
+            Region: config.Region,
+            Key: 'photo.png',
+            QueryString: `imageMogr2/thumbnail/200x/`,
+            Expires: 1800,
+            Sign: true,
+        },
+        function (err, data) {
+            console.log(err || data);
+        },
+    );
+
+  // 生成带图片处理参数的文件URL，不带签名。
+  cos.getObjectUrl({
+        Bucket: config.Bucket,
+        Region: config.Region,
+        Key: 'photo.png',
+        QueryString: `imageMogr2/thumbnail/200x/`,
+        Sign: false,
+    },
+    function (err, data) {
+        console.log(err || data);
+    },
+  );
 }
 
 // getService();

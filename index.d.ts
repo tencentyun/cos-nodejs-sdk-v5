@@ -58,8 +58,11 @@ declare namespace COS {
   type Owner = {
     /** 存储桶持有者的完整 ID，格式为 qcs::cam::uin/[OwnerUin]:uin/[OwnerUin]，如 qcs::cam::uin/100000000001:uin/100000000001 */
     ID: string,
-    /** 存储桶持有者的名字 */
-    DisplayName: string
+  };
+  /** 所有者的信息 */
+  type GroupOwner = {
+    /** 预设用户组，格式为 http://cam.qcloud.com/groups/global/AllUsers (匿名用户组) 或 http://cam.qcloud.com/groups/global/AuthenticatedUsers (认证用户组) 。参见 {@link https://cloud.tencent.com/document/product/436/30752#.E8.BA.AB.E4.BB.BD-grantee| ACL 概述} */
+    URI: string,
   };
   /** 上传发起者的信息 */
   type Initiator = Owner;
@@ -68,7 +71,7 @@ declare namespace COS {
   /** 被授权者信息与权限信息 */
   interface Grants {
     /** 所有者的信息 */
-    Grantee: Owner,
+    Grantee: Owner | GroupOwner,
     /** 权限信息，枚举值：READ | WRITE | READ_ACP | WRITE_ACP | FULL_CONTROL 腾讯云对象存储 COS 在资源 ACL 上支持的操作实际上是一系列的操作集合，对于存储桶和对象 ACL 来说分别代表不同的含义。 */
     Permission: Permission,
   }
@@ -113,9 +116,9 @@ declare namespace COS {
 
   // 实例参数
   interface COSOptions {
-    /** 固定密钥的 SecretId @see https://console.cloud.tencent.com/cam/capi */
+    /** 固定密钥的 SecretId，可从{@link https://console.cloud.tencent.com/cam/capi|API密钥管理}获取 */
     SecretId?: string,
-    /** 固定密钥的 SecretKey  @see https://console.cloud.tencent.com/cam/capi */
+    /** 固定密钥的 SecretKey，可从{@link https://console.cloud.tencent.com/cam/capi|API密钥管理}获取 */
     SecretKey?: string,
     /** 如果传入 SecretId、SecretKey 是临时密钥，需要再传入一个临时密钥的 sessionToken */
     SecurityToken?: string,
@@ -173,6 +176,8 @@ declare namespace COS {
     ConfCwd?: string,
     /** 301/302 回源跟随配置。 */
     FollowRedirect?: boolean,
+    /** 是否使用全球加速域名。开启该配置后仅以下接口支持操作：putObject、getObject、headObject、optionsObject、multipartInit、multipartListPart、multipartUpload、multipartAbort、multipartComplete、multipartList、sliceUploadFile、uploadFiles */
+    UseAccelerate?: boolean,
     /** 获取签名的回调方法，如果没有 SecretId、SecretKey 时，必选 */
     getAuthorization?: (
       options: GetAuthorizationOptions,
@@ -481,7 +486,7 @@ declare namespace COS {
       /** 所有者的信息 */
       Owner: Owner,
       /** 被授权者信息与权限信息 */
-      Grants: Grants
+      Grants: Grants[]
     }
   }
   /** putBucketAcl 接口返回值 */
@@ -507,7 +512,7 @@ declare namespace COS {
     /** 存储桶持有者信息 */
     Owner: Owner,
     /** 被授权者信息与权限信息 */
-    Grants: Grants,
+    Grants: Grants[],
   }
 
   // putBucketCors
@@ -1060,8 +1065,6 @@ declare namespace COS {
   interface AccelerateConfiguration {
     /** 说明全球加速功能是否开启，枚举值：Suspended、Enabled	 */
     Status: 'Enabled' | 'Suspended',
-    /** 指定全球加速功能的类型，枚举值：COS */
-    Type: 'COS'
   }
   /** putBucketAccelerate 接口参数 */
   interface PutBucketAccelerateParams extends BucketParams {
@@ -1079,6 +1082,43 @@ declare namespace COS {
     /** 全球加速的具体信息 */
     InventoryConfiguration: AccelerateConfiguration,
   }
+
+  // putBucketEncryption
+  /** 默认的服务端加密配置规则 */
+  interface EncryptionRule {
+    /** 服务端加密的默认配置信息 */
+    ApplySideEncryptionConfiguration: {
+      /** 要使用的服务端加密算法，枚举值：AES256 */
+       SSEAlgorithm: 'AES256'
+    },
+  }
+  /** 包含默认加密的配置参数 */
+  interface ServerSideEncryptionConfiguration {
+    /** 默认的服务端加密配置规则 */
+    Rule: EncryptionRule[],
+  }
+  /** putBucketEncryption 接口参数 */
+  interface PutBucketEncryptionParams extends BucketParams {
+    /** 包含默认加密的配置参数 */
+    ServerSideEncryptionConfiguration: ServerSideEncryptionConfiguration,
+  }
+  /** putBucketEncryption 接口返回值 */
+  interface PutBucketEncryptionResult extends GeneralResult {}
+
+  // getBucketAccelerate
+  /** getBucketEncryption 接口参数 */
+  interface GetBucketEncryptionParams extends BucketParams {}
+  /** getBucketEncryption 接口返回值 */
+  interface GetBucketEncryptionResult extends GeneralResult {
+    /** 默认加密的配置参数 */
+    ServerSideEncryptionConfiguration: ServerSideEncryptionConfiguration,
+  }
+
+  // deleteBucketEncryption
+  /** deleteBucketEncryption 接口参数 */
+  interface DeleteBucketEncryptionParams extends BucketParams {}
+  /** deleteBucketEncryption 接口返回值 */
+  interface DeleteBucketEncryptionResult extends GeneralResult {}
 
   // headObject
   /** headObject 接口参数 */
@@ -1248,7 +1288,7 @@ declare namespace COS {
     /** 存储桶持有者信息 */
     Owner: Owner,
     /** 被授权者信息与权限信息 */
-    Grants: Grants,
+    Grants: Grants[],
   }
 
   // putObjectAcl
@@ -2018,6 +2058,18 @@ declare class COS {
   /** 查询存储桶的全球加速功能配置 @see https://cloud.tencent.com/document/product/436/38869 */
   getBucketAccelerate(params: COS.GetBucketAccelerateParams, callback: (err: COS.CosError, data: COS.GetBucketAccelerateResult) => void): void;
   getBucketAccelerate(params: COS.GetBucketAccelerateParams): Promise<COS.GetBucketAccelerateResult>;
+
+  /** 设置指定存储桶下的默认加密配置 @see https://cloud.tencent.com/document/product/436/40136 */
+  putBucketEncryption(params: COS.PutBucketEncryptionParams, callback: (err: COS.CosError, data: COS.PutBucketEncryptionResult) => void): void;
+  putBucketEncryption(params: COS.PutBucketEncryptionParams): Promise<COS.PutBucketEncryptionResult>;
+
+  /** 查询指定存储桶下的默认加密配置 @see https://cloud.tencent.com/document/product/436/40137 */
+  getBucketEncryption(params: COS.GetBucketEncryptionParams, callback: (err: COS.CosError, data: COS.GetBucketEncryptionResult) => void): void;
+  getBucketEncryption(params: COS.GetBucketEncryptionParams): Promise<COS.GetBucketEncryptionResult>;
+
+  /** 删除指定存储桶下的默认加密配置 @see https://cloud.tencent.com/document/product/436/40138 */
+  deleteBucketEncryption(params: COS.DeleteBucketEncryptionParams, callback: (err: COS.CosError, data: COS.DeleteBucketEncryptionResult) => void): void;
+  deleteBucketEncryption(params: COS.DeleteBucketEncryptionParams): Promise<COS.DeleteBucketEncryptionResult>;
 
   /** 取回对应对象（Object）的元数据，Head的权限与Get的权限一致 @see https://cloud.tencent.com/document/product/436/38868 */
   headObject(params: COS.HeadObjectParams, callback: (err: COS.CosError, data: COS.HeadObjectResult) => void): void;

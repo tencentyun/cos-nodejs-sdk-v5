@@ -39,6 +39,7 @@ var defaultOptions = {
     StrictSsl: true,
     KeepAlive: true,
     FollowRedirect: true,
+    UseAccelerate: false,
     UserAgent: '',
     ConfCwd: '',
 };

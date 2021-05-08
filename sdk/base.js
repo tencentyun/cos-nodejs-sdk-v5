@@ -2038,7 +2038,7 @@ function putObject(params, callback) {
                     protocol: self.options.Protocol,
                     domain: self.options.Domain,
                     bucket: params.Bucket,
-                    region: params.Region,
+                    region: !self.options.UseAccelerate ? params.Region : 'accelerate',
                     object: params.Key,
                 });
                 url = url.substr(url.indexOf('://') + 3);
@@ -3535,6 +3535,10 @@ function _submitRequest(params, callback) {
     }
 
     // url
+
+    if (this.options.UseAccelerate) {
+        region = 'accelerate';
+    }
     url = url || getUrl({
         ForcePathStyle: self.options.ForcePathStyle,
         protocol: self.options.Protocol,

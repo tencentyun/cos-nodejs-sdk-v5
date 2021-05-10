@@ -1266,22 +1266,30 @@ function deleteObjectTagging() {
 /* 移动对象*/
 function moveObject() {
     // COS 没有对象重命名或移动的接口，移动对象可以通过复制/删除对象实现
-    var source = 'source.jpg';
-    var target = 'target.jpg';
-    var copySource = config.Bucket + '.cos.' + config.Region + '.myqcloud.com/' + camSafeUrlEncode(target).replace(/%2F/g, '/');
-    cos.putObjectCopy({
+    var source = 'source.txt';
+    var target = 'target.txt';
+    var copySource = config.Bucket + '.cos.' + config.Region + '.myqcloud.com/' + camSafeUrlEncode(source).replace(/%2F/g, '/');
+    cos.putObject({
         Bucket: config.Bucket,
         Region: config.Region,
         Key: source,
-        CopySource: copySource,
+        Body: 'hello!',
     }, function (err, data) {
-        if (err) return console.log(err);
-        cos.deleteObject({
+        if (err) return logger.log(err);
+        cos.putObjectCopy({
             Bucket: config.Bucket,
             Region: config.Region,
-            Key: source,
+            Key: target,
+            CopySource: copySource,
         }, function (err, data) {
-            console.log(err || data);
+            if (err) return logger.log(err);
+            cos.deleteObject({
+                Bucket: config.Bucket,
+                Region: config.Region,
+                Key: source,
+            }, function (err, data) {
+                logger.log(err || data);
+            });
         });
     });
 }

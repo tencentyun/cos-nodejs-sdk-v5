@@ -1263,6 +1263,30 @@ function deleteObjectTagging() {
     });
 }
 
+/* 移动对象*/
+function moveObject() {
+    // COS 没有对象重命名或移动的接口，移动对象可以通过复制/删除对象实现
+    var source = 'source.jpg';
+    var target = 'target.jpg';
+    var copySource = config.Bucket + '.cos.' + config.Region + '.myqcloud.com/' + camSafeUrlEncode(target).replace(/%2F/g, '/');
+    cos.putObjectCopy({
+        Bucket: config.Bucket,
+        Region: config.Region,
+        Key: source,
+        CopySource: copySource,
+    }, function (err, data) {
+        if (err) return console.log(err);
+        cos.deleteObject({
+            Bucket: config.Bucket,
+            Region: config.Region,
+            Key: source,
+        }, function (err, data) {
+            console.log(err || data);
+        });
+    });
+}
+
+/* 上传本地文件夹 */
 function uploadFolder() {
     var localFolder = path.resolve(__dirname, '../test/');
     var remotePrefix = 'folder/';
@@ -1294,6 +1318,19 @@ function uploadFolder() {
     });
 }
 
+/* 创建文件夹 */
+function createFolder() {
+    cos.getBucket({
+        Bucket: config.Bucket,
+        Region: config.Region,
+        Key: 'folder/', // 对象存储没有实际的文件夹，可以创建一个路径以 / 结尾的空对象表示，能在部分场景中满足文件夹使用需要
+        Body: '',
+    }, function(err, data) {
+        console.log(err || data);
+    });
+}
+
+/* 列出文件夹下的文件 */
 function listFolder() {
     var _listFolder = function(params, callback) {
         var Contents = [];
@@ -1332,6 +1369,7 @@ function listFolder() {
     });
 }
 
+/* 删除指定文件夹下的所有对象（删除存储桶里指定前缀所有对象） */
 function deleteFolder() {
     var _deleteFolder = function(params, callback) {
         var deletedList = [];
@@ -1385,6 +1423,7 @@ function deleteFolder() {
     });
 }
 
+/* 分片下载文件 */
 function downloadFile() {
     // 单文件分片并发下载
     var Key = 'windows_7_ultimate_x64.iso';
@@ -1411,21 +1450,21 @@ function downloadFile() {
 }
 
 function request() {
-  // 对云上数据进行图片处理
-  var filename = 'example_photo.png';
-  cos.request({
-      Bucket: config.Bucket,
-      Region: config.Region,
-      Key: filename,
-      Method: 'POST',
-      Action: 'image_process',
-      Headers: {
-        // 万象持久化接口，上传时持久化
-        'Pic-Operations': '{"is_pic_info": 1, "rules": [{"fileid": "example_photo_ci_result.png", "rule": "imageMogr2/thumbnail/200x/"}]}'
-      },
-  }, function (err, data) {
-      console.log(err || data);
-  });
+    // 对云上数据进行图片处理
+    var filename = 'example_photo.png';
+    cos.request({
+        Bucket: config.Bucket,
+        Region: config.Region,
+        Key: filename,
+        Method: 'POST',
+        Action: 'image_process',
+        Headers: {
+            // 万象持久化接口，上传时持久化
+            'Pic-Operations': '{"is_pic_info": 1, "rules": [{"fileid": "example_photo_ci_result.png", "rule": "imageMogr2/thumbnail/200x/"}]}'
+        },
+    }, function (err, data) {
+        console.log(err || data);
+    });
 }
 
 /**
@@ -1519,18 +1558,18 @@ function CIExample4(){
         },
     );
 
-  // 生成带图片处理参数的文件URL，不带签名。
-  cos.getObjectUrl({
-        Bucket: config.Bucket,
-        Region: config.Region,
-        Key: 'photo.png',
-        QueryString: `imageMogr2/thumbnail/200x/`,
-        Sign: false,
-    },
-    function (err, data) {
-        console.log(err || data);
-    },
-  );
+    // 生成带图片处理参数的文件URL，不带签名。
+    cos.getObjectUrl({
+            Bucket: config.Bucket,
+            Region: config.Region,
+            Key: 'photo.png',
+            QueryString: `imageMogr2/thumbnail/200x/`,
+            Sign: false,
+        },
+        function (err, data) {
+            console.log(err || data);
+        },
+    );
 }
 
 // getService();
@@ -1607,7 +1646,11 @@ function CIExample4(){
 // putObjectTagging();
 // getObjectTagging();
 // deleteObjectTagging();
+
+// 其他示例
+// moveObject();
 // uploadFolder();
+// createFolder();
 // listFolder();
 // deleteFolder();
 // downloadFile();

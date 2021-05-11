@@ -813,6 +813,7 @@ function uploadFiles(params, callback) {
     util.each(params.files, function (fileParams, index) {
         fs.stat(fileParams.FilePath, function (err, stat) {
 
+            var isDir = stat.isDirectory();
             var FileSize = fileParams.ContentLength = stat.size || 0;
             var fileInfo = {Index: index, TaskId: ''};
 
@@ -853,9 +854,9 @@ function uploadFiles(params, callback) {
             };
 
             // 添加上传任务
-            var api = FileSize > SliceSize ? 'sliceUploadFile' : 'putObject';
+            var api = FileSize <= SliceSize || isDir ? 'putObject' : 'sliceUploadFile';
             if (api === 'putObject') {
-                fileParams.Body = fs.createReadStream(fileParams.FilePath);
+                fileParams.Body = isDir ? '' : fs.createReadStream(fileParams.FilePath);
                 fileParams.Body.isSdkCreated = true;
             }
             taskList.push({

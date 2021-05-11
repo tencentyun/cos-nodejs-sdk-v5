@@ -1,10 +1,10 @@
 // @ts-check
 var fs = require('fs');
 var path = require('path');
-var COS = require('../index');
 var util = require('./util');
+var COS = require('../index');
+var pathLib = require('path');
 var config = require('./config');
-
 
 
 var cos = new COS({
@@ -1296,17 +1296,20 @@ function moveObject() {
 
 /* 上传本地文件夹 */
 function uploadFolder() {
-    var localFolder = path.resolve(__dirname, '../test/');
+    var localFolder = '../test/';
     var remotePrefix = 'folder/';
-    fs.readdir(localFolder, function (err, list) {
+    util.fastListFolder(localFolder, function (err, list) {
         if (err) return console.error(err);
-        var files = list.map(function (filename) {
+        var files = list.map(function (file) {
+            var filename = pathLib.relative(localFolder, file.path).replace(/\\/g, '/');
+            if (filename && file.isDir && !filename.endsWith('/'))
+                filename += '/';
             var Key = remotePrefix + filename;
             return {
                 Bucket: config.Bucket,
                 Region: config.Region,
                 Key: Key,
-                FilePath: path.resolve(localFolder, filename),
+                FilePath: file.path,
             };
         });
         cos.uploadFiles({

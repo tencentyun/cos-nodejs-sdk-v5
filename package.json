@@ -3,7 +3,7 @@
   "version": "2.9.16",
   "description": "cos nodejs sdk v5",
   "main": "index.js",
-  "types": "types",
+  "types": "index.d.ts",
   "scripts": {
     "demo": "node demo/demo.js",
     "demo-sts": "node demo/demo-sts.js",

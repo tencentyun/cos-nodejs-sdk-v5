@@ -3642,14 +3642,6 @@ function _submitRequest(params, callback) {
             sender = null;
         }
     };
-    var xml2json = function (body) {
-        try {
-            json = util.xml2json(body) || {};
-        } catch (e) {
-            json = body || {};
-        }
-        return json;
-    };
     // 在 request 分配的 socket 上挂载 _lastBytesWritten 属性，记录该 socket 已经发送的字节数
     var markLastBytesWritten = function() {
         try {

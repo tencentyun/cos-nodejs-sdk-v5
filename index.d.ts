@@ -178,6 +178,8 @@ declare namespace COS {
     FollowRedirect?: boolean,
     /** 是否使用全球加速域名。开启该配置后仅以下接口支持操作：putObject、getObject、headObject、optionsObject、multipartInit、multipartListPart、multipartUpload、multipartAbort、multipartComplete、multipartList、sliceUploadFile、uploadFiles */
     UseAccelerate?: boolean,
+    /** 是否开启长链接，默认开启 */
+    KeepAlive?: boolean,
     /** 获取签名的回调方法，如果没有 SecretId、SecretKey 时，必选 */
     getAuthorization?: (
       options: GetAuthorizationOptions,

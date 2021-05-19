@@ -289,7 +289,7 @@ function getBucketAcl(params, callback) {
         if (err) return callback(err);
         var AccessControlPolicy = data.AccessControlPolicy || {};
         var Owner = AccessControlPolicy.Owner || {};
-        var Grant = AccessControlPolicy.AccessControlList.Grant || [];
+        var Grant = AccessControlPolicy.AccessControlList && AccessControlPolicy.AccessControlList.Grant || [];
         Grant = util.isArray(Grant) ? Grant : [Grant];
         var result = decodeAcl(AccessControlPolicy);
         if (data.headers && data.headers['x-cos-acl']) {

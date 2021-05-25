@@ -59,6 +59,10 @@ var COS = function (options) {
     if (this.options.AppId) {
         console.warn('warning: AppId has been deprecated, Please put it at the end of parameter Bucket(E.g: "test-1250000000").');
     }
+    if (util.isWeb()) {
+      console.warn('warning: 您正在浏览器中使用nodejs-sdk，请确认.使用js-sdk请参考 https://cloud.tencent.com/document/product/436/11459');
+      console.warn('warning: You are using nodejs-sdk in your browser, please confirm. For using js-sdk, Please refer to https://cloud.tencent.com/document/product/436/11459');
+    }
     event.init(this);
     task.init(this);
 };

@@ -1041,7 +1041,7 @@ function sliceCopyFile(params, callback) {
 
         FileSize = params.FileSize = data.headers['content-length'];
         if (FileSize === undefined || !FileSize) {
-            callback(util.error(new Error('get Content-Length error, please add "Content-Length" to CORS ExposeHeader setting.')));
+            callback(util.error(new Error('get Content-Length error, please add "Content-Length" to CORS ExposeHeader setting.（ 获取Content-Length失败，请在CORS ExposeHeader设置中添加Content-Length，请参考文档：https://cloud.tencent.com/document/product/436/13318 ）')));
             return;
         }
 
@@ -1148,7 +1148,7 @@ function downloadFile(params, callback) {
             // 获取文件大小
             FileSize = params.FileSize = parseInt(data.headers['content-length']);
             if (FileSize === undefined || !FileSize) {
-                callback(util.error(new Error('get Content-Length error, please add "Content-Length" to CORS ExposeHeader setting.')));
+                callback(util.error(new Error('get Content-Length error, please add "Content-Length" to CORS ExposeHeader setting.（ 获取Content-Length失败，请在CORS ExposeHeader设置中添加Content-Length，请参考文档：https://cloud.tencent.com/document/product/436/13318 ）')));
                 return;
             }
 

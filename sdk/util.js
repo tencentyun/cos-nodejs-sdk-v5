@@ -625,6 +625,10 @@ var error = function (err, opt) {
     return err;
 }
 
+var isWeb = function () {
+  return typeof window === 'object';
+}
+
 var util = {
     noop: noop,
     formatParams: formatParams,
@@ -657,6 +661,7 @@ var util = {
     getV4Auth: getV4Auth,
     isBrowser: false,
     obj2str: obj2str,
+    isWeb: isWeb,
 };
 
 module.exports = util;

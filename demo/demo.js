@@ -822,6 +822,40 @@ function putObject() {
   });
 }
 
+function putObject_base64ToBuffer() {
+  // 创建测试文件
+  var filename = 'test.png';
+  var filepath = path.resolve(__dirname, filename);
+  var base64Url = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAABRFBMVEUAAAAAo/8Ao/8Ao/8Ao/8ApP8Aov8Ao/8Abv8Abv8AyNwAyNwAo/8Ao/8Ao/8Abv8Ao/8AivgAo/8AyNwAbv8Abv8AydwApf8Abf8Ao/8AbP8Ao/8AyNwAydwAbv8AydwApP8Ao/8AyNwAo/8AyNwAydsAyNwAxd8Aov8AyNwAytsAo/8Abv8AyNwAbv8Av+MAo/8AytsAo/8Abv8AyNwAo/8Abv8AqfkAbv8Aov8Abv8AyNwAov8Abv8Ao/8Abv8Ao/8AydwAo/8Ao/8Ate8Ay9oAvOcAof8AveAAyNwAyNwAo/8AyNwAy9kAo/8AyNwAyNwAo/8AqP8Aaf8AyNwAbv0Abv8Abv8AaP8Ao/8Ao/8Ao/8Ao/8Abv8AyNwAgvcAaP8A0dkAo/8AyNwAav8Abv8Ao/8Abv8AyNwAy9sAvOUAtePdkYxjAAAAZnRSTlMAw/co8uAuJAn8+/Tt29R8DAX77+nZz87Jv6CTh3lxTklAPjouJRsL5tjAuLiyr62roaCakYp0XVtOQTMyLiohICAcGRP49vTv5+PJurawq6mnnJuYl4+OiIB7eXVvX15QSDgqHxNcw3l6AAABe0lEQVQ4y82P11oCQQxGIy5FUJpKk6aAhV6k92LvvXedDfj+92ZkYQHxnnMxu3/OfJMEJo6y++baXf5XVw22GVGcsRmq431mQZRYyIzRGgdXi+HwIv86NDBKisrRAtU1hSj9pkZ9jpo/9YKbRsmNNKCHDXI00BxfMMirKNpMcjQ5Lm4/YZArUXyBYUwg40nsdr5jb3LBe25VWpNeKa1GENsEnq52C80z1uW48estiKjb19G54QdCrScnKAU69U3KJ4jzrsBawDWPuOcBqMyRvlcb1Y+zjMUBVsivAKe4gXgEKiVjSh9wlunGMmwiOqFL3RI0cj+nkgp3jC1BELVFkGiZSuvkp3tZZWZ2sKCuDj185PXqfmwI7AAOUctHkJoOeXg3sxA4ES+l7CVvrYHMEmNp8GtR+wycPG0+1RrwWQUzl4CvgQmPP5Ddofl8tWkJVT7J+BIAaxEktrYZoRAUfXgOGYHfcOqw3WF/EdLccz5cMfvUCPb4QwUmhB8+v12HZPCkbgAAAABJRU5ErkJggg==';
+  var body = Buffer.from(base64Url.split(',')[1] , 'base64');
+  util.createFile(filepath, 1024 * 1024, function (err) {
+    // 调用方法
+    cos.putObject({
+        Bucket: config.Bucket, /* 必须 */
+        Region: config.Region,
+        Key: filename, /* 必须 */
+        onTaskReady: function (tid) {
+            TaskId = tid;
+        },
+        onProgress: function (progressData) {
+            console.log(JSON.stringify(progressData));
+        },
+        // 格式1. 传入文件内容
+        // Body: fs.readFileSync(filepath),
+        // 格式2. 传入文件流，必须需要传文件大小
+        Body: body,
+        ContentLength: body.length,
+        Headers: {
+            // 万象持久化接口，上传时持久化
+            // 'Pic-Operations': '{"is_pic_info": 1, "rules": [{"fileid": "test.jpg", "rule": "imageMogr2/thumbnail/!50p"}]}'
+        },
+    }, function (err, data) {
+        console.log(err || data);
+        fs.unlinkSync(filepath);
+    });
+});
+}
+
 function putObjectCopy() {
     cos.putObjectCopy({
         Bucket: config.Bucket,
@@ -1647,12 +1681,13 @@ function CIExample4(){
 // abortUploadTask();
 // selectObjectContentStream();
 // selectObjectContent();
-// sliceUploadFile();
+sliceUploadFile();
 // uploadFiles();
 // cancelTask();
 // pauseTask();
 // restartTask();
 // putObject();
+// putObject_base64();
 // sliceCopyFile();
 // putObjectTagging();
 // getObjectTagging();

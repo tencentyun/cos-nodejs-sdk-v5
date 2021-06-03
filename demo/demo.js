@@ -1681,7 +1681,7 @@ function CIExample4(){
 // abortUploadTask();
 // selectObjectContentStream();
 // selectObjectContent();
-sliceUploadFile();
+// sliceUploadFile();
 // uploadFiles();
 // cancelTask();
 // pauseTask();

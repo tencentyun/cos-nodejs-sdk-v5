@@ -38,6 +38,7 @@
   },
   "devDependencies": {
     "batch": "^0.6.1",
+    "crc64-ecma182.js": "^1.0.0",
     "mocha": "^4.0.1",
     "nyc": "^15.1.0",
     "qcloud-cos-sts": "^3.0.0"

@@ -1199,6 +1199,31 @@ function restartTask() {
     console.log('restart');
 }
 
+function uploadFile() {
+  var filename = '3mb.zip';
+  var filepath = path.resolve(__dirname, filename);
+  util.createFile(filepath, 1024 * 1024 * 3, function (err) {
+      cos.uploadFile({
+          Bucket: config.Bucket,
+          Region: config.Region,
+          Key: filename,
+          FilePath: filepath,
+          SliceSize: 1024 * 1024 * 5, // 大于5mb才进行分块上传
+          onProgress: function (info) {
+              var percent = Math.floor(info.percent * 10000) / 100;
+              var speed = Math.floor(info.speed / 1024 / 1024 * 100) / 100;
+              console.log('进度：' + percent + '%; 速度：' + speed + 'Mb/s;');
+          },
+          onFileFinish: function (err, data, options) {
+              console.log(options.Key + ' 上传' + (err ? '失败' : '完成'));
+          },
+      }, function (err, data) {
+          console.log(err || data);
+          fs.unlinkSync(filepath);
+      });
+  });
+}
+
 function uploadFiles() {
     var filepath = path.resolve(__dirname, '1mb.zip');
     util.createFile(filepath, 1024 * 1024 * 10, function (err) {
@@ -1682,6 +1707,7 @@ function CIExample4(){
 // selectObjectContentStream();
 // selectObjectContent();
 // sliceUploadFile();
+// uploadFile();
 // uploadFiles();
 // cancelTask();
 // pauseTask();

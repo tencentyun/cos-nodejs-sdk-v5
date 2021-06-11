@@ -3613,6 +3613,58 @@ group('restoreObject()', function () {
     });
 });
 
+group('uploadFile()', function () {
+    test('uploadFile() 高级上传', function (done, assert) {
+        var filename = '3mb.zip';
+        var filepath = path.resolve(__dirname, filename);
+        util.createFile(filepath, 1024 * 1024 * 3, function (err) {
+            cos.uploadFile({
+                Bucket: config.Bucket,
+                Region: config.Region,
+                Key: filename,
+                FilePath: filepath,
+            }, function (err, data) {
+                assert.ok(!err);
+                fs.unlinkSync(filepath);
+                done();
+            });
+        });
+    });
+    test('uploadFile() 高级上传目录', function (done, assert) {
+        var filename = '3mb/';
+        var filepath = path.resolve(__dirname, filename);
+        util.createFile(filepath, 1024 * 1024 * 3, function (err) {
+            cos.uploadFile({
+                Bucket: config.Bucket,
+                Region: config.Region,
+                Key: filename,
+                FilePath: filepath,
+            }, function (err, data) {
+                assert.ok(!err);
+                fs.unlinkSync(filepath);
+                done();
+            });
+        });
+    });
+    test('uploadFile() 高级上传 大于5mb则分块上传', function (done, assert) {
+        var filename = '3mb.zip';
+        var filepath = path.resolve(__dirname, filename);
+        util.createFile(filepath, 1024 * 1024 * 3, function (err) {
+            cos.uploadFile({
+                Bucket: config.Bucket,
+                Region: config.Region,
+                Key: filename,
+                FilePath: filepath,
+                SliceSize: 1024 * 1024 * 5,
+            }, function (err, data) {
+                assert.ok(!err);
+                fs.unlinkSync(filepath);
+                done();
+            });
+        });
+    });
+});
+
 group('uploadFiles()', function () {
     test('uploadFiles()', function (done, assert) {
         var filename = '1.zip';

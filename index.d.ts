@@ -753,7 +753,7 @@ declare namespace COS {
       /** 指定通用错误文档的对象键，当发生错误且未命中重定向规则中的错误码重定向时，将返回该对象键的内容 */
       Key: Key,
       /** 用于配置命中错误文档的 HTTP 状态码，可选值为 Enabled 或 Disabled，默认为 Enabled */
-      OriginalHttpStatus?: 'Enabled' | 'Disabled，默认为'
+      OriginalHttpStatus?: 'Enabled' | 'Disabled'
     },
     /** 重定向规则配置，最多设置100条 RoutingRule */
     RoutingRules?: {

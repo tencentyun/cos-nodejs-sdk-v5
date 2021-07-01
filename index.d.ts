@@ -178,6 +178,8 @@ declare namespace COS {
     FollowRedirect?: boolean,
     /** 是否使用全球加速域名。开启该配置后仅以下接口支持操作：putObject、getObject、headObject、optionsObject、multipartInit、multipartListPart、multipartUpload、multipartAbort、multipartComplete、multipartList、sliceUploadFile、uploadFiles */
     UseAccelerate?: boolean,
+    /** 是否开启长链接，默认开启 */
+    KeepAlive?: boolean,
     /** 获取签名的回调方法，如果没有 SecretId、SecretKey 时，必选 */
     getAuthorization?: (
       options: GetAuthorizationOptions,
@@ -751,7 +753,7 @@ declare namespace COS {
       /** 指定通用错误文档的对象键，当发生错误且未命中重定向规则中的错误码重定向时，将返回该对象键的内容 */
       Key: Key,
       /** 用于配置命中错误文档的 HTTP 状态码，可选值为 Enabled 或 Disabled，默认为 Enabled */
-      OriginalHttpStatus?: 'Enabled' | 'Disabled，默认为'
+      OriginalHttpStatus?: 'Enabled' | 'Disabled'
     },
     /** 重定向规则配置，最多设置100条 RoutingRule */
     RoutingRules?: {

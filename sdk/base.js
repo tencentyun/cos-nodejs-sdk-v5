@@ -3452,6 +3452,8 @@ function allowRetry(err) {
             }
         } else if (Math.floor(err.statusCode / 100) === 5) {
             allowRetry = true;
+        } else if (err.code === 'ECONNRESET') {
+            allowRetry = true;
         }
     }
     return allowRetry;

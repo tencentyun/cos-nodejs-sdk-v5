@@ -1214,7 +1214,7 @@ function uploadFile() {
               var speed = Math.floor(info.speed / 1024 / 1024 * 100) / 100;
               console.log('进度：' + percent + '%; 速度：' + speed + 'Mb/s;');
           },
-      }, function (err, data) {{
+      }, function (err, data) {
           console.log('上传' + (err ? '失败' : '完成'));
           console.log(err || data);
           fs.unlinkSync(filepath);

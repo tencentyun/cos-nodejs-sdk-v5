@@ -214,7 +214,6 @@ var getFileMd5 = function (readStream, callback) {
 };
 
 function clone(obj) {
-    if (typeof obj !== 'object') return obj;
     return map(obj, function (v) {
         return typeof v === 'object' && v !== null ? clone(v) : v;
     });

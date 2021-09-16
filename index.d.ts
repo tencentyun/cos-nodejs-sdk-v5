@@ -1654,6 +1654,8 @@ Bulk：批量模式，恢复时间为24 - 48小时。 */
   interface SliceUploadFileParams extends ObjectParams {
     /** 要上传的本地文件路径 */
     FilePath: string,
+    /** 分块上传时，每片的字节数大小，默认值1048576（1MB） */
+    ChunkSize?: number,
     /** 请求里的 Url Query 参数 */
     Query?: string,
     /** RFC 2616 中定义的缓存指令，将作为对象元数据保存 */

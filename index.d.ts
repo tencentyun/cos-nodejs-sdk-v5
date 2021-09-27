@@ -1170,6 +1170,8 @@ declare namespace COS {
     ResponseExpires?: string,
     /** 设置响应中的 Expires 头部的值 */
     ResponseContentType?: string,
+    /** RFC 2616 中定义的字节范围，范围值必须使用 bytes=first-last 格式，first 和 last 都是基于0开始的偏移量。例如 bytes=0-9 表示下载对象的开头10个字节的数据 ，如果不指定，则表示下载整个对象 */
+    Range?: string,
     /** 当启用版本控制时，指定要下载的版本 ID，如不指定则下载对象的最新版本 */
     VersionId?: string,
     /** 下载的进度回调方法 */

@@ -191,6 +191,13 @@ declare namespace COS {
     ) => void,
   }
 
+  type StringOrBuffer = Buffer | String;
+  interface Util {
+    md5: (StringOrBuffer) => string,
+    xml2json: (string) => string,
+    json2xml: (string) => string,
+  }
+
   interface StaticGetAuthorizationOptions {
     /** 计算签名用的密钥 SecretId，必选 */
     SecretId: string,
@@ -217,6 +224,7 @@ declare namespace COS {
     /** 校正时间的偏移值，单位 ms(毫秒)，计算签名时会用设备当前时间戳加上该偏移值，在设备时间有误时可用于校正签名用的时间参数。 */
     SystemClockOffset?: number,
   }
+
   /** 计算签名或获取临时密钥可能需要的参数列表 */
   interface GetAuthorizationOptions {
     /** 存储桶的名称，格式为<bucketname-appid>，例如examplebucket-1250000000 */
@@ -1832,9 +1840,11 @@ Bulk：批量模式，恢复时间为24 - 48小时。 */
 
   // request
   /** request 接口参数 */
-  interface RequestParams extends ObjectParams {
+  interface RequestParams extends BucketParams {
     /** 操作方法，如 get，post，delete， head 等 HTTP 方法 */
     Method: string,
+    /** 请求的对象键，最前面不带 / */
+    Key?: Key,
     /** 请求里的 Url Query 参数 */
     Query?: Query,
     /** 请求里的 Body 参数 */
@@ -1843,7 +1853,9 @@ Bulk：批量模式，恢复时间为24 - 48小时。 */
     Action: Action
   }
   /** Request 接口返回值 */
-  interface RequestResult extends GeneralResult {}
+  interface RequestResult extends GeneralResult {
+    Body?: Buffer,
+  }
 
   // getObjectUrl
   /** getObjectUrl 接口参数 */
@@ -1919,6 +1931,9 @@ declare class COS {
   // 静态方法
   /** 计算签名 */
   static getAuthorization: (options: COS.StaticGetAuthorizationOptions) => string;
+
+  /** 工具 */
+  static util: COS.Util;
 
   // 实例方法
   /** 获取用户的 bucket 列表 @see https://cloud.tencent.com/document/product/436/8291 */

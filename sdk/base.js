@@ -3536,6 +3536,7 @@ function submitRequest(params, callback) {
             params.AuthData = AuthData;
             _submitRequest.call(self, params, function (err, data) {
                 if (err &&
+                    !(params.body && params.body.pipe) &&
                     !params.outputStream &&
                     tryTimes < 2 &&
                     (oldClockOffset !== self.options.SystemClockOffset || allowRetry.call(self, err))) {
@@ -3746,7 +3747,7 @@ function _submitRequest(params, callback) {
                     cb(util.error(new Error(xmlError.Message), {code: xmlError.Code, error: xmlError}));
                 } else if (statusCode) { // 有错误的状态码
                     cb(util.error(new Error(response.statusMessage), {code: '' + statusCode}));
-                } else if (statusCode) { // 无状态码，或者获取不到状态码
+                } else { // 无状态码，或者获取不到状态码
                     cb(util.error(new Error('statusCode error')));
                 }
                 chunkList = null;

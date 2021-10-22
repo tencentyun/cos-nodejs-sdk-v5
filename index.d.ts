@@ -193,9 +193,9 @@ declare namespace COS {
 
   type StringOrBuffer = Buffer | String;
   interface Util {
-    md5: (StringOrBuffer) => string,
-    xml2json: (string) => string,
-    json2xml: (string) => string,
+    md5: (str: StringOrBuffer, encoding?: string) => string,
+    xml2json: (bodyStr: string) => any,
+    json2xml: (json: any) => string,
   }
 
   interface StaticGetAuthorizationOptions {

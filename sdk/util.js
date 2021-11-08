@@ -176,9 +176,12 @@ var md5 = function (str, encoding) {
 // 获取文件分片
 var fileSlice = function (FilePath, start, end, callback) {
     if (FilePath) {
-        var readStream = fs.createReadStream(FilePath, {start: start, end: end - 1});
-        readStream.isSdkCreated = true;
-        callback(readStream);
+        try {
+            var readStream = fs.createReadStream(FilePath, {start: start, end: end - 1});
+            readStream.isSdkCreated = true;
+            callback(readStream);
+        } catch(e) {
+        }
     } else {
         callback(null);
     }

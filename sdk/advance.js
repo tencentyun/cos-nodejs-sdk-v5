@@ -877,17 +877,17 @@ function uploadFiles(params, callback) {
             var isDir = stat ? stat.isDirectory() : false;
             var FileSize = fileParams.ContentLength = stat ? stat.size : 0;
             var fileInfo = {Index: index, TaskId: ''};
-    
+
             // 更新文件总大小
             TotalSize += FileSize;
-    
+
             // 整理 option，用于返回给回调
             util.each(fileParams, function (v, k) {
                 if (typeof v !== 'object' && typeof v !== 'function') {
                     fileInfo[k] = v;
                 }
             });
-    
+
             // 处理单个文件 TaskReady
             var _onTaskReady = fileParams.onTaskReady;
             var onTaskReady = function (tid) {
@@ -895,7 +895,7 @@ function uploadFiles(params, callback) {
                 _onTaskReady && _onTaskReady(tid);
             };
             fileParams.onTaskReady = onTaskReady;
-    
+
             // 处理单个文件进度
             var PreAddSize = 0;
             var _onProgress = fileParams.onProgress;
@@ -906,14 +906,14 @@ function uploadFiles(params, callback) {
                 onTotalProgress({loaded: TotalFinish, total: TotalSize});
             };
             fileParams.onProgress = onProgress;
-    
+
             // 处理单个文件完成
             var _onFileFinish = fileParams.onFileFinish;
             var onFileFinish = function (err, data) {
                 _onFileFinish && _onFileFinish(err, data);
                 onTotalFileFinish && onTotalFileFinish(err, data, fileInfo);
             };
-    
+
             // 添加上传任务
             var api = FileSize <= SliceSize || isDir ? 'putObject' : 'sliceUploadFile';
             if (api === 'putObject') {

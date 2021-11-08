@@ -796,10 +796,6 @@ function uploadFile(params, callback) {
 
   fs.stat(params.FilePath, function (err, stat) {
       try {
-          if (err) {
-            return callback(err);
-          }
-    
           var isDir = stat.isDirectory();
           var FileSize = params.ContentLength = stat.size || 0;
           var fileInfo = {TaskId: ''};

@@ -3004,6 +3004,7 @@ function multipartAbort(params, callback) {
       headers: params.Headers,
       qs: params.Query,
       body: params.Body,
+      url: params.Url
   }, function (err, data) {
       if (err) return callback(err);
       if (data && data.body) {
@@ -3517,7 +3518,7 @@ function submitRequest(params, callback) {
     var Query = util.clone(params.qs);
     params.action && (Query[params.action] = '');
 
-    var SignHost = params.SignHost || getSignHost.call(this, {Bucket: params.Bucket, Region: params.Region});
+    var SignHost = params.SignHost || getSignHost.call(this, {Bucket: params.Bucket, Region: params.Region, Url: params.url});
     var next = function (tryTimes) {
         var oldClockOffset = self.options.SystemClockOffset;
         getAuthorizationAsync.call(self, {

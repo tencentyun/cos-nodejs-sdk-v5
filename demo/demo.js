@@ -5,6 +5,7 @@ var util = require('./util');
 var COS = require('../index');
 var pathLib = require('path');
 var config = require('./config');
+var json2xml = require('../sdk/util').json2xml;
 
 
 var cos = new COS({
@@ -1576,7 +1577,7 @@ function CIExample2(){
         Method: 'POST',
         Action: 'image_process',
         Headers: {
-        // 通过 imageMogr2 接口使用图片缩放功能：指定图片宽度为 200，宽度等比压缩
+            // 通过 imageMogr2 接口使用图片缩放功能：指定图片宽度为 200，宽度等比压缩
             'Pic-Operations': '{"is_pic_info": 1, "rules": [{"fileid": "example_photo_ci_result.png", "rule": "imageMogr2/thumbnail/200x/"}]}'
         },
     }, function (err, data) {
@@ -1639,6 +1640,953 @@ function CIExample4(){
         },
     );
 }
+
+
+/**
+ * 查询已经开通数据万象功能的存储桶
+ */
+function DescribeCIBuckets() {
+    let url = 'https://' +config.Bucket + '.pic.' + config.Region + '.myqcloud.com';
+    cos.request({
+        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Region: config.Region,
+        Method: 'GET',
+        Url: url
+    }, function (err, data) {
+        console.log(err || data);
+    });
+}
+
+
+/**
+ * 查询已经开通文档预览功能的存储桶
+ */
+function DescribeDocProcessBuckets() {
+    let url = 'https://' + 'ci.' + config.Region + '.myqcloud.com/docbucket';
+    cos.request({
+        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Region: config.Region,
+        Method: 'GET',
+        Key: 'docbucket',
+        Url: url,
+        Query: {
+            pageNumber: '1',
+            pageSize: '10'
+        }
+    }, function (err, data) {
+        console.log(err || data);
+    });
+}
+
+
+/**
+ * 对多种文件类型生成图片格式或html格式预览
+ */
+function GetDocProcess() {
+    cos.request({
+        Bucket: config.Bucket,  // Bucket 格式：test-1250000000
+        Region: config.Region,
+        Method: 'GET',
+        Key: 'test.pptx',
+        Query: {
+            'ci-process': 'doc-preview',
+            'page': '1',
+            'dstType': 'jpg',
+            'ImageParams': 'imageMogr2/thumbnail/!50p|watermark/2/text/5pWw5o2u5LiH6LGh/fill/I0ZGRkZGRg==/fontsize/30/dx/20/dy/20'
+        }
+    }, function (err, data) {
+        console.log(err || data);
+    });
+}
+
+
+/**
+ * 查询文档转码队列
+ */
+function DescribeDocProcessQueues() {
+    let host = config.Bucket + '.ci.' + config.Region + '.myqcloud.com';
+    let url = 'https://' + host + '/docqueue'
+    cos.request({
+        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Region: config.Region,
+        Method: 'GET',
+        Key: 'docqueue',
+        Url: url,
+        Query: {
+            state: 'Active'
+        }
+    }, function (err, data) {
+        console.log(err || data);
+    });
+}
+
+
+/**
+ * 更新文档转码队列
+ */
+function UpdateDocProcessQueue() {
+    let queueId = 'p31299c0b3f4742dda2fc1be3ea40xxxx'   // 需要更新的队列ID
+    let host = config.Bucket + '.ci.' + config.Region + '.myqcloud.com';
+    let url = 'https://' + host + '/docqueue/' + queueId;
+    let body = {        // 填上队列修改参数
+        Request: {
+            Name: '1',
+            QueueID: queueId,
+            State: 'Active',
+            NotifyConfig: {
+                Url: 'http://your.callkback.address/index.php',
+                Type: 'Url',
+                State: 'On',
+                Event: 'TaskFinish'
+            }
+        }
+    }
+    cos.request({
+        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Region: config.Region,
+        Method: 'PUT',
+        Key: 'docqueue/' + queueId,
+        Url: url,
+        Headers: {
+            'content-type': 'application/xml'
+        },
+        Body: json2xml(body)
+    }, function (err, data) {
+        console.log(err || data);
+    });
+}
+
+
+/**
+ * 创建文档转码任务
+ */
+function CreateDocProcessJobs() {
+    let queueId = 'p31299c0b3f4742dda2fc1be3ea40xxxx'   // 队列ID
+    let host = config.Bucket + '.ci.' + config.Region + '.myqcloud.com';
+    let url = 'https://' + host + '/doc_jobs';
+    let body = {        // 填上任务参数
+        Request: {
+            Tag: 'DocProcess',
+            Input: {
+                Object: 'test.pptx'
+            },
+            QueueId: queueId,
+            Operation: {
+                DocProcess: {
+                    StartPage: 3,
+                    EndPage: 4,
+                    TgtType: 'png'
+                },
+                Output: {
+                    Region: config.Region,
+                    Bucket: config.Bucket,
+                    Object: 'doc_${Page}.png'
+                }
+            }
+        }
+    }
+    cos.request({
+        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Region: config.Region,
+        Method: 'POST',
+        Key: 'doc_jobs',
+        Url: url,
+        Headers: {
+            'content-type': 'application/xml'
+        },
+        Body: json2xml(body)
+    }, function (err, data) {
+        console.log(err || data);
+    });
+}
+
+
+/**
+ * 查询文档转码任务
+ */
+function DescribeDocProcessJob() {
+    let jobId = 'd2c6c620a415811ecb31b51515222xxxx'
+    let host = config.Bucket + '.ci.' + config.Region + '.myqcloud.com';
+    let url = 'https://' + host + '/doc_jobs/' + jobId;
+    cos.request({
+        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Region: config.Region,
+        Method: 'GET',
+        Key: 'doc_jobs/' + jobId,
+        Url: url
+    }, function (err, data) {
+        console.log(err || data);
+    });
+}
+
+
+/**
+ * 文档转码任务列表
+ */
+function DescribeDocProcessJobs() {
+    let queueId = 'p31299c0b3f4742dda2fc1be3ea40xxxx'
+    let host = config.Bucket + '.ci.' + config.Region + '.myqcloud.com';
+    let url = 'https://' + host + '/doc_jobs';
+    cos.request({
+        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Region: config.Region,
+        Method: 'GET',
+        Key: 'doc_jobs',
+        Url: url,
+        Query: {
+            tag: 'DocProcess',
+            queueId: queueId,
+            states: 'Failed'
+        }
+    }, function (err, data) {
+        console.log(err || data);
+    });
+}
+
+
+
+/**
+ * 查询已经开通媒体处理功能的存储桶
+ */
+function DescribeMediaBuckets() {
+    let host = 'ci.' + config.Region + '.myqcloud.com';
+    let url = 'https://' + host + '/mediabucket'
+    cos.request({
+        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Region: config.Region,
+        Method: 'GET',
+        Key: 'mediabucket',
+        Url: url,
+        Query: {
+            pageNumber: '1',
+            pageSize: '10'
+        }
+    }, function (err, data) {
+        console.log(err || data);
+    });
+}
+
+
+/**
+ * 查询存储桶的媒体处理队列
+ */
+function DescribeMediaQueues() {
+    let host = config.Bucket + '.ci.' + config.Region + '.myqcloud.com';
+    let url = 'https://' + host + '/queue'
+    cos.request({
+        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Region: config.Region,
+        Method: 'GET',
+        Key: 'queue',
+        Url: url
+    }, function (err, data) {
+        console.log(err || data);
+    });
+}
+
+
+/**
+ * 更新媒体处理队列
+ */
+function UpdateMediaQueue() {
+    let queueId = 'p5ad1499214024af2bfaa4401d529xxxx'   // 需要更新的队列ID
+    let host = config.Bucket + '.ci.' + config.Region + '.myqcloud.com';
+    let url = 'https://' + host + '/queue/' + queueId;
+    let body = {        // 填上队列修改参数
+        Request: {
+            Name: '1',
+            QueueID: queueId,
+            State: 'Active',
+            NotifyConfig: {
+                Url: 'http://your.callkback.address/index.php',
+                Type: 'Url',
+                Event: 'TaskFinish',
+                State: 'On'
+            }
+        }
+    }
+    cos.request({
+        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Region: config.Region,
+        Method: 'PUT',
+        Key: 'queue/' + queueId,
+        Url: url,
+        Headers: {
+            'content-type': 'application/xml'
+        },
+        Body: json2xml(body)
+    }, function (err, data) {
+        console.log(err || data);
+    });
+}
+
+
+/**
+ * 创建媒体处理的各种模版（以截帧模版为例）
+ */
+function CreateMediaTemplate() {
+    let host = config.Bucket + '.ci.' + config.Region + '.myqcloud.com';
+    let url = 'https://' + host + '/template';
+    let body = {        // 填上模板参数
+        Request: {
+            Tag: 'Snapshot',
+            Name: 'test-template',
+            Snapshot: {
+                Mode: 'Interval',
+                Start: '1',
+                TimeInterval: '5',
+                Count: '3',
+                Width: '1280'
+            }
+        }
+    }
+    cos.request({
+        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Region: config.Region,
+        Method: 'POST',
+        Key: 'template',
+        Url: url,
+        Headers: {
+            'content-type': 'application/xml'
+        },
+        Body: json2xml(body)
+    }, function (err, data) {
+        console.log(err || data);
+    });
+}
+
+
+/**
+ * 删除模版
+ */
+function DeleteMediaTemplate() {
+    let templateId = 't1b11b39d3a91949d6804c08399186xxxx';      // 待删除的模版ID
+    let host = config.Bucket + '.ci.' + config.Region + '.myqcloud.com';
+    let url = 'https://' + host + '/template/' + templateId;
+    cos.request({
+        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Region: config.Region,
+        Method: 'DELETE',
+        Key: 'template/' + templateId,
+        Url: url,
+        Headers: {
+            'content-type': 'application/xml'
+        }
+    }, function (err, data) {
+        console.log(err || data);
+    });
+}
+
+
+/**
+ * 查看模版详情
+ */
+function DescribeMediaTemplates() {
+    let host = config.Bucket + '.ci.' + config.Region + '.myqcloud.com';
+    let url = 'https://' + host + '/template';
+    cos.request({
+        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Region: config.Region,
+        Method: 'GET',
+        Key: 'template',
+        Url: url,
+        Headers: {
+            'content-type': 'application/xml'
+        },
+        Query: {
+            tag: 'Snapshot',
+            name: 'test'
+        }
+    }, function (err, data) {
+        console.log(err || data);
+    });
+}
+
+
+/**
+ * 更新模版信息
+ */
+function UpdateMediaTemplate() {
+    let templateId = 't12cf1cde8d8a845eebc0a5c6047bfxxxx'   // 需要更新的模版ID
+    let host = config.Bucket + '.ci.' + config.Region + '.myqcloud.com';
+    let url = 'https://' + host + '/template/' + templateId;
+    let body = {        // 填上模版修改参数
+        Request: {
+            Tag: 'Snapshot',
+            Name: 'test-new',
+            Snapshot: {
+                Mode: 'Average',
+                Start: '0',
+                Count: '3',
+                Height: '1280'
+            }
+        }
+    }
+    cos.request({
+        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Region: config.Region,
+        Method: 'PUT',
+        Key: 'template/' + templateId,
+        Url: url,
+        Headers: {
+            'content-type': 'application/xml'
+        },
+        Body: json2xml(body)
+    }, function (err, data) {
+        console.log(err || data);
+    });
+}
+
+
+/**
+ * 提交媒体处理任务
+ */
+function CreateMediaJobs() {
+    let templateId = 't12cf1cde8d8a845eebc0a5c6047bfxxxx'   // 模版ID
+    let queueId = 'p5ad1499214024af2bfaa4401d529xxxx'   // 队列ID
+    let host = config.Bucket + '.ci.' + config.Region + '.myqcloud.com';
+    let url = 'https://' + host + '/jobs';
+    let body = {        // 填上任务参数
+        Request: {
+            Tag: 'Snapshot',
+            Input: {
+                Object: 'test-input.mp4'
+            },
+            QueueId: queueId,
+            Operation: {
+                TemplateId: templateId,
+                Output: {
+                    Region: config.Region,
+                    Bucket: config.Bucket,
+                    Object: 'test-output${Number}'
+                }
+            },
+            CallBack: 'http://your.task.callkback.address/index.php'
+        }
+    }
+    cos.request({
+        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Region: config.Region,
+        Method: 'POST',
+        Key: 'jobs',
+        Url: url,
+        Headers: {
+            'content-type': 'application/xml'
+        },
+        Body: json2xml(body)
+    }, function (err, data) {
+        console.log(err || data);
+    });
+}
+
+
+/**
+ * 取消媒体处理任务
+ */
+function CancelMediaJob() {
+    let jobId = 'j14596fda409c11eca160977fff35xxxx';      // 待取消的任务ID
+    let host = config.Bucket + '.ci.' + config.Region + '.myqcloud.com';
+    let url = 'https://' + host + '/jobs/' + jobId;
+    cos.request({
+        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Region: config.Region,
+        Method: 'PUT',
+        Key: 'jobs/' + jobId,
+        Url: url
+    }, function (err, data) {
+        console.log(err || data);
+    });
+}
+
+
+/**
+ * 查看媒体处理任务
+ */
+function DescribeMediaJob() {
+    let jobId = 'j14596fda409c11eca160977fff35xxxx';      // 任务ID
+    let host = config.Bucket + '.ci.' + config.Region + '.myqcloud.com';
+    let url = 'https://' + host + '/jobs/' + jobId;
+    cos.request({
+        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Region: config.Region,
+        Method: 'GET',
+        Key: 'jobs/' + jobId,
+        Url: url
+    }, function (err, data) {
+        console.log(err || data);
+    });
+}
+
+
+/**
+ * 媒体处理任务列表
+ */
+function DescribeMediaJobs() {
+    let queueId = 'p5ad1499214024af2bfaa4401d529xxxx'   // 队列ID
+    let host = config.Bucket + '.ci.' + config.Region + '.myqcloud.com';
+    let url = 'https://' + host + '/jobs';
+    cos.request({
+        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Region: config.Region,
+        Method: 'GET',
+        Key: 'jobs',
+        Url: url,
+        Query: {
+            queueId: queueId,
+            tag: 'Snapshot',
+            states: 'Failed'
+        }
+    }, function (err, data) {
+        console.log(err || data);
+    });
+}
+
+
+/**
+ * 获取媒体文件某个时间的截图
+ */
+function GetSnapshot() {
+    cos.request({
+        Bucket: config.Bucket,  // Bucket 格式：test-1250000000
+        Region: config.Region,
+        Method: 'GET',
+        Key: 'test.mp4',
+        Query: {
+            'ci-process': 'snapshot',
+            'time': '1',
+            'format': 'png'
+        }
+    }, function (err, data) {
+        console.log(err || data);
+    });
+}
+
+
+/**
+ * 获取媒体文件信息
+ */
+function GetMediaInfo() {
+    cos.request({
+        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Region: config.Region,
+        Method: 'GET',
+        Key: 'test.mp4',
+        Query: {
+            'ci-process': 'videoinfo'
+        }
+    }, function (err, data) {
+        console.log(err || data);
+    });
+}
+
+
+/**
+ * 创建工作流
+ */
+function CreateWorkflow() {
+    let queueId = 'p5ad1499214024af2bfaa4401d529xxxx';
+    let callbackUrl = 'http://your.callback.com/index.php';
+    let snapshotTemplate = 't0a60a2bc71a4b40c7b3d7f7e8a277xxxx';
+    let transcodeTemplate = 't04e1ab86554984f1aa17c062fbf6cxxxx';
+    let animationTemplate = 't0341b0ab2b8a340ff826e9cb4f3a7xxxx';
+    let concatTemplate = 't19e96c43b0c05444f9b2facc9dcf5xxxx';
+    let voiceSeparateTemplate = 't1c101e2bc074c4506837714edc99axxxx';
+    let videoMontageTemplate = 't1ec0b3871d5e340da84536688b810xxxx';
+    let watermarkTemplate = 't1ea62f7810d0142c195313330bdd4xxxx';
+    let videoProcessTemplate = 't1d945b6de362f4d4db9bd8659bc5exxxx';
+    let superResolutionTemplate = 't1d9d5ae4450824427bccc495ed0b0xxxx';
+    let host = config.Bucket + '.ci.' + config.Region + '.myqcloud.com';
+    let url = 'https://' + host + '/workflow';
+    let body = {
+        Request: {
+            MediaWorkflow: {
+                Name: 'demo',
+                State: 'Active',    // 创建并开启工作流
+                Topology: {
+                    Dependencies: {
+                        Start: 'Snapshot_1581665960536,Transcode_1581665960537,Animation_1581665960538,Concat_1581665960539,VoiceSeparate_1581665960551,VideoMontage_1581665960551,SDRtoHDR_1581665960553,VideoProcess_1581665960554,SuperResolution_1581665960583,Segment_1581665960667',
+                        'Snapshot_1581665960536': 'End',
+                        'Transcode_1581665960537': 'End',
+                        'Animation_1581665960538': 'End',
+                        'Concat_1581665960539': 'End',
+                        'VideoMontage_1581665960551': 'End',
+                        'SDRtoHDR_1581665960553': 'End',
+                        'VideoProcess_1581665960554': 'End',
+                        'SuperResolution_1581665960583': 'End',
+                        'Segment_1581665960667': 'End',
+                        'VoiceSeparate_1581665960551': 'End'
+                    },
+                    Nodes: {
+                        Start: {
+                            Type: 'Start',
+                            Input: {
+                                QueueId: queueId,
+                                ObjectPrefix: 'test-',
+                                NotifyConfig: {
+                                    Type: 'Url',
+                                    Url:callbackUrl,
+                                    Event: 'TaskFinish,WorkflowFinish'
+                                },
+                                ExtFilter: {
+                                    State: 'On',
+                                    Audio: 'true',
+                                    Custom: 'true',
+                                    CustomExts: 'mp4/mp3',
+                                    AllFile: 'false'
+                                }
+                            }
+                        },
+                        'Snapshot_1581665960536': {
+                            Type: 'Snapshot',
+                            Operation: {
+                                TemplateId: snapshotTemplate,
+                                Output: {
+                                    Region: config.Region,
+                                    Bucket: config.Bucket,
+                                    Object: 'worlflow-test/${RunId}/snapshot-${number}.${Ext}',
+                                    SpriteObject: 'worlflow-test/${RunId}/snapshot-sprite-${number}.jpg'
+                                }
+                            }
+                        },
+                        'Transcode_1581665960537': {
+                            Type: 'Transcode',
+                            Operation: {
+                                TemplateId: transcodeTemplate,
+                                Output: {
+                                    Region: config.Region,
+                                    Bucket: config.Bucket,
+                                    Object: 'worlflow-test/${RunId}/trans.mp4'
+                                }
+                            }
+                        },
+                        'Animation_1581665960538': {
+                            Type: 'Animation',
+                            Operation: {
+                                TemplateId: animationTemplate,
+                                Output: {
+                                    Region: config.Region,
+                                    Bucket: config.Bucket,
+                                    Object: 'worlflow-test/${RunId}/bcd.gif'
+                                }
+                            }
+                        },
+                        'Concat_1581665960539': {
+                            Type: 'Concat',
+                            Operation: {
+                                TemplateId: concatTemplate,
+                                Output: {
+                                    Region: config.Region,
+                                    Bucket: config.Bucket,
+                                    Object: 'worlflow-test/${RunId}/abc.${ext}'
+                                }
+                            }
+                        },
+                        'VoiceSeparate_1581665960551': {
+                            Type: 'VoiceSeparate',
+                            Operation: {
+                                TemplateId: voiceSeparateTemplate,
+                                Output: {
+                                    Region: config.Region,
+                                    Bucket: config.Bucket,
+                                    Object: 'worlflow-test/${RunId}/background.mp3',
+                                    AuObject: 'worlflow-test/${RunId}/audio.mp3'
+                                }
+                            }
+                        },
+                        'VideoMontage_1581665960551': {
+                            Type: 'VideoMontage',
+                            Operation: {
+                                TemplateId: videoMontageTemplate,
+                                Output: {
+                                    Region: config.Region,
+                                    Bucket: config.Bucket,
+                                    Object: 'worlflow-test/${RunId}/montage.mp4'
+                                }
+                            }
+                        },
+                        'SDRtoHDR_1581665960553': {
+                            Type: 'SDRtoHDR',
+                            Operation: {
+                                SDRtoHDR: {
+                                    HdrMode: 'HLG'
+                                },
+                                TranscodeTemplateId: transcodeTemplate,
+                                WatermarkTemplateId: watermarkTemplate,
+                                Output: {
+                                    Region: config.Region,
+                                    Bucket: config.Bucket,
+                                    Object: 'worlflow-test/${RunId}/SDRtoHDR.mp4'
+                                }
+                            }
+                        },
+                        'VideoProcess_1581665960554': {
+                            Type: 'VideoProcess',
+                            Operation: {
+                                TemplateId: videoProcessTemplate,
+                                TranscodeTemplateId: transcodeTemplate,
+                                WatermarkTemplateId: watermarkTemplate,
+                                Output: {
+                                    Region: config.Region,
+                                    Bucket: config.Bucket,
+                                    Object: 'worlflow-test/${RunId}/videoProcess.mp4'
+                                }
+                            }
+                        },
+                        'SuperResolution_1581665960583': {
+                            Type: 'SuperResolution',
+                            Operation: {
+                                TemplateId: superResolutionTemplate,
+                                TranscodeTemplateId: transcodeTemplate,
+                                WatermarkTemplateId: watermarkTemplate,
+                                Output: {
+                                    Region: config.Region,
+                                    Bucket: config.Bucket,
+                                    Object: 'worlflow-test/${RunId}/SuperResolution.mkv'
+                                }
+                            }
+                        },
+                        'Segment_1581665960667': {
+                            Type: 'Segment',
+                            Operation: {
+                                Segment: {
+                                    Format: 'mp4',
+                                    Duration: '5'
+                                },
+                                Output: {
+                                    Region: config.Region,
+                                    Bucket: config.Bucket,
+                                    Object: 'worlflow-test/${RunId}/segment-trans${Number}'
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    cos.request({
+        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Region: config.Region,
+        Method: 'POST',
+        Key: 'workflow',
+        Url: url,
+        Headers: {
+            'content-type': 'application/xml'
+        },
+        Body: json2xml(body)
+    }, function (err, data) {
+        console.log(err || data);
+    });
+}
+
+
+/**
+ * 删除工作流
+ */
+function DeleteWorkflow() {
+    let workflowId = 'wad8a9e26e1864a3793446fd9a686xxxx';      // 待删除的工作流ID
+    let host = config.Bucket + '.ci.' + config.Region + '.myqcloud.com';
+    let url = 'https://' + host + '/workflow/' + workflowId;
+    cos.request({
+        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Region: config.Region,
+        Method: 'DELETE',
+        Key: 'workflow/' + workflowId,
+        Url: url,
+        Headers: {
+            'content-type': 'application/xml'
+        }
+    }, function (err, data) {
+        console.log(err || data);
+    });
+}
+
+
+/**
+ * 工作流列表
+ */
+function DescribeWorkflow() {
+    let host = config.Bucket + '.ci.' + config.Region + '.myqcloud.com';
+    let url = 'https://' + host + '/workflow';
+    cos.request({
+        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Region: config.Region,
+        Method: 'GET',
+        Key: 'workflow',
+        Url: url,
+        Query: {
+            ids: ''
+        }
+    }, function (err, data) {
+        console.log(err || data);
+    });
+}
+
+
+/**
+ * 执行实例详情
+ */
+function DescribeWorkflowExecution() {
+    let runId = 'ieed8aec4413a11ec913f52540003xxxx';
+    let host = config.Bucket + '.ci.' + config.Region + '.myqcloud.com';
+    let url = 'https://' + host + '/workflowexecution/' + runId;
+    cos.request({
+        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Region: config.Region,
+        Method: 'GET',
+        Key: 'workflowexecution/' + runId,
+        Url: url
+    }, function (err, data) {
+        console.log(err || data);
+    });
+}
+
+
+/**
+ * 执行实例列表
+ */
+function DescribeWorkflowExecutions() {
+    let workflowId = 'w093b29cfef824bd0922743a6f0afxxxx';
+    let host = config.Bucket + '.ci.' + config.Region + '.myqcloud.com';
+    let url = 'https://' + host + '/workflowexecution';
+    cos.request({
+        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Region: config.Region,
+        Method: 'GET',
+        Key: 'workflowexecution',
+        Url: url,
+        Query: {
+            workflowId: workflowId,
+            size: '3',
+            states: 'Failed'
+        }
+    }, function (err, data) {
+        console.log(err || data);
+    });
+}
+
+
+/**
+ * 更新工作流配置
+ */
+function UpdateWorkflow() {
+    let workflowId = 'w14404e66c27b4e0aafae6bc96acfxxxx';
+    let queueId = 'p5ad1499214024af2bfaa4401d529xxxx';
+    let callbackUrl = 'http://your.callback.com/index.php';
+    let host = config.Bucket + '.ci.' + config.Region + '.myqcloud.com';
+    let url = 'https://' + host + '/workflow/' + workflowId;
+    let body = {        // 填上模版修改参数
+        Request: {
+            MediaWorkflow: {
+                Name: 'test1',
+                State: 'Active',    // 创建并开启工作流
+                Topology: {
+                    Dependencies: {
+                        Start: 'SmartCover_1581665960539',
+                        'SmartCover_1581665960539': 'End'
+                    },
+                    Nodes: {
+                        Start: {
+                            Type: 'Start',
+                            Input: {
+                                QueueId: queueId,
+                                ObjectPrefix: 'test/',
+                                NotifyConfig: {
+                                    Type: 'Url',
+                                    Url: callbackUrl,
+                                    Event: 'TaskFinish,WorkflowFinish'
+                                },
+                                ExtFilter: {
+                                    State: 'On',
+                                    Video: 'true',
+                                    Custom: 'true',
+                                    CustomExts: 'mp4/mp3',
+                                    AllFile: 'false'
+                                }
+                            }
+                        },
+                        'SmartCover_1581665960539': {
+                            Type: 'SmartCover',
+                            Operation: {
+                                Output: {
+                                    Region: config.Region,
+                                    Bucket: config.Bucket,
+                                    Object: 'worlflow-test/${RunId}/cover-${Number}.jpg'
+                                },
+                                SmartCover: {
+                                    Format: 'png',
+                                    Width: '128',
+                                    Height: '128',
+                                    Count: '3',
+                                    DeleteDuplicates: 'false'
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    cos.request({
+        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Region: config.Region,
+        Method: 'PUT',
+        Key: 'workflow/' + workflowId,
+        Url: url,
+        Headers: {
+            'content-type': 'application/xml'
+        },
+        Body: json2xml(body)
+    }, function (err, data) {
+        console.log(err || data);
+    });
+}
+
+
+/**
+ * 触发工作流
+ */
+function TriggerWorkflow() {
+    let workflowId = 'w093b29cfef824bd0922743a6f0afxxxx';
+    let host = config.Bucket + '.ci.' + config.Region + '.myqcloud.com';
+    let url = 'https://' + host + '/triggerworkflow';
+    cos.request({
+        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Region: config.Region,
+        Method: 'POST',
+        Key: 'triggerworkflow',
+        Url: url,
+        Headers: {
+            'content-type': 'application/xml'
+        },
+        Query: {
+            workflowId: workflowId,
+            object: 'test.mp4'
+        }
+    }, function (err, data) {
+        console.log(err || data);
+    });
+}
+
+
+/**
+ * 获取私有 M3U8 ts 资源的下载授权
+ */
+function GetPrivateM3U8() {
+    cos.request({
+        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Region: config.Region,
+        Method: 'GET',
+        Key: 'test.m3u8',
+        Query: {
+            'ci-process': 'pm3u8',
+            expires: '3600'
+        }
+    }, function (err, data) {
+        console.log(err || data);
+    });
+}
+
 
 // getService();
 // getAuth();
@@ -1725,3 +2673,34 @@ function CIExample4(){
 // deleteFolder();
 // downloadFile();
 // request();
+
+// 数据处理
+//DescribeCIBuckets();
+//DescribeDocProcessBuckets();
+//GetDocProcess()
+//DescribeDocProcessQueues()
+//UpdateDocProcessQueue()
+//CreateDocProcessJobs();
+//DescribeDocProcessJob();
+//DescribeDocProcessJobs();
+//DescribeMediaBuckets();
+//DescribeMediaQueues();
+//UpdateMediaQueue();
+//CreateMediaTemplate();
+//DeleteMediaTemplate();
+//DescribeMediaTemplates()
+//UpdateMediaTemplate()
+//CreateMediaJobs();
+//CancelMediaJob();
+//DescribeMediaJob();
+//DescribeMediaJobs();
+//GetSnapshot();
+//GetMediaInfo();
+//CreateWorkflow();
+//DeleteWorkflow();
+//DescribeWorkflow();
+//DescribeWorkflowExecution();
+//DescribeWorkflowExecutions();
+//UpdateWorkflow();
+//TriggerWorkflow();
+//GetPrivateM3U8();

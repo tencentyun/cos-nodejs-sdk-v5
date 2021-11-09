@@ -68,6 +68,8 @@ declare namespace COS {
   type Initiator = Owner;
   /** 单个授权信息 */
   type Grant = string;
+  /** RFC 2616 中定义的字节范围。 @see https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.35 */
+  type Range = string;
   /** 被授权者信息与权限信息 */
   interface Grants {
     /** 所有者的信息 */
@@ -1150,6 +1152,8 @@ declare namespace COS {
   /** getObject 接口参数 */
   interface GetObjectParams extends ObjectParams {
     BodyType?: 'text' | 'blob' | 'arraybuffer',
+    /** 下载对象的指定范围字节。参见 RFC 2616 中定义的字节范围，see https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.35。范围值必须使用 bytes=first-last 格式且仅支持单一范围，不支持多重范围。first 和 last 都是基于0开始的偏移量。例如 bytes=0-9 表示下载对象的开头10个字节的数据 ，如果不指定，则表示下载整个对象 */
+    Range?: Range;
     /** 写入流，可以传本地文件写入流 */
     Output?: Stream,
     /** 请求里的 Url Query 参数，传入该值中的 key/value 将会被 URLEncode */

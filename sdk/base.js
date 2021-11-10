@@ -3004,6 +3004,7 @@ function multipartAbort(params, callback) {
       headers: params.Headers,
       qs: params.Query,
       body: params.Body,
+      url: params.Url
   }, function (err, data) {
       if (err) return callback(err);
       if (data && data.body) {
@@ -3252,17 +3253,16 @@ function getUrl(params) {
 
 var getSignHost = function (opt) {
     if (!opt.Bucket || !opt.Bucket) return '';
-    var ps = this.options.ForcePathStyle;
     var url = opt.Url || getUrl({
-        ForcePathStyle: ps,
+        ForcePathStyle: this.options.ForcePathStyle,
         protocol: this.options.Protocol,
         domain: this.options.Domain,
         bucket: opt.Bucket,
         region: opt.Region,
     });
-    var standardHost = (ps ? '' : opt.Bucket + '.') + 'cos.' + opt.Region + '.myqcloud.com';
     var urlHost = url.replace(/^https?:\/\/([^/]+)(\/.*)?$/, '$1');
-    if (standardHost === urlHost) return standardHost;
+    var standardHostReg = new RegExp('^([a-z\\d-]+-\\d+\\.)?(cos|cosv6|ci|pic)\\.([a-z\\d-]+)\\.myqcloud\\.com$');
+    if (standardHostReg.test(urlHost)) return urlHost;
     return '';
 }
 
@@ -3517,7 +3517,7 @@ function submitRequest(params, callback) {
     var Query = util.clone(params.qs);
     params.action && (Query[params.action] = '');
 
-    var SignHost = params.SignHost || getSignHost.call(this, {Bucket: params.Bucket, Region: params.Region});
+    var SignHost = params.SignHost || getSignHost.call(this, {Bucket: params.Bucket, Region: params.Region, Url: params.url});
     var next = function (tryTimes) {
         var oldClockOffset = self.options.SystemClockOffset;
         getAuthorizationAsync.call(self, {

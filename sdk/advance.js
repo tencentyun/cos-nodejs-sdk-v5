@@ -795,6 +795,9 @@ function uploadFile(params, callback) {
   var taskList = [];
 
   fs.stat(params.FilePath, function (err, stat) {
+      if (err) {
+          return callback(err);
+      }
 
       var isDir = stat.isDirectory();
       var FileSize = params.ContentLength = stat.size || 0;
@@ -871,9 +874,8 @@ function uploadFiles(params, callback) {
     var count = params.files.length;
     util.each(params.files, function (fileParams, index) {
         fs.stat(fileParams.FilePath, function (err, stat) {
-
-            var isDir = stat.isDirectory();
-            var FileSize = fileParams.ContentLength = stat.size || 0;
+            var isDir = stat ? stat.isDirectory() : false;
+            var FileSize = fileParams.ContentLength = stat ? stat.size : 0;
             var fileInfo = {Index: index, TaskId: ''};
 
             // 更新文件总大小

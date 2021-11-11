@@ -577,6 +577,7 @@ function uploadSliceItem(params, callback) {
     var ServerSideEncryption = params.ServerSideEncryption;
     var UploadData = params.UploadData;
     var ChunkRetryTimes = self.options.ChunkRetryTimes + 1;
+    var Headers = params.Headers || {};
 
     var start = SliceSize * (PartNumber - 1);
 

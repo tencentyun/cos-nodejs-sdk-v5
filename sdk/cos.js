@@ -5,6 +5,7 @@ var event = require('./event');
 var task = require('./task');
 var base = require('./base');
 var advance = require('./advance');
+var ci = require('./ci');
 var pkg = require('../package.json');
 
 var defaultOptions = {
@@ -69,6 +70,7 @@ var COS = function (options) {
 
 base.init(COS, task);
 advance.init(COS, task);
+ci.init(COS);
 
 COS.util = {
     md5: util.md5,

@@ -1518,6 +1518,47 @@ function downloadFile() {
     // cos.emit('inner-kill-task', {TaskId: '123'});
 }
 
+// 追加上传
+function appendObject() {
+  cos.appendObject({
+      Bucket: config.Bucket, // Bucket 格式：test-1250000000
+      Region: config.Region,
+      Key: 'append1.txt', /* 必须 */
+      Body: '12345',
+      Position: 0,
+  },
+  function(err, data) {
+      console.log(err || data);
+  })
+}
+
+// 继续追加上传
+function appendObject_continue() {
+  cos.headObject({
+      Bucket: config.Bucket, // Bucket 格式：test-1250000000
+      Region: config.Region,
+      Key: 'append1.txt', /* 必须 */
+  }, function(err, data) {
+      if (err) return console.log(err);
+      // 首先取到要追加的文件当前长度，即需要上送的Position
+      var position = data.headers['content-length'];
+      cos.appendObject({
+          Bucket: config.Bucket, // Bucket 格式：test-1250000000
+          Region: config.Region,
+          Key: 'append1.txt', /* 必须 */
+          Body: '66666',
+          Position: position,
+      },
+      function(err, data) {
+          // 也可以取到下一次上传的position继续追加上传
+          var nextPosition = data.headers['x-cos-next-append-position'];
+          console.log(err || data);
+      })
+  });
+}
+
+
+
 function request() {
     // 对云上数据进行图片处理
     var filename = 'example_photo.png';
@@ -1646,36 +1687,48 @@ function CIExample4(){
  * 查询已经开通数据万象功能的存储桶
  */
 function DescribeCIBuckets() {
-    let url = 'https://' +config.Bucket + '.pic.' + config.Region + '.myqcloud.com';
-    cos.request({
-        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+    cos.describeMediaBuckets({
+        Bucket: config.Bucket,
         Region: config.Region,
-        Method: 'GET',
-        Url: url
-    }, function (err, data) {
+        Regions: 'ap-chengdu',
+        // BucketNames: 'blog-1300555317,wx-sdk-1300555317',
+        BucketName: 'blog',
+        // PageNumber: '1',
+        // PageSize: '10',
+    },
+    function(err, data){
+        // var CIStatus = data.CIStatus;
         console.log(err || data);
     });
 }
 
 
 /**
- * 查询已经开通文档预览功能的存储桶
+* 获取媒体文件信息
+*/
+function GetMediaInfo() {
+  cos.getMediaInfo({
+      Bucket: config.Bucket,
+      Region: config.Region,
+      Key: '1.mp4',
+  }, function (err, data) {
+      console.log(err || data);
+  });
+}
+
+/**
+ * 获取媒体文件某个时间的截图
  */
-function DescribeDocProcessBuckets() {
-    let url = 'https://' + 'ci.' + config.Region + '.myqcloud.com/docbucket';
-    cos.request({
-        Bucket: config.Bucket, // Bucket 格式：test-1250000000
-        Region: config.Region,
-        Method: 'GET',
-        Key: 'docbucket',
-        Url: url,
-        Query: {
-            pageNumber: '1',
-            pageSize: '10'
-        }
-    }, function (err, data) {
-        console.log(err || data);
-    });
+ function GetSnapshot() {
+  cos.getSnapshot({
+      Bucket: config.Bucket,
+      Region: config.Region,
+      Key: '1.mp4',
+      Time: 5,
+  }, function (err, data) {
+      // var Body = data.Body;
+      console.log(err || data);
+  });
 }
 
 
@@ -2143,44 +2196,6 @@ function DescribeMediaJobs() {
 
 
 /**
- * 获取媒体文件某个时间的截图
- */
-function GetSnapshot() {
-    cos.request({
-        Bucket: config.Bucket,  // Bucket 格式：test-1250000000
-        Region: config.Region,
-        Method: 'GET',
-        Key: 'test.mp4',
-        Query: {
-            'ci-process': 'snapshot',
-            'time': '1',
-            'format': 'png'
-        }
-    }, function (err, data) {
-        console.log(err || data);
-    });
-}
-
-
-/**
- * 获取媒体文件信息
- */
-function GetMediaInfo() {
-    cos.request({
-        Bucket: config.Bucket, // Bucket 格式：test-1250000000
-        Region: config.Region,
-        Method: 'GET',
-        Key: 'test.mp4',
-        Query: {
-            'ci-process': 'videoinfo'
-        }
-    }, function (err, data) {
-        console.log(err || data);
-    });
-}
-
-
-/**
  * 创建工作流
  */
 function CreateWorkflow() {
@@ -2587,7 +2602,7 @@ function GetPrivateM3U8() {
     });
 }
 
-
+// 存储桶操作
 // getService();
 // getAuth();
 // getV4Auth();
@@ -2640,6 +2655,9 @@ function GetPrivateM3U8() {
 // getBucketEncryption();
 // deleteBucketEncryption();
 // deleteBucket();
+
+
+// 对象操作
 // putObjectCopy();
 // getObjectStream();
 // getObject();
@@ -2664,6 +2682,8 @@ function GetPrivateM3U8() {
 // putObjectTagging();
 // getObjectTagging();
 // deleteObjectTagging();
+// appendObject();
+// appendObject_continue();
 
 // 其他示例
 // moveObject();
@@ -2675,7 +2695,11 @@ function GetPrivateM3U8() {
 // request();
 
 // 数据处理
-//DescribeCIBuckets();
+// DescribeCIBuckets();
+// GetMediaInfo();
+// GetSnapshot();
+
+
 //DescribeDocProcessBuckets();
 //GetDocProcess()
 //DescribeDocProcessQueues()
@@ -2694,8 +2718,7 @@ function GetPrivateM3U8() {
 //CancelMediaJob();
 //DescribeMediaJob();
 //DescribeMediaJobs();
-//GetSnapshot();
-//GetMediaInfo();
+
 //CreateWorkflow();
 //DeleteWorkflow();
 //DescribeWorkflow();

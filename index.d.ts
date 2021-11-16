@@ -2297,7 +2297,7 @@ declare class COS {
   /** 判断上传队列是否有未完成的任务 */
   isUploadRunning(): boolean;
 
-  /** 分片复制文件 */
+  /** cos.request */
   request(params: COS.RequestParams, callback: (err: COS.CosError, data: COS.RequestResult) => void): void;
   request(params: COS.RequestParams): Promise<COS.RequestResult>;
 

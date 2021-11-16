@@ -577,6 +577,7 @@ function uploadSliceItem(params, callback) {
     var ServerSideEncryption = params.ServerSideEncryption;
     var UploadData = params.UploadData;
     var ChunkRetryTimes = self.options.ChunkRetryTimes + 1;
+    var Headers = params.Headers || {};
 
     var start = SliceSize * (PartNumber - 1);
 
@@ -588,6 +589,14 @@ function uploadSliceItem(params, callback) {
         end = FileSize;
         ContentLength = end - start;
     }
+
+    var headersWhiteList = ['x-cos-traffic-limit', 'x-cos-mime-limit'];
+    var headers = {};
+    util.each(Headers, function(v, k) {
+        if (headersWhiteList.indexOf(k) > -1) {
+            headers[k] = v;
+        }
+    });
 
     util.fileSlice(FilePath, start, end, function (md5Body) {
         util.getFileMd5(md5Body, function (err, md5) {
@@ -606,6 +615,7 @@ function uploadSliceItem(params, callback) {
                         UploadId: UploadData.UploadId,
                         ServerSideEncryption: ServerSideEncryption,
                         Body: Body,
+                        Headers: headers,
                         onProgress: params.onProgress,
                         ContentMD5: contentMd5,
                     }, function (err, data) {

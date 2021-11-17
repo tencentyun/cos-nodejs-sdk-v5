@@ -3743,6 +3743,7 @@ function _submitRequest(params, callback) {
         }
         if (sender) {
             sender.removeAllListeners && sender.removeAllListeners();
+            sender.on('error', function () {});
             sender = null;
         }
     };

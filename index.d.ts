@@ -1245,6 +1245,12 @@ declare namespace COS {
     VersionId?: VersionId,
   }
 
+  /** appendObject 接口参数 */
+  interface AppendObjectParams extends PutObjectParams {
+    /** 追加操作的起始点 */
+    Position: number;
+  }
+
   // deleteObject
   /** deleteObject 接口参数 */
   interface DeleteObjectParams extends ObjectParams {}
@@ -1769,7 +1775,7 @@ Bulk：批量模式，恢复时间为24 - 48小时。 */
     data: UploadFileItemResult;
     options: UploadFileItemParams;
   }
-  type onFileFinish = (params: FileFinishInfo) => void;
+  type onFileFinish = (err: Error, data: UploadFileItemResult, options: UploadFileItemParams) => void;
 
   type UploadFileParams = (PutObjectParams | SliceUploadFileParams) & {
     /** 要上传的本地文件路径 */
@@ -1848,9 +1854,13 @@ Bulk：批量模式，恢复时间为24 - 48小时。 */
     /** 请求里的 Url Query 参数 */
     Query?: Query,
     /** 请求里的 Body 参数 */
-    Body?: Body,
+    Body?: Body | string,
     /** 请求的 API 动作接口(可理解为不带 = 的 Query 参数)，如 acl、tagging、image_process 等 */
-    Action: Action
+    Action?: Action,
+    /** 请求url */
+    Url?: string,
+    /** 返回值body是否不需要解析 */
+    RawBody?: boolean,
   }
   /** Request 接口返回值 */
   interface RequestResult extends GeneralResult {
@@ -1876,6 +1886,37 @@ Bulk：批量模式，恢复时间为24 - 48小时。 */
     /** 返回对象 Url */
     Url: string
   }
+
+
+  /********  媒体处理相关 ********/
+  /** 查询已经开通数据万象功能的存储桶 */
+  interface DescribeMediaBucketsParams extends BucketParams {
+    PageNumber?: string;
+    PageSize?: string;
+    Regions?: string;
+    BucketNames?: string;
+    BucketName?: string;
+  }
+  
+  interface DescribeMediaBucketsResult extends GeneralResult {
+    CIStatus: boolean;
+  }
+
+  /** 获取媒体文件信息 */
+  interface GetMediaInfoResult extends GeneralResult {
+    Response: any;
+  }
+
+  /** 获取媒体文件某个时间的截图 */
+  interface GetSnapshotParams extends ObjectParams {
+    Time?: number;
+    Width?: number;
+    Height?: number;
+    format?: string;
+    rotate?: string;
+    mode?: string;
+  }
+
 
   // getV4Auth
   interface GetV4AuthParams {
@@ -2254,18 +2295,40 @@ declare class COS {
   /** 判断上传队列是否有未完成的任务 */
   isUploadRunning(): boolean;
 
-  /** 分片复制文件 */
+  /** cos.request */
   request(params: COS.RequestParams, callback: (err: COS.CosError, data: COS.RequestResult) => void): void;
   request(params: COS.RequestParams): Promise<COS.RequestResult>;
 
   /** 获取文件下载链接 @see https://cloud.tencent.com/document/product/436/35651 */
   getObjectUrl(params: COS.GetObjectUrlParams, callback: (err: COS.CosError, data: COS.GetObjectUrlResult) => void): string;
 
+  /** 追加上传 @see https://cloud.tencent.com/document/product/436/7741 */
+  appendObject(params: COS.AppendObjectParams, callback: (err: COS.CosError, data: COS.GeneralResult) => void): void;
+  appendObject(params: COS.AppendObjectParams): Promise<COS.GeneralResult>;
+
+  /*********** 媒体处理相关 start *******/
+  /** 查询已经开通数据万象功能的存储桶 */
+  describeMediaBuckets(params: COS.DescribeMediaBucketsParams, callback: (err: COS.CosError, data: COS.DescribeMediaBucketsResult) => void): void;
+  describeMediaBuckets(params: COS.DescribeMediaBucketsParams): Promise<COS.DescribeMediaBucketsResult>;
+
+  /** 获取媒体文件信息 */
+  getMediaInfo(params: COS.ObjectParams, callback: (err: COS.CosError, data: COS.GetMediaInfoResult) => void): void;
+  getMediaInfo(params: COS.ObjectParams): Promise<COS.GetMediaInfoResult>;
+
+  /** 获取媒体文件某个时间的截图 */
+  getSnapshot(params: COS.GetSnapshotParams, callback: (err: COS.CosError, data: COS.RequestResult) => void): void;
+  getSnapshot(params: COS.GetSnapshotParams): Promise<COS.RequestResult>;
+  /*********** 媒体处理相关 end *******/
+
   /** 获取 COS JSON API (v4) 签名 @see https://cloud.tencent.com/document/product/436/6054 */
   getV4Auth(params: COS.GetV4AuthParams): COS.Authorization;
 
   /** 获取 COS XMl API (v5) 签名 @see https://cloud.tencent.com/document/product/436/7778 */
   getAuth(params: COS.GetAuthParams): COS.Authorization;
+
+  on(action: string, callback: (params?: any) => void): void;
+  off(action: string, callback: (params?: any) => void): void;
+  emit(action: string, data?: any): void;
 
 }
 

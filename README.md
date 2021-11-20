@@ -22,12 +22,19 @@ var cos = new COS({
     SecretId: 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
     SecretKey: 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
 });
+
+// 存储桶名称，由bucketname-appid 组成，appid必须填入，可以在COS控制台查看存储桶名称。 https://console.cloud.tencent.com/cos5/bucket
+var Bucket = 'test-1250000000';
+// 存储桶Region可以在COS控制台指定存储桶的概览页查看 https://console.cloud.tencent.com/cos5/bucket/ 
+// 关于地域的详情见 https://cloud.tencent.com/document/product/436/6224
+var Region = 'ap-guangzhou';
+
 // 分片上传
 cos.sliceUploadFile({
-    Bucket: 'test-1250000000', // Bucket 格式：test-1250000000
-    Region: 'ap-guangzhou',
+    Bucket: Bucket,
+    Region: Region,
     Key: '1.zip',
-    FilePath: './1.zip'
+    FilePath: './1.zip' // 本地文件地址，需自行替换
 }, function (err, data) {
     console.log(err, data);
 });

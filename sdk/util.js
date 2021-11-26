@@ -29,19 +29,42 @@ var getObjectKeys = function (obj, forKey) {
   });
 };
 
-var obj2str = function (obj) {
+/**
+ * obj转为string
+ * @param  {Object}  obj                需要转的对象，必须
+ * @param  {Boolean}  stayCase           保留原始大小写，默认false，非必须
+ * @return {String}  data              返回字符串
+ */
+var obj2str = function (obj, stayCase) {
   var i, key, val;
   var list = [];
   var keyList = getObjectKeys(obj);
   for (i = 0; i < keyList.length; i++) {
       key = keyList[i];
       val = (obj[key] === undefined || obj[key] === null) ? '' : ('' + obj[key]);
-      key = camSafeUrlEncode(key).toLowerCase();
+      key = stayCase? camSafeUrlEncode(key) : camSafeUrlEncode(key).toLowerCase();
       val = camSafeUrlEncode(val) || '';
       list.push(key + '=' + val)
   }
   return list.join('&');
 };
+
+// 可以签入签名的headers
+var signHeaders = ['content-disposition', 'content-encoding', 'content-length', 'content-md5',
+    'expect', 'expires', 'host', 'if-match', 'if-modified-since', 'if-none-match', 'if-unmodified-since',
+    'origin', 'range', 'response-cache-control', 'response-content-disposition', 'response-content-encoding',
+    'response-content-language', 'response-content-type', 'response-expires', 'transfer-encoding', 'versionid'];
+
+var getSignHeaderObj = function (headers) {
+    var signHeaderObj = {};
+    for (var i in headers) {
+        var key = i.toLowerCase();
+        if (key.indexOf('x-cos-') > -1 || signHeaders.indexOf(key) > -1) {
+            signHeaderObj[i] = headers[i];
+        }
+    }
+    return signHeaderObj;
+}
 
 //测试用的key后面可以去掉
 var getAuth = function (opt) {
@@ -52,7 +75,7 @@ var getAuth = function (opt) {
     var KeyTime = opt.KeyTime;
     var method = (opt.method || opt.Method || 'get').toLowerCase();
     var queryParams = clone(opt.Query || opt.params || {});
-    var headers = clone(opt.Headers || opt.headers || {});
+    var headers = getSignHeaderObj(clone(opt.Headers || opt.headers || {}));
 
     var Key = opt.Key || '';
     var pathname;

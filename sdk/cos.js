@@ -59,6 +59,14 @@ var COS = function (options) {
     if (this.options.AppId) {
         console.warn('warning: AppId has been deprecated, Please put it at the end of parameter Bucket(E.g: "test-1250000000").');
     }
+    if (this.options.SecretId && this.options.SecretId.indexOf(' ') > -1) {
+        console.error('error: SecretId格式错误，请检查');
+        console.error('error: SecretId format is incorrect. Please check');
+    }
+    if (this.options.SecretKey && this.options.SecretKey.indexOf(' ') > -1) {
+        console.error('error: SecretKey格式错误，请检查');
+        console.error('error: SecretKey format is incorrect. Please check');
+    }
     if (util.isWeb()) {
       console.warn('warning: cos-nodejs-sdk-v5 不支持浏览器使用，请改用 cos-js-sdk-v5，参考文档： https://cloud.tencent.com/document/product/436/11459');
       console.warn('warning: cos-nodejs-sdk-v5 does not support browsers. Please use cos-js-sdk-v5 instead, See: https://cloud.tencent.com/document/product/436/11459');

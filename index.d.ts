@@ -1850,7 +1850,9 @@ Bulk：批量模式，恢复时间为24 - 48小时。 */
     /** 请求里的 Body 参数 */
     Body?: Body,
     /** 请求的 API 动作接口(可理解为不带 = 的 Query 参数)，如 acl、tagging、image_process 等 */
-    Action: Action
+    Action?: Action,
+    /** 请求url */
+    Url?: string,
   }
   /** Request 接口返回值 */
   interface RequestResult extends GeneralResult {

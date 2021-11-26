@@ -180,6 +180,8 @@ declare namespace COS {
     UseAccelerate?: boolean,
     /** 是否开启长链接，默认开启 */
     KeepAlive?: boolean,
+    /** 获取签名/预签名函数，默认签入Header Host */
+    ForceSignHost?: boolean,
     /** 获取签名的回调方法，如果没有 SecretId、SecretKey 时，必选 */
     getAuthorization?: (
       options: GetAuthorizationOptions,
@@ -245,6 +247,8 @@ declare namespace COS {
     Scope: Scope,
     /** 校正时间的偏移值，单位 ms(毫秒)，计算签名时会用设备当前时间戳加上该偏移值，在设备时间有误时可用于校正签名用的时间参数。 */
     SystemClockOffset: number,
+    /** 获取签名/预签名函数，默认签入Header Host */
+    ForceSignHost?: boolean,
   }
   /** 请求凭证，包含临时密钥信息 */
   interface Credentials {
@@ -1880,6 +1884,8 @@ Bulk：批量模式，恢复时间为24 - 48小时。 */
     QueryString?: string,
     /** 签名几秒后失效，默认为900秒 */
     Expires?: number,
+    /** 获取签名/预签名函数，默认签入Header Host */
+    ForceSignHost?: boolean,
   }
   /** getObjectUrl 接口返回值 */
   interface GetObjectUrlResult {
@@ -1921,6 +1927,8 @@ Bulk：批量模式，恢复时间为24 - 48小时。 */
     Query?: Query,
     /** 请求里的 Header 参数 */
     Headers?: Headers,
+    /** 获取签名/预签名函数，默认签入Header Host */
+    ForceSignHost?: boolean,
   }
 
 }

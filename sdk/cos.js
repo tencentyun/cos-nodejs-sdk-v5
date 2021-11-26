@@ -42,6 +42,7 @@ var defaultOptions = {
     UseAccelerate: false,
     UserAgent: '',
     ConfCwd: '',
+    ForceSignHost: true, // 获取签名/预签名函数，默认签入Header Host；您也可以选择不签入Header Host，但可能导致请求失败或安全漏洞
 };
 
 // 对外暴露的类

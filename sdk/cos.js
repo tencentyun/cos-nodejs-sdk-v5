@@ -59,7 +59,6 @@ var COS = function (options) {
     if (this.options.AppId) {
         console.warn('warning: AppId has been deprecated, Please put it at the end of parameter Bucket(E.g: "test-1250000000").');
     }
-    
     // 云API SDK 用小写密钥，这里兼容并 warning
     if (this.options.secretId || this.options.secretKey) {
         if (this.options.secretId && !this.options.SecretId) this.options.SecretId = this.options.secretId;

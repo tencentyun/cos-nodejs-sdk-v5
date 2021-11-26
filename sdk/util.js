@@ -16,37 +16,37 @@ function camSafeUrlEncode(str) {
 }
 
 var getObjectKeys = function (obj, forKey) {
-  var list = [];
-  for (var key in obj) {
-      if (obj.hasOwnProperty(key)) {
-          list.push(forKey ? camSafeUrlEncode(key).toLowerCase() : key);
-      }
-  }
-  return list.sort(function (a, b) {
-      a = a.toLowerCase();
-      b = b.toLowerCase();
-      return a === b ? 0 : (a > b ? 1 : -1);
-  });
+    var list = [];
+    for (var key in obj) {
+        if (obj.hasOwnProperty(key)) {
+            list.push(forKey ? camSafeUrlEncode(key).toLowerCase() : key);
+        }
+    }
+    return list.sort(function (a, b) {
+        a = a.toLowerCase();
+        b = b.toLowerCase();
+        return a === b ? 0 : (a > b ? 1 : -1);
+    });
 };
 
 /**
  * obj转为string
  * @param  {Object}  obj                需要转的对象，必须
- * @param  {Boolean}  stayCase           保留原始大小写，默认false，非必须
- * @return {String}  data              返回字符串
+ * @param  {Boolean} stayCase           保留原始大小写，默认false，非必须
+ * @return {String}  data               返回字符串
  */
 var obj2str = function (obj, stayCase) {
-  var i, key, val;
-  var list = [];
-  var keyList = getObjectKeys(obj);
-  for (i = 0; i < keyList.length; i++) {
-      key = keyList[i];
-      val = (obj[key] === undefined || obj[key] === null) ? '' : ('' + obj[key]);
-      key = stayCase? camSafeUrlEncode(key) : camSafeUrlEncode(key).toLowerCase();
-      val = camSafeUrlEncode(val) || '';
-      list.push(key + '=' + val)
-  }
-  return list.join('&');
+    var i, key, val;
+    var list = [];
+    var keyList = getObjectKeys(obj);
+    for (i = 0; i < keyList.length; i++) {
+        key = keyList[i];
+        val = (obj[key] === undefined || obj[key] === null) ? '' : ('' + obj[key]);
+        key = stayCase? camSafeUrlEncode(key) : camSafeUrlEncode(key).toLowerCase();
+        val = camSafeUrlEncode(val) || '';
+        list.push(key + '=' + val)
+    }
+    return list.join('&');
 };
 
 // 可以签入签名的headers

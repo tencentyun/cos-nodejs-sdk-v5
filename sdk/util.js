@@ -365,6 +365,7 @@ var formatParams = function (apiName, params) {
                 'x-cos-grant-write-acp': 'GrantWriteAcp',
                 'x-cos-storage-class': 'StorageClass',
                 'x-cos-traffic-limit': 'TrafficLimit',
+                'x-cos-mime-limit': 'MimeLimit',
                 // SSE-C
                 'x-cos-server-side-encryption-customer-algorithm': 'SSECustomerAlgorithm',
                 'x-cos-server-side-encryption-customer-key': 'SSECustomerKey',
@@ -632,7 +633,11 @@ var error = function (err, opt) {
 }
 
 var isWeb = function () {
-  return typeof window === 'object';
+    return typeof window === 'object';
+}
+
+var isCIHost = function(url) {
+  return /^https?:\/\/([^/]+\.)?ci\.[^/]+/.test(url);
 }
 
 var util = {
@@ -668,6 +673,7 @@ var util = {
     isBrowser: false,
     obj2str: obj2str,
     isWeb: isWeb,
+    isCIHost: isCIHost,
 };
 
 module.exports = util;

@@ -16,32 +16,55 @@ function camSafeUrlEncode(str) {
 }
 
 var getObjectKeys = function (obj, forKey) {
-  var list = [];
-  for (var key in obj) {
-      if (obj.hasOwnProperty(key)) {
-          list.push(forKey ? camSafeUrlEncode(key).toLowerCase() : key);
-      }
-  }
-  return list.sort(function (a, b) {
-      a = a.toLowerCase();
-      b = b.toLowerCase();
-      return a === b ? 0 : (a > b ? 1 : -1);
-  });
+    var list = [];
+    for (var key in obj) {
+        if (obj.hasOwnProperty(key)) {
+            list.push(forKey ? camSafeUrlEncode(key).toLowerCase() : key);
+        }
+    }
+    return list.sort(function (a, b) {
+        a = a.toLowerCase();
+        b = b.toLowerCase();
+        return a === b ? 0 : (a > b ? 1 : -1);
+    });
 };
 
-var obj2str = function (obj) {
-  var i, key, val;
-  var list = [];
-  var keyList = getObjectKeys(obj);
-  for (i = 0; i < keyList.length; i++) {
-      key = keyList[i];
-      val = (obj[key] === undefined || obj[key] === null) ? '' : ('' + obj[key]);
-      key = camSafeUrlEncode(key).toLowerCase();
-      val = camSafeUrlEncode(val) || '';
-      list.push(key + '=' + val)
-  }
-  return list.join('&');
+/**
+ * obj转为string
+ * @param  {Object}  obj                需要转的对象，必须
+ * @param  {Boolean} lowerCaseKey       key是否转为小写，默认false，非必须
+ * @return {String}  data               返回字符串
+ */
+var obj2str = function (obj, lowerCaseKey) {
+    var i, key, val;
+    var list = [];
+    var keyList = getObjectKeys(obj);
+    for (i = 0; i < keyList.length; i++) {
+        key = keyList[i];
+        val = (obj[key] === undefined || obj[key] === null) ? '' : ('' + obj[key]);
+        key = lowerCaseKey? camSafeUrlEncode(key).toLowerCase() : camSafeUrlEncode(key);
+        val = camSafeUrlEncode(val) || '';
+        list.push(key + '=' + val)
+    }
+    return list.join('&');
 };
+
+// 可以签入签名的headers
+var signHeaders = ['content-disposition', 'content-encoding', 'content-length', 'content-md5',
+    'expect', 'expires', 'host', 'if-match', 'if-modified-since', 'if-none-match', 'if-unmodified-since',
+    'origin', 'range', 'response-cache-control', 'response-content-disposition', 'response-content-encoding',
+    'response-content-language', 'response-content-type', 'response-expires', 'transfer-encoding', 'versionid'];
+
+var getSignHeaderObj = function (headers) {
+    var signHeaderObj = {};
+    for (var i in headers) {
+        var key = i.toLowerCase();
+        if (key.indexOf('x-cos-') > -1 || signHeaders.indexOf(key) > -1) {
+            signHeaderObj[i] = headers[i];
+        }
+    }
+    return signHeaderObj;
+}
 
 //测试用的key后面可以去掉
 var getAuth = function (opt) {
@@ -52,7 +75,7 @@ var getAuth = function (opt) {
     var KeyTime = opt.KeyTime;
     var method = (opt.method || opt.Method || 'get').toLowerCase();
     var queryParams = clone(opt.Query || opt.params || {});
-    var headers = clone(opt.Headers || opt.headers || {});
+    var headers = getSignHeaderObj(clone(opt.Headers || opt.headers || {}));
 
     var Key = opt.Key || '';
     var pathname;
@@ -93,7 +116,7 @@ var getAuth = function (opt) {
     var signKey = crypto.createHmac('sha1', SecretKey).update(qKeyTime).digest('hex');
 
     // 步骤二：构成 FormatString
-    var formatString = [method, pathname, obj2str(queryParams), obj2str(headers), ''].join('\n');
+    var formatString = [method, pathname, obj2str(queryParams, true), obj2str(headers, true), ''].join('\n');
     formatString = Buffer.from(formatString, 'utf8');
 
     // 步骤三：计算 StringToSign

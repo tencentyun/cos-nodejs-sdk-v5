@@ -3133,13 +3133,6 @@ function getObjectUrl(params, callback) {
         queryParamsStr += (queryParamsStr ? '&' : '') + params.QueryString;
     }
 
-    // 签名加上 Host，避免跨桶访问
-    var SignHost = '';
-    var standardHost = 'cos.' + params.Region + '.myqcloud.com';
-    if (!self.options.ForcePathStyle) standardHost = params.Bucket + '.' + standardHost;
-    var urlHost = url.replace(/^https?:\/\/([^/]+)(\/.*)?$/, '$1');
-    if (standardHost === urlHost) SignHost = standardHost;
-
     var syncUrl = url;
     if (params.Sign !== undefined && !params.Sign) {
         queryParamsStr && (syncUrl += '?' + queryParamsStr);
@@ -3147,6 +3140,7 @@ function getObjectUrl(params, callback) {
         return syncUrl;
     }
 
+    // 签名加上 Host，避免跨桶访问
     var SignHost = getSignHost.call(this, {Bucket: params.Bucket, Region: params.Region, Url: url});
     var AuthData = getAuthorizationAsync.call(this, {
         Action: ((params.Method || '').toUpperCase() === 'PUT' ? 'name/cos:PutObject' : 'name/cos:GetObject'),
@@ -3164,9 +3158,19 @@ function getObjectUrl(params, callback) {
             callback(err);
             return;
         }
+
+        // 兼容万象url qUrlParamList需要再encode一次
+        var replaceUrlParamList = function(url) {
+            var urlParams = url.match(/q-url-param-list.*?(?=&)/g)[0];
+            var encodedParams = 'q-url-param-list=' + encodeURIComponent(urlParams.replace(/q-url-param-list=/, '')).toLowerCase();
+            var reg = new RegExp(urlParams, 'g');
+            var replacedUrl = url.replace(reg, encodedParams);
+            return replacedUrl;
+        }
+
         var signUrl = url;
         signUrl += '?' + (AuthData.Authorization.indexOf('q-signature') > -1 ?
-            AuthData.Authorization : 'sign=' + encodeURIComponent(AuthData.Authorization));
+            replaceUrlParamList(AuthData.Authorization) : 'sign=' + encodeURIComponent(AuthData.Authorization));
         AuthData.SecurityToken && (signUrl += '&x-cos-security-token=' + AuthData.SecurityToken);
         AuthData.ClientIP && (signUrl += '&clientIP=' + AuthData.ClientIP);
         AuthData.ClientUA && (signUrl += '&clientUA=' + AuthData.ClientUA);
@@ -3324,7 +3328,7 @@ function getAuthorizationAsync(params, callback) {
     var headers = util.clone(params.Headers);
     var headerHost = '';
     util.each(headers, function (v, k) {
-        (v === '' || ['content-type', 'cache-control', 'expires'].indexOf(k.toLowerCase()) > -1) && delete headers[k];
+        (v === '' || ['content-type', 'cache-control'].indexOf(k.toLowerCase()) > -1) && delete headers[k];
         if (k.toLowerCase() === 'host') headerHost = v;
     });
 

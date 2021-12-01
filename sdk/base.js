@@ -3127,7 +3127,7 @@ function getObjectUrl(params, callback) {
 
     var queryParamsStr = '';
     if(params.Query){
-        queryParamsStr += util.obj2str(params.Query, true);
+        queryParamsStr += util.obj2str(params.Query);
     }
     if(params.QueryString){
         queryParamsStr += (queryParamsStr ? '&' : '') + params.QueryString;

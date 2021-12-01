@@ -32,17 +32,17 @@ var getObjectKeys = function (obj, forKey) {
 /**
  * obj转为string
  * @param  {Object}  obj                需要转的对象，必须
- * @param  {Boolean} stayCase           保留原始大小写，默认false，非必须
+ * @param  {Boolean} lowerCaseKey       key是否转为小写，默认false，非必须
  * @return {String}  data               返回字符串
  */
-var obj2str = function (obj, stayCase) {
+var obj2str = function (obj, lowerCaseKey) {
     var i, key, val;
     var list = [];
     var keyList = getObjectKeys(obj);
     for (i = 0; i < keyList.length; i++) {
         key = keyList[i];
         val = (obj[key] === undefined || obj[key] === null) ? '' : ('' + obj[key]);
-        key = stayCase? camSafeUrlEncode(key) : camSafeUrlEncode(key).toLowerCase();
+        key = lowerCaseKey? camSafeUrlEncode(key).toLowerCase() : camSafeUrlEncode(key);
         val = camSafeUrlEncode(val) || '';
         list.push(key + '=' + val)
     }
@@ -116,7 +116,7 @@ var getAuth = function (opt) {
     var signKey = crypto.createHmac('sha1', SecretKey).update(qKeyTime).digest('hex');
 
     // 步骤二：构成 FormatString
-    var formatString = [method, pathname, obj2str(queryParams), obj2str(headers), ''].join('\n');
+    var formatString = [method, pathname, obj2str(queryParams, true), obj2str(headers, true), ''].join('\n');
     formatString = Buffer.from(formatString, 'utf8');
 
     // 步骤三：计算 StringToSign

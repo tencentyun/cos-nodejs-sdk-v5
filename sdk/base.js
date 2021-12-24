@@ -3045,7 +3045,14 @@ function multipartAbort(params, callback) {
  *     @return  {Object}    err             请求失败的错误，如果请求成功，则为空。https://cloud.tencent.com/document/product/436/7730
  *     @return  {Object}    data            返回的数据
  */
- function request(params, callback) {
+function request(params, callback) {
+  var Query = params.Query || {};
+  // 处理 url
+  if (params.Url) {
+    var m = params.Url.match(/^https?:\/\/([^/]+)(\/[^?#]*)?(\?[^#]*)?(#.*)?$/)
+    var urlPath = m && m[2] || '';
+    if (urlPath && !params.Key) params.Key = urlPath.substr(1);
+  }
   submitRequest.call(this, {
       method: params.Method,
       Bucket: params.Bucket,
@@ -3053,7 +3060,7 @@ function multipartAbort(params, callback) {
       Key: params.Key,
       action: params.Action,
       headers: params.Headers,
-      qs: params.Query,
+      qs: Query,
       body: params.Body,
       url: params.Url,
       rawBody: params.RawBody,

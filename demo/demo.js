@@ -1636,7 +1636,7 @@ function CIExample3(){
             Bucket: config.Bucket,
             Region: config.Region,
             Key: 'example_photo.png',
-            QueryString: `imageMogr2/thumbnail/200x/`,
+            QueryString: 'imageMogr2/thumbnail/200x/',
         },
         function (err, data) {
             if(data){
@@ -1659,7 +1659,7 @@ function CIExample4(){
             Bucket: config.Bucket,
             Region: config.Region,
             Key: 'photo.png',
-            QueryString: `imageMogr2/thumbnail/200x/`,
+            QueryString: 'imageMogr2/thumbnail/200x/',
             Expires: 1800,
             Sign: true,
         },
@@ -1673,7 +1673,7 @@ function CIExample4(){
             Bucket: config.Bucket,
             Region: config.Region,
             Key: 'photo.png',
-            QueryString: `imageMogr2/thumbnail/200x/`,
+            QueryString: 'imageMogr2/thumbnail/200x/',
             Sign: false,
         },
         function (err, data) {
@@ -2606,6 +2606,25 @@ function TriggerWorkflow() {
     });
 }
 
+// 同步审核存储桶里的图片对象
+function SyncAuditImageObject() {
+    cos.request({
+        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Region: config.Region,
+        Key: 'audit/1.jpg',
+        Method: 'GET',
+        Query: {
+            'ci-process': 'sensitive-content-recognition',
+            // 'detect-url': '<url>',
+            // 'biz-type': '<type>', // 审核策略 id
+            // 'detect-type': 'porn,ads', // 审核类型 porn,ads
+            // 'interval': 5, // gif截取间隔帧数
+            // 'max-frames': 5, // gif最大截帧数
+        }
+    }, function (err, data) {
+        console.log(err || data);
+    });
+}
 
 /**
  * 获取私有 M3U8 ts 资源的下载授权
@@ -2622,6 +2641,118 @@ function GetPrivateM3U8() {
         }
     }, function (err, data) {
         console.log(err || data);
+    });
+}
+
+// 同步审核任意图片 Url
+function SyncAuditImageUrl() {
+    cos.request({
+        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Region: config.Region,
+        Method: 'GET',
+        Query: {
+            'ci-process': 'sensitive-content-recognition',
+            'detect-url': 'https://ftp.bmp.ovh/imgs/2021/09/ee4e63607465ed8d.jpg',
+            // 'biz-type': '<type>', // 审核策略 id
+            // 'detect-type': 'porn,ads', // 审核类型 porn,ads
+            // 'interval': 5, // gif截取间隔帧数
+            // 'max-frames': 5, // gif最大截帧数
+        }
+    }, function (err, data) {
+        console.log(err || data);
+    });
+}
+
+// 批量同步审核任意图片 Url
+function SyncAuditImageUrls() {
+    cos.request({
+        Url: `https://${config.Bucket}.ci.${config.Region}.myqcloud.com/image/auditing`,
+        Method: 'POST',
+        Headers: {
+            'content-type': 'application/xml'
+        },
+        Body: json2xml({
+            Request: {
+                Input: [{
+                    Object: 'audit/1.jpg',
+                    // DataId: '1', // 审核序号
+                    // Url: '<url>',
+                    // Interval: 5,
+                    // MaxFrames: 5,
+                }, {
+                    Object: 'audit/2.jpg',
+                }],
+                Conf: {
+                    DetectType: 'Porn,Ads',
+                    // Callback: '<url>', // 回调地址
+                    // BizType: '', // 审核策略
+                },
+            },
+        }),
+    }, function (err, data) {
+        console.log(err || data.Response.JobsDetail);
+    });
+}
+
+// 审核文本内容
+function SyncAuditTextContent() {
+    cos.request({
+        Url: `https://${config.Bucket}.ci.${config.Region}.myqcloud.com/text/auditing`,
+        Method: 'POST',
+        Headers: {
+            'content-type': 'application/xml'
+        },
+        Body: json2xml({
+            Request: {
+                Input: {
+                    Content: Buffer.from('高潮').toString('base64'),
+                },
+                Conf: {
+                    DetectType: 'Porn,Terrorism,Politics,Ads,Illegal,Abuse',
+                    // Callback: '<url>', // 回调地址
+                    // BizType: '', // 审核策略
+                },
+            },
+        }),
+    }, function (err, data) {
+        console.log(err || data.Response.JobsDetail);
+    });
+}
+
+// 提交图片审核任务
+function CreateAuditJob() {
+    var objectKey = 'audit/1.jpg';
+    var objectType = 'image'; // image/audio/video/text/document
+    cos.request({
+        Url: `https://${config.Bucket}.ci.${config.Region}.myqcloud.com/${objectType}/auditing`,
+        Method: 'POST',
+        Headers: {
+            'content-type': 'application/xml'
+        },
+        Body: json2xml({
+            Request: {
+                Input: {
+                    Object: objectKey,
+                },
+                Conf: {
+                    DetectType: 'Porn,Ads',
+                    // Callback: '<url>', // 回调地址
+                    // BizType: '', // 审核策略
+                },
+            },
+        }),
+    }, function (err, data) {
+        console.log(err || data.Response.JobsDetail);
+    });
+}
+
+// 查询审核任务结果
+function DescribeAuditJob() {
+    var jobId = 'st3bb560af647911ec919652540024deb5';
+    cos.request({
+        Url: `https://${config.Bucket}.ci.${config.Region}.myqcloud.com/text/auditing/${jobId}`,
+    }, function (err, data) {
+        console.log(err || data.Response.JobsDetail);
     });
 }
 
@@ -2750,3 +2881,10 @@ function GetPrivateM3U8() {
 //UpdateWorkflow();
 //TriggerWorkflow();
 //GetPrivateM3U8();
+
+// SyncAuditImageObject()
+// SyncAuditImageUrl()
+// SyncAuditImageUrls()
+// SyncAuditTextContent()
+// CreateAuditJob()
+// DescribeAuditJob()

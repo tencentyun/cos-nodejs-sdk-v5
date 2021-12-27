@@ -3315,7 +3315,7 @@ function getUrl(params) {
 }
 
 var getSignHost = function (opt) {
-    if (!opt.Bucket || !opt.Bucket) return '';
+    if (!opt.Bucket || !opt.Region) return '';
     var url = opt.Url || getUrl({
         ForcePathStyle: this.options.ForcePathStyle,
         protocol: this.options.Protocol,

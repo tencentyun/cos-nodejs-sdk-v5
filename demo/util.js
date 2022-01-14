@@ -2,7 +2,6 @@ var Async = require('../sdk/async');
 var Batch = require('batch');
 var fs = require('fs');
 var os = require('os');
-var fs = require('fs');
 
 var platform = os.platform();
 var createFile = function (filepath, size, callback) {

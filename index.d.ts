@@ -180,6 +180,7 @@ declare namespace COS {
     UseAccelerate?: boolean,
     /** 是否开启长链接，默认开启 */
     KeepAlive?: boolean,
+    Ip?: string,
     /** 获取签名的回调方法，如果没有 SecretId、SecretKey 时，必选 */
     getAuthorization?: (
       options: GetAuthorizationOptions,

@@ -43,7 +43,7 @@ var defaultOptions = {
     UserAgent: '',
     ConfCwd: '',
     EnableOldDomain: false, // 是否默认使用原myqcloud.com域名，默认不使用
-    EnableInternalDomain: false, // 是否使用内网域名，js默认使用外网域名
+    EnableInternalDomain: true, // 是否使用内网域名，nodejs默认使用内网域名
     Endpoint: '' // 指定endPoint,比如cos.ap-guangzhou.tencentcos.cn
 };
 

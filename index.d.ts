@@ -146,9 +146,9 @@ declare namespace COS {
     ProgressInterval?: number,
     /** 上传队列最长大小，超出的任务如果状态不是 waiting、checking、uploading 会被清理，默认10000 */
     UploadQueueSize?: number,
-    /** 上传队列最长大小，超出的任务如果状态不是 waiting、checking、uploading 会被清理，默认10000 */
+    /** 调用操作存储桶和对象的 API 时自定义请求域名。可以使用模板，如"{Bucket}.cos.{Region}.myqcloud.com"，即在调用 API 时会使用参数中传入的 Bucket 和 Region 进行替换。 */
     Domain?: string,
-    /** 强制使用后缀式模式发请求。后缀式模式中 Bucket 会放在域名后的 pathname 里，并且 Bucket 会加入签名 pathname 计算，默认 false */
+    /** getService方法可以使用的自定义域名 */
     ServiceDomain?: string,
     /** 强制使用后缀式模式发请求。后缀式模式中 Bucket 会放在域名后的 pathname 里，并且 Bucket 会加入签名 pathname 计算，默认 false */
     Protocol?: string,
@@ -181,6 +181,8 @@ declare namespace COS {
     /** 是否开启长链接，默认开启 */
     KeepAlive?: boolean,
     Ip?: string,
+    /** 默认将host加入签名计算，关闭后可能导致越权风险，建议保持为true */
+    ForceSignHost?: boolean,
     /** 获取签名的回调方法，如果没有 SecretId、SecretKey 时，必选 */
     getAuthorization?: (
       options: GetAuthorizationOptions,
@@ -1150,7 +1152,8 @@ declare namespace COS {
   // getObjectStream
   /** getObject 接口参数 */
   interface GetObjectParams extends ObjectParams {
-    BodyType?: 'text' | 'blob' | 'arraybuffer',
+    // nodejs getObject 不支持传参BodyType
+    // BodyType?: 'text' | 'blob' | 'arraybuffer',
     /** 写入流，可以传本地文件写入流 */
     Output?: Stream,
     /** 请求里的 Url Query 参数，传入该值中的 key/value 将会被 URLEncode */
@@ -1922,6 +1925,8 @@ Bulk：批量模式，恢复时间为24 - 48小时。 */
     Query?: Query,
     /** 请求里的 Header 参数 */
     Headers?: Headers,
+    /** 默认将host加入签名计算，关闭后可能导致越权风险，建议保持为true */
+    ForceSignHost?: boolean,
   }
 
 }

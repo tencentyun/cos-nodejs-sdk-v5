@@ -42,6 +42,7 @@ var defaultOptions = {
     UseAccelerate: false,
     UserAgent: '',
     ConfCwd: '',
+    ForceSignHost: true, // 默认将host加入签名计算，关闭后可能导致越权风险，建议保持为true
 };
 
 // 对外暴露的类

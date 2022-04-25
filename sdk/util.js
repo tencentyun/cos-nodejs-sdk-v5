@@ -654,8 +654,21 @@ var error = function (err, opt) {
 
     err.name = opt && opt.name || err.name || err.code || 'Error';
     if (!err.code) err.code = err.name;
-    if (!err.error) err.error = clone(sourceErr); // 兼容老的错误格式
-
+    
+    if (!err.error) {
+        var objectType = Object.prototype.toString.call(err);
+        if (objectType === '[object Object]') {
+            // 兼容老的错误格式
+            err.error = clone(sourceErr);
+        } else if (objectType === '[object Error]') {
+            // 有环境报出[object Error]对象的情况,兼容处理一下
+            err = {
+              code: err.code || err.name || 'Error',
+              name: err.name || err.code || 'Error',
+              message: err.reason || err.message || 'Error',
+            };
+        }
+    }
     return err;
 }
 

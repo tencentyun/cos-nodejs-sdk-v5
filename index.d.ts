@@ -1881,6 +1881,8 @@ Bulk：批量模式，恢复时间为24 - 48小时。 */
     QueryString?: string,
     /** 签名几秒后失效，默认为900秒 */
     Expires?: number,
+    /** 是否使用全球加速 */
+    UseAccelerate?: boolean,
   }
   /** getObjectUrl 接口返回值 */
   interface GetObjectUrlResult {

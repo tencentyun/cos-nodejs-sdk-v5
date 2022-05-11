@@ -19,7 +19,7 @@ var cos = new COS({
     Proxy: '',
     Protocol: 'https:',
     FollowRedirect: false,
-});
+    });
 
 var TaskId;
 
@@ -171,6 +171,7 @@ function putBucketCors() {
     cos.putBucketCors({
         Bucket: config.Bucket,
         Region: config.Region,
+        ResponseVary: "true",
         CORSRules: [{
             "AllowedOrigin": ["*"],
             "AllowedMethod": ["GET", "POST", "PUT", "DELETE", "HEAD"],
@@ -2136,7 +2137,7 @@ function CreateMediaJobs() {
                     Bucket: config.Bucket,
                     Object: 'test-output${Number}'
                 }
-            },
+                },
             CallBack: 'http://your.task.callkback.address/index.php'
         }
     }

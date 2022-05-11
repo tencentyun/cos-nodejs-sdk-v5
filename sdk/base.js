@@ -336,7 +336,10 @@ function putBucketCors(params, callback) {
         });
     });
 
-    var xml = util.json2xml({CORSConfiguration: {CORSRule: CORSRules}});
+    var Conf = {CORSRule: CORSRules};
+    if (params.ResponseVary) Conf.ResponseVary = params.ResponseVary;
+
+    var xml = util.json2xml({CORSConfiguration: Conf});
 
     var headers = params.Headers;
     headers['Content-Type'] = 'application/xml';
@@ -394,6 +397,7 @@ function getBucketCors(params, callback) {
         var CORSConfiguration = data.CORSConfiguration || {};
         var CORSRules = CORSConfiguration.CORSRules || CORSConfiguration.CORSRule || [];
         CORSRules = util.clone(util.isArray(CORSRules) ? CORSRules : [CORSRules]);
+        var ResponseVary = CORSConfiguration.ResponseVary;
 
         util.each(CORSRules, function (rule) {
             util.each(['AllowedOrigin', 'AllowedHeader', 'AllowedMethod', 'ExposeHeader'], function (key) {
@@ -406,6 +410,7 @@ function getBucketCors(params, callback) {
 
         callback(null, {
             CORSRules: CORSRules,
+            ResponseVary: ResponseVary,
             statusCode: data.statusCode,
             headers: data.headers,
         });

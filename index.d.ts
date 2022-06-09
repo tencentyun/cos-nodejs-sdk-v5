@@ -351,6 +351,8 @@ declare namespace COS {
     GrantFullControl?: Grant,
     /** 要创建存储桶的AZ类型，创建多AZ存储桶，传入 'MAZ' */
     BucketAZConfig?: 'MAZ' | string,
+    /** 如果创建索引多活存储桶，传入 'OFS' */
+    BucketArchConfig?: 'OFS' | string,
   }
   /** putBucket 接口返回值 */
   interface PutBucketResult extends GeneralResult {

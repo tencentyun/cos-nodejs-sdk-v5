@@ -81,6 +81,7 @@ function putBucket() {
         Bucket: 'testnew-' + config.Bucket.substr(config.Bucket.lastIndexOf('-') + 1),
         Region: 'ap-guangzhou',
         // BucketAZConfig: 'MAZ',
+        // BucketArchConfig: 'OFS',
     }, function (err, data) {
         console.log(err || data);
     });

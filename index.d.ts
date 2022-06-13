@@ -154,6 +154,8 @@ declare namespace COS {
     Protocol?: string,
     /** 设置代理，格式如 http://127.0.0.1:8888 */
     Proxy?: string,
+    /** 透传给request */
+    Tunnel?: boolean,
     /** 开启兼容模式，默认 false 不开启，兼容模式下不校验 Region 是否格式有误，在用于私有化 COS 时使用 */
     CompatibilityMode?: boolean,
     /** 强制使用后缀式模式发请求。后缀式模式中 Bucket 会放在域名后的 pathname 里，并且 Bucket 会加入签名 pathname 计算，默认 false */

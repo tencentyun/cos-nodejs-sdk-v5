@@ -3719,6 +3719,9 @@ function _submitRequest(params, callback) {
     if (this.options.Proxy) {
         opt.proxy = this.options.Proxy;
     }
+    if (typeof this.options.Tunnel === 'boolean') {
+        opt.tunnel = this.options.Tunnel;
+    }
     if (this.options.Timeout) {
         opt.timeout = this.options.Timeout;
     }

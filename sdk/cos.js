@@ -35,6 +35,7 @@ var defaultOptions = {
     UploadQueueSize: 1000,
     UploadIdCacheLimit: 500,
     Proxy: '',
+    Tunnel: undefined,
     Ip: '',
     StrictSsl: true,
     KeepAlive: true,

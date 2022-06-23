@@ -1244,6 +1244,7 @@ declare namespace COS {
     'x-cos-meta-*'?: string,
     /** 任务开始上传的回调方法 */
     onTaskReady?: (TaskId: COS.TaskId) => void,
+    onTaskStart?: (TaskInfo: COS.Task) => void,
     /** 上传的进度回调方法 */
     onProgress?: onProgress,
   }
@@ -1714,6 +1715,7 @@ Bulk：批量模式，恢复时间为24 - 48小时。 */
     'x-cos-meta-*'?: string,
     /** 任务开始上传的回调方法 */
     onTaskReady?: (TaskId: COS.TaskId) => void,
+    onTaskStart?: (TaskInfo: COS.Task) => void,
     /** 上传的进度回调方法 */
     onProgress?: onProgress,
     /** 续传校验的进度回调方法 */

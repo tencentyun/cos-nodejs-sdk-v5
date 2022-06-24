@@ -1335,20 +1335,20 @@ function moveObject() {
         Key: source,
         Body: 'hello!',
     }, function (err, data) {
-        if (err) return logger.log(err);
+        if (err) return console.log(err);
         cos.putObjectCopy({
             Bucket: config.Bucket,
             Region: config.Region,
             Key: target,
             CopySource: copySource,
         }, function (err, data) {
-            if (err) return logger.log(err);
+            if (err) return console.log(err);
             cos.deleteObject({
                 Bucket: config.Bucket,
                 Region: config.Region,
                 Key: source,
             }, function (err, data) {
-                logger.log(err || data);
+                console.log(err || data);
             });
         });
     });
@@ -1391,7 +1391,7 @@ function uploadFolder() {
 
 /* 创建文件夹 */
 function createFolder() {
-    cos.getBucket({
+    cos.putObject({
         Bucket: config.Bucket,
         Region: config.Region,
         Key: 'folder/', // 对象存储没有实际的文件夹，可以创建一个路径以 / 结尾的空对象表示，能在部分场景中满足文件夹使用需要
@@ -1543,7 +1543,7 @@ function appendObject_continue() {
   }, function(err, data) {
       if (err) return console.log(err);
       // 首先取到要追加的文件当前长度，即需要上送的Position
-      var position = data.headers['content-length'];
+      var position = data.headers && data.headers['content-length'];
       cos.appendObject({
           Bucket: config.Bucket, // Bucket 格式：test-1250000000
           Region: config.Region,
@@ -1553,7 +1553,7 @@ function appendObject_continue() {
       },
       function(err, data) {
           // 也可以取到下一次上传的position继续追加上传
-          var nextPosition = data.headers['x-cos-next-append-position'];
+          var nextPosition = data.headers && data.headers['x-cos-next-append-position'];
           console.log(err || data);
       })
   });
@@ -2753,6 +2753,7 @@ function DescribeAuditJob() {
     var jobId = 'st3bb560af647911ec919652540024deb5';
     cos.request({
         Url: `https://${config.Bucket}.ci.${config.Region}.myqcloud.com/text/auditing/${jobId}`,
+        Method: 'GET',
     }, function (err, data) {
         console.log(err || data.Response.JobsDetail);
     });

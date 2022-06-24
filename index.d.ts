@@ -1861,6 +1861,8 @@ Bulk：批量模式，恢复时间为24 - 48小时。 */
   // request
   /** request 接口参数 */
   interface RequestParams extends BucketParams {
+    Bucket?: Bucket;
+    Region?: Region;
     /** 操作方法，如 get，post，delete， head 等 HTTP 方法 */
     Method: string,
     /** 请求的对象键，最前面不带 / */
@@ -1875,10 +1877,12 @@ Bulk：批量模式，恢复时间为24 - 48小时。 */
     Url?: string,
     /** 返回值body是否不需要解析 */
     RawBody?: boolean,
+    ContentType?: string,
   }
   /** Request 接口返回值 */
   interface RequestResult extends GeneralResult {
     Body?: Buffer,
+    Response?: any,
   }
 
   // getObjectUrl
@@ -1901,6 +1905,18 @@ Bulk：批量模式，恢复时间为24 - 48小时。 */
   interface GetObjectUrlResult {
     /** 返回对象 Url */
     Url: string
+  }
+
+  interface DownloadFileParams {
+    Bucket: Bucket,
+    Region: Region,
+    Key: Key,
+    FilePath: string,
+    ChunkSize?: number,
+    ParallelLimit?: number,
+    RetryTimes?: number,
+    onTaskReady?: (TaskId: COS.TaskId) => void,
+    onProgress?: onProgress,
   }
 
   // getV4Auth
@@ -2292,6 +2308,10 @@ declare class COS {
   /** 追加上传 @see https://cloud.tencent.com/document/product/436/7741 */
   appendObject(params: COS.AppendObjectParams, callback: (err: COS.CosError, data: COS.GeneralResult) => void): void;
   appendObject(params: COS.AppendObjectParams): Promise<COS.GeneralResult>;
+
+  /** 分块下载 @see https://cloud.tencent.com/document/product/436/64981#.E5.88.86.E5.9D.97.E4.B8.8B.E8.BD.BD.E5.AF.B9.E8.B1.A1 */
+  downloadFile(params: COS.DownloadFileParams, callback: (err: COS.CosError, data: COS.GeneralResult) => void): void;
+  downloadFile(params: COS.DownloadFileParams): Promise<COS.GeneralResult>;
 
   /** 获取 COS JSON API (v4) 签名 @see https://cloud.tencent.com/document/product/436/6054 */
   getV4Auth(params: COS.GetV4AuthParams): COS.Authorization;

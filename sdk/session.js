@@ -19,7 +19,8 @@ var getCache = function () {
 };
 var setCache = function () {
     try {
-        store.set(cacheKey, cache);
+        if (cache.length) store.set(cacheKey, cache);
+        else store.delete(cacheKey);
     } catch (e) {
     }
 };
@@ -63,6 +64,17 @@ var mod = {
     getFileId: function (FileStat, ChunkSize, Bucket, Key) {
         if (FileStat && FileStat.FilePath && FileStat.size && FileStat.ctime && FileStat.mtime && ChunkSize) {
             return util.md5([FileStat.FilePath].join('::')) + '-' + util.md5([FileStat.size, FileStat.ctime, FileStat.mtime, ChunkSize, Bucket, Key].join('::'));
+        } else {
+            return null;
+        }
+    },
+    // 用上传参数生成哈希值
+    getCopyFileId: function (copySource, sourceHeaders, ChunkSize, Bucket, Key) {
+        var size = sourceHeaders['content-length'];
+        var etag = sourceHeaders.etag || '';
+        var lastModified = sourceHeaders['last-modified'];
+        if (copySource && ChunkSize) {
+            return util.md5([copySource, size, etag, lastModified, ChunkSize, Bucket, Key].join('::'));
         } else {
             return null;
         }

@@ -2271,15 +2271,15 @@ function putObjectCopy(params, callback) {
     if (!headers['Cache-Control'] && !headers['cache-control']) headers['Cache-Control'] = '';
 
     var CopySource = params.CopySource || '';
-    var m = CopySource.match(/^([^.]+-\d+)\.cos(v6)?\.([^.]+)\.[^/]+\/(.+)$/);
+    var m = util.getSourceParams.call(this, CopySource);
     if (!m) {
         callback(util.error(new Error('CopySource format error')));
         return;
     }
 
-    var SourceBucket = m[1];
-    var SourceRegion = m[3];
-    var SourceKey = decodeURIComponent(m[4]);
+    var SourceBucket = m.Bucket;
+    var SourceRegion = m.Region;
+    var SourceKey = decodeURIComponent(m.Key);
 
     submitRequest.call(this, {
         Scope: [{
@@ -2313,15 +2313,15 @@ function putObjectCopy(params, callback) {
 function uploadPartCopy(params, callback) {
 
     var CopySource = params.CopySource || '';
-    var m = CopySource.match(/^([^.]+-\d+)\.cos(v6)?\.([^.]+)\.[^/]+\/(.+)$/);
+    var m = util.getSourceParams.call(this, CopySource);
     if (!m) {
         callback(util.error(new Error('CopySource format error')));
         return;
     }
 
-    var SourceBucket = m[1];
-    var SourceRegion = m[3];
-    var SourceKey = decodeURIComponent(m[4]);
+    var SourceBucket = m.Bucket;
+    var SourceRegion = m.Region;
+    var SourceKey = decodeURIComponent(m.Key);
 
     submitRequest.call(this, {
         Scope: [{
@@ -3276,6 +3276,10 @@ function getUrl(params) {
     var domain = params.domain;
     var region = params.region;
     var object = params.object;
+    // 兼容不带冒号的http、https
+    if (['http', 'https'].includes(params.protocol)) {
+      params.protocol = params.protocol + ':';
+    }
     var protocol = params.protocol || (util.isBrowser && location.protocol === 'http:' ? 'http:' : 'https:');
     if (!domain) {
         if (['cn-south', 'cn-south-2', 'cn-north', 'cn-east', 'cn-southwest', 'sg'].indexOf(region) > -1) {

@@ -41,6 +41,12 @@ var group = function (name, fn) {
 };
 var proxy = '';
 
+if(!config.SecretId || !config.SecretKey || !config.Bucket || !config.Region || !config.Uin) {
+  console.log('Please check for complete configuration information in demo/config.js');
+  console.log('请检查demo/config.js是否有完整的配置信息');
+  return;
+}
+
 var cos = new COS({
     SecretId: config.SecretId,
     SecretKey: config.SecretKey,

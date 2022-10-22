@@ -497,7 +497,7 @@ var apiWrapper = function (apiName, apiFn) {
         };
 
         var errMsg = checkParams();
-        var isSync = apiName === 'getAuth' || apiName === 'getV4Auth'
+        var isSync = apiName === 'getAuth' || apiName === 'getV4Auth' || apiName === 'getObjectUrl'
             || apiName.indexOf('Stream') > -1;
         if (Promise && !isSync && !callback) {
             return new Promise(function (resolve, reject) {

@@ -1864,7 +1864,7 @@ Bulk：批量模式，恢复时间为24 - 48小时。 */
 
   // request
   /** request 接口参数 */
-  interface RequestParams extends BucketParams {
+  interface RequestParams {
     Bucket?: Bucket;
     Region?: Region;
     /** 操作方法，如 get，post，delete， head 等 HTTP 方法 */
@@ -1882,6 +1882,8 @@ Bulk：批量模式，恢复时间为24 - 48小时。 */
     /** 返回值body是否不需要解析 */
     RawBody?: boolean,
     ContentType?: string,
+    /** 请求时带上的 Header 字段 */
+    Headers?: Headers,
   }
   /** Request 接口返回值 */
   interface RequestResult extends GeneralResult {

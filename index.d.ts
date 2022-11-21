@@ -1311,7 +1311,9 @@ declare namespace COS {
 
   // getObjectAcl
   /** getObjectAcl 接口参数 */
-  interface GetObjectAclParams extends ObjectParams {}
+  interface GetObjectAclParams extends ObjectParams {
+    VersionId?: VersionId,
+  }
   /** getObjectAcl 接口返回值 */
   interface GetObjectAclResult extends GeneralResult {
     /** 允许用户自定义存储桶权限，有效值：private | public-read | public-read-write */

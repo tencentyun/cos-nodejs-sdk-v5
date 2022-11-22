@@ -194,6 +194,11 @@ declare namespace COS {
         params: GetAuthorizationCallbackParams
       ) => void
     ) => void,
+    /** 支持动态Cred */
+    Cred?: {
+      secretId?: string;
+      secretKey?: string;
+    };
   }
 
   type StringOrBuffer = Buffer | String;

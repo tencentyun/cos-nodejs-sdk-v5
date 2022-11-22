@@ -19,7 +19,7 @@ var cos = new COS({
     Proxy: '',
     Protocol: 'https:',
     FollowRedirect: false,
-    });
+});
 
 var TaskId;
 

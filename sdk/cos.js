@@ -105,7 +105,7 @@ var COS = function (options) {
     event.init(this);
     task.init(this);
 
-    // 支持动态秘钥，监听到cred里secretId变化时，主动给cos替换秘钥
+    // 支持动态秘钥，监听到cred里secretId、secretKey变化时，主动给cos替换秘钥
     watch(this.options.Cred, 'secretId', () => {
       console.log('Cred secretId changed');
       this.options.SecretId = this.options.Cred.secretId;

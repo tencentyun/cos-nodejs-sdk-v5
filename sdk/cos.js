@@ -44,6 +44,24 @@ var defaultOptions = {
     UserAgent: '',
     ConfCwd: '',
     ForceSignHost: true, // 默认将host加入签名计算，关闭后可能导致越权风险，建议保持为true
+    // 动态秘钥，优先级Credentials > SecretId/SecretKey。注意Cred内是小写的secretId、secretKey
+    Credentials: {
+      secretId: '',
+      secretKey: '',
+    },
+};
+
+const watch = (obj, name, callback) => {
+  let value = obj[name];
+  Object.defineProperty(obj, name, {
+    get() {
+      return value;
+    },
+    set(newValue) {
+      value = newValue;
+      callback();
+    }
+  });
 };
 
 // 对外暴露的类
@@ -67,6 +85,11 @@ var COS = function (options) {
         if (this.options.secretKey && !this.options.SecretKey) this.options.SecretKey = this.options.secretKey;
         console.warn('warning: Please change options secretId/secretKey to SecretId/SecretKey.');
     }
+        // 支持外部传入Cred动态秘钥
+    if (this.options.Credentials) {
+        this.options.SecretId = this.options.Credentials.secretId || '';
+        this.options.SecretKey = this.options.Credentials.secretKey || '';
+    }
     if (this.options.SecretId && this.options.SecretId.indexOf(' ') > -1) {
         console.error('error: SecretId格式错误，请检查');
         console.error('error: SecretId format is incorrect. Please check');
@@ -81,6 +104,16 @@ var COS = function (options) {
     }
     event.init(this);
     task.init(this);
+
+    // 支持动态秘钥，监听到cred里secretId、secretKey变化时，主动给cos替换秘钥
+    watch(this.options.Credentials, 'secretId', () => {
+      console.log('Credentials secretId changed');
+      this.options.SecretId = this.options.Credentials.secretId;
+    });
+    watch(this.options.Credentials, 'secretKey', () => {
+      console.log('Credentials secretKey changed');
+      this.options.SecretKey = this.options.Credentials.secretKey;
+    });
 };
 
 base.init(COS, task);

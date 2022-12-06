@@ -194,8 +194,8 @@ declare namespace COS {
         params: GetAuthorizationCallbackParams
       ) => void
     ) => void,
-    /** 支持动态Cred */
-    Cred?: {
+    /** 支持动态Credentials */
+    Credentials?: {
       secretId?: string;
       secretKey?: string;
     };
@@ -2299,13 +2299,13 @@ declare class COS {
   /** 获取上传任务列表 */
   getTaskList(): COS.TaskList;
 
-  /** 判断上传队列是否有未完成的任务 */
+  /** 暂停任务 */
   pauseTask(taskId: COS.TaskId): void;
 
-  /** 判断上传队列是否有未完成的任务 */
+  /** 重启任务 */
   restartTask(taskId: COS.TaskId): void;
 
-  /** 判断上传队列是否有未完成的任务 */
+  /** 取消任务 */
   cancelTask(taskId: COS.TaskId): void;
 
   /** 判断上传队列是否有未完成的任务 */

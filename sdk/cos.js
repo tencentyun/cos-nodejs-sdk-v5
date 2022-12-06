@@ -44,8 +44,8 @@ var defaultOptions = {
     UserAgent: '',
     ConfCwd: '',
     ForceSignHost: true, // 默认将host加入签名计算，关闭后可能导致越权风险，建议保持为true
-    // 动态秘钥，优先级Cred > SecretId/SecretKey。注意Cred内是小写的secretId、secretKey
-    Cred: {
+    // 动态秘钥，优先级Credentials > SecretId/SecretKey。注意Cred内是小写的secretId、secretKey
+    Credentials: {
       secretId: '',
       secretKey: '',
     },
@@ -86,9 +86,9 @@ var COS = function (options) {
         console.warn('warning: Please change options secretId/secretKey to SecretId/SecretKey.');
     }
         // 支持外部传入Cred动态秘钥
-    if (this.options.Cred) {
-        this.options.SecretId = this.options.Cred.secretId || '';
-        this.options.SecretKey = this.options.Cred.secretKey || '';
+    if (this.options.Credentials) {
+        this.options.SecretId = this.options.Credentials.secretId || '';
+        this.options.SecretKey = this.options.Credentials.secretKey || '';
     }
     if (this.options.SecretId && this.options.SecretId.indexOf(' ') > -1) {
         console.error('error: SecretId格式错误，请检查');
@@ -106,13 +106,13 @@ var COS = function (options) {
     task.init(this);
 
     // 支持动态秘钥，监听到cred里secretId、secretKey变化时，主动给cos替换秘钥
-    watch(this.options.Cred, 'secretId', () => {
-      console.log('Cred secretId changed');
-      this.options.SecretId = this.options.Cred.secretId;
+    watch(this.options.Credentials, 'secretId', () => {
+      console.log('Credentials secretId changed');
+      this.options.SecretId = this.options.Credentials.secretId;
     });
-    watch(this.options.Cred, 'secretKey', () => {
-      console.log('Cred secretKey changed');
-      this.options.SecretKey = this.options.Cred.secretKey;
+    watch(this.options.Credentials, 'secretKey', () => {
+      console.log('Credentials secretKey changed');
+      this.options.SecretKey = this.options.Credentials.secretKey;
     });
 };
 

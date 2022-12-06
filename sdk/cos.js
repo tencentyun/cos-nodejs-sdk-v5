@@ -86,7 +86,7 @@ var COS = function (options) {
         console.warn('warning: Please change options secretId/secretKey to SecretId/SecretKey.');
     }
         // 支持外部传入Cred动态秘钥
-    if (this.options.Credentials) {
+    if (this.options.Credentials.secretId && this.options.Credentials.secretKey) {
         this.options.SecretId = this.options.Credentials.secretId || '';
         this.options.SecretKey = this.options.Credentials.secretKey || '';
     }

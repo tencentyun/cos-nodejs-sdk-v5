@@ -1506,9 +1506,7 @@ function downloadFile() {
         ChunkSize: 1024 * 1024 * 8, // 文件大于 8MB 用分片下载
         ParallelLimit: 5, // 分片并发数
         RetryTimes: 3, // 分片失败重试次数
-        onTaskReady: function (taskId) {
-            console.log(taskId);
-        },
+        TaskId: '123',
         onProgress: function (progressData) {
             console.log(JSON.stringify(progressData));
         },

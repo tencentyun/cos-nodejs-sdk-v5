@@ -1696,6 +1696,8 @@ Bulk：批量模式，恢复时间为24 - 48小时。 */
     FilePath: string,
     /** 分块上传时，每片的字节数大小，默认值1048576（1MB） */
     ChunkSize?: number,
+    /** 分块上传时，每片的字节数大小，默认值1048576（1MB） */
+    SliceSize?: number,
     /** 请求里的 Url Query 参数 */
     Query?: string,
     /** RFC 2616 中定义的缓存指令，将作为对象元数据保存 */
@@ -1928,6 +1930,7 @@ Bulk：批量模式，恢复时间为24 - 48小时。 */
     ChunkSize?: number,
     ParallelLimit?: number,
     RetryTimes?: number,
+    TaskId?: string,
     onTaskReady?: (TaskId: COS.TaskId) => void,
     onProgress?: onProgress,
   }

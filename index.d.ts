@@ -1883,7 +1883,7 @@ Bulk：批量模式，恢复时间为24 - 48小时。 */
     /** 请求里的 Url Query 参数 */
     Query?: Query,
     /** 请求里的 Body 参数 */
-    Body?: Body | string,
+    Body?: UploadBody,
     /** 请求的 API 动作接口(可理解为不带 = 的 Query 参数)，如 acl、tagging、image_process 等 */
     Action?: Action,
     /** 请求url */

@@ -123,6 +123,19 @@ function prepareBucket() {
 }
 
 group('init cos', function() {
+   const putFile = function(cosIns, assert, done) {
+    var key = '1.txt';
+    var content = Date.now().toString();
+    cosIns.putObject({
+        Bucket: config.Bucket,
+        Region: config.Region,
+        Key: key,
+        Body: content,
+    }, function (err, data) {
+      assert.ok(!err);
+      done();
+    });
+   }
   test('使用AppId', function(done, assert) {
     var initCos = new COS({
       SecretId: config.SecretId,
@@ -137,38 +150,88 @@ group('init cos', function() {
       secretId: config.SecretId + ' ',
       secretKey: config.SecretKey + '',
     });
-    var key = '1.txt';
-    var content = Date.now().toString();
-    initCos.putObject({
-        Bucket: config.Bucket,
-        Region: config.Region,
-        Key: key,
-        Body: content,
-    }, function (err, data) {
-      assert.ok(!err);
-      done();
-    });
+    putFile(initCos, done, assert);
   });
-  test('ak sk格式错误', function(done, assert) {
+  test('SecretId格式错误', function(done, assert) {
     var initCos = new COS({
       SecretId: config.SecretId + ' ',
-      SecretKey: config.SecretKey + '',
+      SecretKey: config.SecretKey,
     });
-    var key = '1.txt';
-    var content = Date.now().toString();
-    initCos.putObject({
-        Bucket: config.Bucket,
-        Region: config.Region,
-        Key: key,
-        Body: content,
-    }, function (err, data) {
-      assert.ok(err);
-      done();
-    });
+    putFile(initCos, done, assert);
   });
+  test('SecretKey格式错误', function(done, assert) {
+    var initCos = new COS({
+        SecretId: config.SecretId,
+        SecretKey: config.SecretKey + ' ',
+      });
+      putFile(initCos, done, assert);
+    });
+  test('模拟web环境', function(done, assert) {
+      var window = {};
+      var initCos = new COS({
+        SecretId: config.SecretId,
+        SecretKey: config.SecretKey + ' ',
+      });
+      putFile(initCos, done, assert);
+      window = null;
+    });
 });
 
 group('getService()', function () {
+    test('getService 老用法', function (done, assert) {
+        prepareBucket().then(function () {
+            cos.getService(function (err, data) {
+                var hasBucket = false;
+                data.Buckets && data.Buckets.forEach(function (item) {
+                    if (item.Name === BucketLongName && (item.Location === config.Region || !item.Location)) {
+                        hasBucket = true;
+                    }
+                });
+                assert.ok(hasBucket);
+                done();
+            });
+        });
+    });
+    test('getService 传Region', function (done, assert) {
+      var cos = new COS({
+        SecretId: config.SecretId,
+        SecretKey: config.SecretKey,
+      });
+      prepareBucket().then(function () {
+          cos.getService({
+              Region: config.Region,
+          }, function (err, data) {
+              var hasBucket = false;
+              data.Buckets && data.Buckets.forEach(function (item) {
+                  if (item.Name === BucketLongName && (item.Location === config.Region || !item.Location)) {
+                      hasBucket = true;
+                  }
+              });
+              assert.ok(hasBucket);
+              done();
+          });
+      }).catch(function () {
+      });
+    });
+    test('getService 不传Region和Domain', function (done, assert) {
+      var cos = new COS({
+        SecretId: config.SecretId,
+        SecretKey: config.SecretKey,
+      });
+      prepareBucket().then(function () {
+          cos.getService({}, function (err, data) {
+              var hasBucket = false;
+              data.Buckets && data.Buckets.forEach(function (item) {
+                  if (item.Name === BucketLongName && (item.Location === config.Region || !item.Location)) {
+                      hasBucket = true;
+                  }
+              });
+              assert.ok(hasBucket);
+              done();
+          });
+      }).catch(function () {
+      });
+    });
     test('能正常列出 Bucket', function (done, assert) {
         prepareBucket().then(function () {
             cos.getService({
@@ -378,6 +441,46 @@ group('putObject(),cancelTask()', function () {
             alive = true;
         });
     });
+    test('putObject(),update-list()', function (done, assert) {
+      var filename = '10m.zip';
+      cos.putObject({
+          Bucket: config.Bucket,
+          Region: config.Region,
+          Key: filename,
+          Body: Buffer.from(Array(1024 * 1024 * 10).fill(0)),
+      }, function (err, data) {
+      });
+      cos.on('task-list-update', function(info) {
+        assert(info);
+        done();
+      })
+  });
+});
+
+group('task 队列', function () {
+  test('putObject() 批量上传', function (done, assert) {
+    var upload = function(i) {
+      var filename = `10m(${i}).zip`;
+      var taskId;
+      cos.putObject({
+          Bucket: config.Bucket,
+          Region: config.Region,
+          Key: filename,
+          Body: Buffer.from(Array(1024 * 1024 * 1).fill(0)),
+          TaskReady: function(id) {
+            taskId = id;
+          }
+      }, function (err, data) {
+      });
+    }
+    for(var i = 0; i < 1200; i ++) {
+      upload(i);
+    }
+    var taskList = cos.getTaskList();
+    const isUploading = cos.isUploadRunning();
+    assert(isUploading);
+    done();
+  });
 });
 
 group('sliceUploadFile() 完整上传文件', function () {
@@ -538,6 +641,10 @@ group('sliceUploadFile() 完整上传文件', function () {
           Region: config.Region,
           Key: filename,
           FilePath: filePath,
+          Headers: {
+            'x-cos-test': 'test',
+            'x-cos-traffic-limit': 819200
+          },
       }, function (err, data) {
          assert(!err);
          done();
@@ -1213,7 +1320,18 @@ group('sliceCopyFile()', function () {
             });
         }, 2000);
     });
-    test('CopySource nor found', function (done, assert) {
+    test('CopySource error source', function (done, assert) {
+      cos.sliceCopyFile({
+          Bucket: config.Bucket,
+          Region: config.Region,
+          Key: Key,
+          CopySource: 'www.qq.com/1.txt',
+      }, function (err, data) {
+          assert.ok(err);
+          done();
+      });
+  });
+    test('CopySource not found', function (done, assert) {
         cos.sliceCopyFile({
             Bucket: config.Bucket,
             Region: config.Region,
@@ -1225,17 +1343,20 @@ group('sliceCopyFile()', function () {
         });
     });
     test('复制归档文件', function (done, assert) {
-        var sourceKey = Date.now().toString(36);
+        var sourceKey = 'archive';
+        var content = Date.now().toString(36);
+        var targetKey = 'archive-target';
         cos.putObject({
             Bucket: config.Bucket,
             Region: config.Region,
             Key: sourceKey,
+            Body: content,
             StorageClass: 'ARCHIVE',
         }, function () {
             cos.sliceCopyFile({
                 Bucket: config.Bucket,
                 Region: config.Region,
-                Key: Key,
+                Key: targetKey,
                 CopySource: config.Bucket + '.cos.' + config.Region + '.myqcloud.com/' + sourceKey,
             }, function (err, data) {
                 assert.ok(err);
@@ -3961,6 +4082,22 @@ group('downloadFile', function () {
           done();
       });
   });
+  test('downloadFile() fileSize=0', function (done, assert) {
+    var Key = '0b.zip';
+      cos.downloadFile({
+          Bucket: config.Bucket, // Bucket 格式：test-1250000000
+          Region: config.Region,
+          Key: Key,
+          FilePath: './' + Key, // 本地保存路径
+          ChunkSize: 1024 * 1024 * 8, // 分块大小
+          ParallelLimit: 5, // 分块并发数
+          RetryTimes: 3, // 分块失败重试次数
+          TaskId: '123', // 可以自己生成TaskId，用于取消下载
+      }, function (err, data) {
+          assert.ok(err);
+          done();
+      });
+  });
   test('downloadFile() 小文件简单下载', function (done, assert) {
       var Key = '1mb.zip';
       var fileSize = 1024 * 1024 * 3;
@@ -3990,7 +4127,6 @@ group('downloadFile', function () {
           done();
         }
       });
-
   });
   test('downloadFile() 大文件分块下载', function (done, assert) {
       var Key = '50mb.zip';

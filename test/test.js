@@ -311,7 +311,7 @@ group('init cos', function() {
         secretId: config.SecretId,
         secretKey: config.SecretKey,
       };
-      var initCos = new COS(Credentials);
+      var initCos = new COS({ Credentials });
       setTimeout(() => {
         Credentials.secretId = '123456';
         Credentials.secretKey = 'abcdefg';

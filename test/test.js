@@ -52,7 +52,7 @@ var cos = new COS({
     SecretKey: config.SecretKey,
     Proxy: proxy,
     // 可选参数
-    FileParallelLimit: 3,    // 控制文件上传并发数
+    FileParallelLimit: 6,    // 控制文件上传并发数
     ChunkParallelLimit: 3,   // 控制单个文件下分片上传并发数
     ChunkSize: 1024 * 1024,  // 控制分片大小，单位 B
     ProgressInterval: 1,  // 控制 onProgress 回调的间隔
@@ -166,15 +166,18 @@ group('init cos', function() {
       });
       putFile(initCos, done, assert);
     });
-  test('模拟web环境', function(done, assert) {
-      var window = {};
-      var initCos = new COS({
-        SecretId: config.SecretId,
-        SecretKey: config.SecretKey + ' ',
-      });
+  test('模拟sms init', function(done, assert) {
+      var Credentials = {
+        secretId: config.SecretId,
+        secretKey: config.SecretKey,
+      };
+      var initCos = new COS(Credentials);
+      setTimeout(() => {
+        Credentials.secretId = '123456';
+        Credentials.secretKey = 'abcdefg';
+      }, 1000);
       putFile(initCos, done, assert);
-      window = null;
-    });
+  });
 });
 
 group('getService()', function () {
@@ -459,8 +462,8 @@ group('putObject(),cancelTask()', function () {
 
 group('task 队列', function () {
   test('putObject() 批量上传', function (done, assert) {
-    var upload = function(i) {
-      var filename = `10m(${i}).zip`;
+    var upload = function() {
+      var filename = '10m.zip';
       var taskId;
       cos.putObject({
           Bucket: config.Bucket,
@@ -474,7 +477,7 @@ group('task 队列', function () {
       });
     }
     for(var i = 0; i < 1200; i ++) {
-      upload(i);
+      upload();
     }
     var taskList = cos.getTaskList();
     const isUploading = cos.isUploadRunning();
@@ -643,6 +646,7 @@ group('sliceUploadFile() 完整上传文件', function () {
           FilePath: filePath,
           Headers: {
             'x-cos-test': 'test',
+            'x-cos-meta-test': 'meta',
             'x-cos-traffic-limit': 819200
           },
       }, function (err, data) {
@@ -766,7 +770,7 @@ group('headBucket()', function () {
             Bucket: config.Bucket + Date.now().toString(36),
             Region: config.Region
         }, function (err, data) {
-            assert.ok(err, '正常获取 head bucket');
+            assert.ok(err, 'deleteBucket 不存在');
             done();
         });
     });
@@ -818,6 +822,10 @@ group('putObject()', function () {
             Key: filename,
             Body: fs.createReadStream(filePath),
             ContentLength: fs.statSync(filePath).size,
+            onTaskReady(id) {
+              // 暂停任务
+              cos.pauseTask(id);
+            },
             onProgress: function (info) {
                 lastPercent = info.percent;
             },
@@ -1230,6 +1238,9 @@ group('sliceCopyFile()', function () {
                     Key: Key,
                     CopySource: config.Bucket + '.cos.' + config.Region + '.myqcloud.com/'+ filename,
                     CopySliceSize: 5 * 1024 * 1024,
+                    Headers: {
+                      'x-cos-metadata-directive': 'Replaced',
+                    },
                 },function (err, data) {
                     if (err) throw err;
                     assert.ok(data.ETag.length > 0);
@@ -1330,7 +1341,18 @@ group('sliceCopyFile()', function () {
           assert.ok(err);
           done();
       });
-  });
+    });
+    test('CopySource() fileSize=0', function (done, assert) {
+      var Key = '0b.zip';
+        cos.sliceCopyFile({
+            Bucket: config.Bucket, // Bucket 格式：test-1250000000
+            Region: config.Region,
+            CopySource: config.Bucket + '.cos.' + config.Region + '.myqcloud.com/' + Key,
+        }, function (err, data) {
+            assert.ok(err);
+            done();
+        });
+    });
     test('CopySource not found', function (done, assert) {
         cos.sliceCopyFile({
             Bucket: config.Bucket,
@@ -3443,6 +3465,7 @@ group('Promise', function () {
             Bucket: config.Bucket,
             Region: config.Region,
             Key: '123.txt',
+            Expires: 900,
         });
         assert.ok(!res.then);
         done();
@@ -4157,7 +4180,36 @@ group('downloadFile', function () {
           });
         }
       });
-
+  });
+  test('downloadFile() 下载归档文件', function (done, assert) {
+      var Key = '10mb.zip';
+      var fileSize = 1024 * 1024 * 10;
+      var filePath = createFileSync(path.resolve(__dirname, Key), fileSize);
+      cos.sliceUploadFile({
+          Bucket: config.Bucket,
+          Region: config.Region,
+          Key: Key,
+          FilePath: filePath,
+          StorageClass: 'ARCHIVE',
+      }, function (err, data) {
+        if (err) {
+          done();
+        } else {
+          cos.downloadFile({
+            Bucket: config.Bucket, // Bucket 格式：test-1250000000
+            Region: config.Region,
+            Key: Key,
+            FilePath: './' + Key, // 本地保存路径
+            ChunkSize: 1024 * 1024 * 8, // 分块大小
+            ParallelLimit: 5, // 分块并发数
+            RetryTimes: 3, // 分块失败重试次数
+            TaskId: '123', // 可以自己生成TaskId，用于取消下载
+          }, function (err, data) {
+              assert.ok(!err);
+              done();
+          });
+        }
+      });
   });
 });
 

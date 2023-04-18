@@ -306,15 +306,18 @@ group('init cos', function() {
       });
       putFile(initCos, done, assert);
     });
-  test('模拟web环境', function(done, assert) {
-      var window = {};
-      var initCos = new COS({
-        SecretId: config.SecretId,
-        SecretKey: config.SecretKey + ' ',
-      });
+  test('模拟sms init', function(done, assert) {
+      var Credentials = {
+        secretId: config.SecretId,
+        secretKey: config.SecretKey,
+      };
+      var initCos = new COS(Credentials);
+      setTimeout(() => {
+        Credentials.secretId = '123456';
+        Credentials.secretKey = 'abcdefg';
+      }, 1000);
       putFile(initCos, done, assert);
-      window = null;
-    });
+  });
 });
 
 group('getService()', function () {

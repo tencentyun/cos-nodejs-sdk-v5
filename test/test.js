@@ -306,6 +306,30 @@ group('init cos', function() {
       });
       putFile(initCos, done, assert);
     });
+    test('StrictSsl=false', function(done, assert) {
+      var initCos = new COS({
+        SecretId: config.SecretId,
+        SecretKey: config.SecretKey,
+        StrictSsl: false,
+      });
+      putFile(initCos, done, assert);
+    });
+    test('Tunnel=false', function(done, assert) {
+      var initCos = new COS({
+        SecretId: config.SecretId,
+        SecretKey: config.SecretKey,
+        Tunnel: false,
+      });
+      putFile(initCos, done, assert);
+    });
+    test('Timeout=6000', function(done, assert) {
+      var initCos = new COS({
+        SecretId: config.SecretId,
+        SecretKey: config.SecretKey,
+        Timeout: 6000,
+      });
+      putFile(initCos, done, assert);
+    });
   test('模拟sms init', function(done, assert) {
       var Credentials = {
         secretId: config.SecretId,
@@ -317,6 +341,31 @@ group('init cos', function() {
         Credentials.secretKey = 'abcdefg';
       }, 1000);
       putFile(initCos, done, assert);
+  });
+  test('getAuthorization', function(done, assert) {
+    var initCos = new COS({
+      getAuthorization: function (options, callback) {
+        callback({
+          TmpSecretId: config.SecretId,
+          TmpSecretKey: config.SecretKey,
+      });
+      }
+    });
+    putFile(initCos, done, assert);
+  });
+  test('getAuthorization', function(done, assert) {
+    var initCos = new COS({
+      getAuthorization: function (options, callback) {
+        var AuthData = cos.getAuth({
+          Method: 'put',
+          Key: '1.txt'
+        });
+        callback({
+          Authorization: AuthData
+        });
+      }
+    });
+    putFile(initCos, done, assert);
   });
 });
 

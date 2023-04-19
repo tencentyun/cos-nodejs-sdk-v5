@@ -3653,7 +3653,6 @@ group('BucketInventory', function () {
           done();
       });
     });
-
 });
 
 group('Content-Type: false Bug', function () {

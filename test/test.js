@@ -123,7 +123,7 @@ function prepareBucket() {
 }
 
 group('init cos', function() {
-   const putFile = function(cosIns, assert, done) {
+   const putFile = function(cosIns, done, assert, canSuccess = true) {
     var key = '1.txt';
     var content = Date.now().toString();
     cosIns.putObject({
@@ -132,7 +132,7 @@ group('init cos', function() {
         Key: key,
         Body: content,
     }, function (err, data) {
-      assert.ok(!err);
+      assert.ok(canSuccess ? !err : err);
       done();
     });
    }
@@ -147,24 +147,26 @@ group('init cos', function() {
   });
   test('使用了小写ak sk', function(done, assert) {
     var initCos = new COS({
-      secretId: config.SecretId + ' ',
-      secretKey: config.SecretKey + '',
+      secretId: config.SecretId,
+      secretKey: config.SecretKey,
     });
-    putFile(initCos, done, assert);
+    putFile(initCos, done, assert, true);
   });
   test('SecretId格式错误', function(done, assert) {
     var initCos = new COS({
       SecretId: config.SecretId + ' ',
       SecretKey: config.SecretKey,
     });
-    putFile(initCos, done, assert);
+    var key = '1.txt';
+    var content = Date.now().toString();
+    putFile(initCos, done, assert, false);
   });
   test('SecretKey格式错误', function(done, assert) {
-    var initCos = new COS({
+      var initCos = new COS({
         SecretId: config.SecretId,
         SecretKey: config.SecretKey + ' ',
       });
-      putFile(initCos, done, assert);
+      putFile(initCos, done, assert, false);
     });
     test('StrictSsl=false', function(done, assert) {
       var initCos = new COS({
@@ -172,7 +174,7 @@ group('init cos', function() {
         SecretKey: config.SecretKey,
         StrictSsl: false,
       });
-      putFile(initCos, done, assert);
+      putFile(initCos, done, assert, true);
     });
     test('Tunnel=false', function(done, assert) {
       var initCos = new COS({
@@ -180,7 +182,7 @@ group('init cos', function() {
         SecretKey: config.SecretKey,
         Tunnel: false,
       });
-      putFile(initCos, done, assert);
+      putFile(initCos, done, assert, true);
     });
     test('Timeout=6000', function(done, assert) {
       var initCos = new COS({
@@ -188,7 +190,7 @@ group('init cos', function() {
         SecretKey: config.SecretKey,
         Timeout: 6000,
       });
-      putFile(initCos, done, assert);
+      putFile(initCos, done, assert, true);
     });
   test('模拟sms init', function(done, assert) {
       var Credentials = {
@@ -200,9 +202,31 @@ group('init cos', function() {
         Credentials.secretId = '123456';
         Credentials.secretKey = 'abcdefg';
       }, 1000);
-      putFile(initCos, done, assert);
+      putFile(initCos, done, assert, true);
   });
-  test('getAuthorization', function(done, assert) {
+  test('getAuthorization error tmpSecretId', function(done, assert) {
+    var initCos = new COS({
+      getAuthorization: function (options, callback) {
+        callback({
+          tmpSecretId: config.SecretId,
+          TmpSecretKey: config.SecretKey,
+      });
+      }
+    });
+    putFile(initCos, done, assert, false);
+  });
+  test('getAuthorization error tmpSecretKey', function(done, assert) {
+    var initCos = new COS({
+      getAuthorization: function (options, callback) {
+        callback({
+          TmpSecretId: config.SecretId,
+          tmpSecretKey: config.SecretKey,
+      });
+      }
+    });
+    putFile(initCos, done, assert, false);
+  });
+  test('getAuthorization error', function(done, assert) {
     var initCos = new COS({
       getAuthorization: function (options, callback) {
         callback({
@@ -211,7 +235,7 @@ group('init cos', function() {
       });
       }
     });
-    putFile(initCos, done, assert);
+    putFile(initCos, done, assert, false);
   });
   test('getAuthorization', function(done, assert) {
     var initCos = new COS({
@@ -377,6 +401,29 @@ group('getAuth();getV4Auth()', function () {
                 done();
             });
         });
+    });
+});
+
+group('putObject() 兼容老参数AppId', function () {
+  test('putObject()', function (done, assert) {
+      const sp = config.Bucket.split('-');
+      const len = sp.length;
+      const appId = sp[len - 1];
+      sp.pop();
+      const bucketShortName = sp.join('-');
+      cos.putObject({
+          Bucket: bucketShortName,
+          Region: config.Region,
+          AppId: appId,
+          Key: '12345.txt',
+          Body: '12345',
+          Headers: {
+            'x-cos-test': 1
+          },
+      }, function (err, data) {
+        assert.ok(!err);
+        done();
+      });
     });
 });
 
@@ -718,6 +765,22 @@ group('sliceUploadFile() 完整上传文件', function () {
          assert(!err);
          done();
       });
+    });
+    test('sliceUploadFile() 上传过程中删除本地文件', function (done, assert) {
+      var filename = '30mb.zip';
+      var filePath = createFileSync(path.resolve(__dirname, filename), 1024 * 1024 * 30);
+      cos.sliceUploadFile({
+          Bucket: config.Bucket,
+          Region: config.Region,
+          Key: filename,
+          FilePath: filePath,
+      }, function (err, data) {
+         assert(err);
+         done();
+      });
+      setTimeout(() => {
+        fs.rmSync(filePath);
+      }, 1000);
     });
 });
 

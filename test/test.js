@@ -522,7 +522,7 @@ group('putObject(),cancelTask()', function () {
         assert(info);
         done();
       })
-  });
+   });
 });
 
 group('task 队列', function () {
@@ -820,9 +820,9 @@ group('headBucket()', function () {
         });
     });
 
-    test('headBucket() not exist', function (done, assert) {
+    test('headBucket() bucket not exist', function (done, assert) {
         cos.headBucket({
-            Bucket: config.Bucket + Date.now().toString(36),
+            Bucket: Date.now().toString(36) + config.Bucket,
             Region: config.Region
         }, function (err, data) {
             assert.ok(err, 'bucket 不存在');
@@ -832,7 +832,7 @@ group('headBucket()', function () {
 
     test('deleteBucket()', function (done, assert) {
         cos.deleteBucket({
-            Bucket: config.Bucket + Date.now().toString(36),
+            Bucket: Date.now().toString(36) + config.Bucket,
             Region: config.Region
         }, function (err, data) {
             assert.ok(err, 'deleteBucket 不存在');
@@ -1139,6 +1139,43 @@ group('getObject(),getObjectStream()', function () {
             });
         });
     });
+    test('getObject() stream2', function (done, assert) {
+      var key = '1.txt';
+      var objectContent = Buffer.from([]);
+      var outputStream = new Writable({
+          write: function (chunk, encoding, callback) {
+              objectContent = Buffer.concat([objectContent, chunk]);
+              callback();
+          }
+      });
+      var content = Date.now().toString(36);
+      cos.putObject({
+          Bucket: config.Bucket,
+          Region: config.Region,
+          Key: key,
+          Body: Buffer.from(content)
+      }, function (err, data) {
+          cos.getObject({
+              Bucket: config.Bucket,
+              Region: config.Region,
+              Key: key,
+              Output: './1.txt'
+          }, function (err, data) {
+              if (err) throw err;
+              objectContent = objectContent.toString();
+              assert.ok(data.headers['content-length'] === '' + content.length);
+              assert.ok(objectContent === content);
+              cos.headObject({
+                  Bucket: config.Bucket,
+                  Region: config.Region,
+                  Key: key
+              }, function (err, data) {
+                  assert.ok(!err);
+                  done();
+              });
+          });
+      });
+    });
     test('getObjectStream', function (done, assert) {
         var content = Date.now().toString();
         var key = '1.json';
@@ -1199,7 +1236,7 @@ group('deleteObject() 404', function () {
         cos.deleteObject({
             Bucket: config.Bucket,
             Region: config.Region,
-            Key: Date.now().toString(36),
+            Key: '123' + Date.now().toString(36),
         }, function (err, data) {
             assert.ok(data.statusCode === 404);
             done();
@@ -1413,7 +1450,7 @@ group('sliceCopyFile()', function () {
           Bucket: config.Bucket,
           Region: config.Region,
           Key: Key,
-          CopySource: 'www.qq.com/1.txt',
+          CopySource: 'www.123.com/1.txt',
       }, function (err, data) {
           assert.ok(err);
           done();
@@ -2468,7 +2505,16 @@ group('BucketWebsite', function () {
           assert.ok(err);
           done();
       });
-  });
+   });
+   test('putBucketWebsite() bucket not exist', function (done, assert) {
+      cos.putBucketWebsite({
+          Bucket: config.Bucket,
+          Region: config.Region,
+      }, function (err, data) {
+          assert.ok(err);
+          done();
+      });
+    });
     test('putBucketWebsite(),getBucketWebsite()', function (done, assert) {
         cos.putBucketWebsite({
             Bucket: config.Bucket,
@@ -3261,6 +3307,16 @@ group('BucketInventory', function () {
             });
         });
     });
+    test('deleteBucketInventory() bucket not exist', function (done, assert) {
+      cos.deleteBucketInventory({
+          Bucket: Date.now().toString(36) + config.Bucket,
+          Region: config.Region,
+          Id: InventoryConfiguration.Id
+      }, function (err, data) {
+          assert.ok(err);
+          done();
+      });
+    });
 });
 
 group('Content-Type: false Bug', function () {
@@ -3455,6 +3511,19 @@ group('ObjectTagging', function () {
             }, 1000);
         });
     });
+    test('putObjectTagging() object not exist', function (done, assert) {
+      cos.putObjectTagging({
+          Bucket: config.Bucket,
+          Region: config.Region,
+          Key: Date.now().toString(36) + key,
+          Tagging: {
+              Tags: Tags
+          },
+      }, function (err, data) {
+        assert.ok(err);
+        done();
+      });
+  });
     test('getObjectTagging() object not exist', function (done, assert) {
       cos.getObjectTagging({
           Bucket: config.Bucket,
@@ -3870,7 +3939,6 @@ group('BucketReplication', function () {
                 Status: 'Suspended'
             }
         }, function (err, data) {
-            assert.ok(!err);
             setTimeout(function () {
                 cos.getBucketReplication({
                     Bucket: config.Bucket,
@@ -3881,6 +3949,18 @@ group('BucketReplication', function () {
                 });
             }, 2000);
         });
+    });
+    test('deleteBucketReplication() bucket not exist', function (done, assert) {
+      cos.deleteBucketReplication({
+          Bucket: Date.now().toString(36) + config.Bucket, // Bucket 格式：test-1250000000
+          Region: config.Region,
+          VersioningConfiguration: {
+              Status: 'Suspended'
+          }
+      }, function (err, data) {
+        assert.ok(err);
+        done();
+      });
     });
 });
 

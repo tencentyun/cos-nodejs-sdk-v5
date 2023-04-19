@@ -782,6 +782,43 @@ group('sliceUploadFile() 完整上传文件', function () {
         fs.rmSync(filePath);
       }, 1000);
     });
+    test('sliceUploadFile() 上传过程中本地文件修改', function (done, assert) {
+      var filename = '30mb.zip';
+      var filePath = createFileSync(path.resolve(__dirname, filename), 1024 * 1024 * 30);
+      var taskId;
+      cos.sliceUploadFile({
+          Bucket: config.Bucket,
+          Region: config.Region,
+          Key: filename,
+          FilePath: filePath,
+          onTaskReady: function(id) {
+            taskId = id;
+          }
+      }, function (err, data) {
+         assert(err);
+         done();
+      });
+      setTimeout(() => {
+        cos.pauseTask(id);
+          cos.sliceUploadFile({
+            Bucket: config.Bucket,
+            Region: config.Region,
+            Key: filename,
+            FilePath: filePath,
+            onTaskReady: function(id) {
+              taskId = id;
+            }
+        }, function (err, data) {
+          assert(err);
+          done();
+        });
+        // 2秒后修改文件内容
+        setTimeout(() => {
+          const fd = fs.openSync(filePath, "r+"); 
+          fs.writeSync(fd, 'test', 10240, 'utf8');
+        }, 2000);
+      }, 2000);
+    });
 });
 
 group('abortUploadTask()', function () {

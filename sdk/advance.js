@@ -88,6 +88,7 @@ function sliceUploadFile(params, callback) {
             AsyncLimit: AsyncLimit,
             ServerSideEncryption: ServerSideEncryption,
             UploadData: UploadData,
+            Headers: params.Headers,
             onProgress: onProgress
         }, function (err, data) {
             if (!self._isRunningTask(TaskId)) return;
@@ -537,6 +538,7 @@ function uploadSliceList(params, cb) {
             ServerSideEncryption: ServerSideEncryption,
             FilePath: FilePath,
             UploadData: UploadData,
+            Headers: params.Headers,
             onProgress: function (data) {
                 FinishSize += data.loaded - preAddSize;
                 preAddSize = data.loaded;

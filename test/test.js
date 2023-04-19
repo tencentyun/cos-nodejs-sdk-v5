@@ -1557,14 +1557,24 @@ group('sliceCopyFile()', function () {
       });
     });
     test('CopySource() fileSize=0', function (done, assert) {
-      var Key = '0b.zip';
-        cos.sliceCopyFile({
-            Bucket: config.Bucket, // Bucket 格式：test-1250000000
-            Region: config.Region,
-            CopySource: config.Bucket + '.cos.' + config.Region + '.myqcloud.com/' + Key,
-        }, function (err, data) {
-            assert.ok(err);
-            done();
+        var Key = '0b.zip';
+        cos.putObject({
+          Bucket: config.Bucket,
+          Region: config.Region,
+          Key: Key,
+          Body: '',
+          Headers: {
+            'x-cos-meta-test': 'test'
+          },
+        }, function(err, data){
+          cos.sliceCopyFile({
+              Bucket: config.Bucket, // Bucket 格式：test-1250000000
+              Region: config.Region,
+              CopySource: config.Bucket + '.cos.' + config.Region + '.myqcloud.com/' + Key,
+          }, function (err, data) {
+              assert.ok(err);
+              done();
+          });
         });
     });
     test('CopySource not found', function (done, assert) {
@@ -1580,13 +1590,13 @@ group('sliceCopyFile()', function () {
     });
     test('复制归档文件', function (done, assert) {
         var sourceKey = 'archive';
-        var content = Date.now().toString(36);
         var targetKey = 'archive-target';
-        cos.putObject({
+        var filePath = createFileSync(path.resolve(__dirname, filename), 1024 * 1024 * 30);
+        cos.sliceUploadFile({
             Bucket: config.Bucket,
             Region: config.Region,
             Key: sourceKey,
-            Body: content,
+            FilePath: filePath,
             StorageClass: 'ARCHIVE',
         }, function () {
             cos.sliceCopyFile({
@@ -4466,7 +4476,7 @@ group('appendObject', function () {
 
 group('downloadFile', function () {
   test('downloadFile() file not found', function (done, assert) {
-    var Key = '101mb.zip';
+      var Key = '101mb.zip';
       cos.downloadFile({
           Bucket: config.Bucket, // Bucket 格式：test-1250000000
           Region: config.Region,
@@ -4482,7 +4492,7 @@ group('downloadFile', function () {
       });
   });
   test('downloadFile() fileSize=0', function (done, assert) {
-    var Key = '0b.zip';
+      var Key = '0b.zip';
       cos.downloadFile({
           Bucket: config.Bucket, // Bucket 格式：test-1250000000
           Region: config.Region,
@@ -4528,6 +4538,36 @@ group('downloadFile', function () {
       });
   });
   test('downloadFile() 大文件分块下载', function (done, assert) {
+      var Key = '50mb.zip';
+      var fileSize = 1024 * 1024 * 50;
+      var filePath = createFileSync(path.resolve(__dirname, Key), fileSize);
+      cos.sliceUploadFile({
+          Bucket: config.Bucket,
+          Region: config.Region,
+          Key: Key,
+          FilePath: filePath,
+          TrafficLimit: 819200,
+      }, function (err, data) {
+        if (err) {
+          done();
+        } else {
+          cos.downloadFile({
+            Bucket: config.Bucket, // Bucket 格式：test-1250000000
+            Region: config.Region,
+            Key: Key,
+            FilePath: './' + Key, // 本地保存路径
+            ChunkSize: 1024 * 1024 * 8, // 分块大小
+            ParallelLimit: 5, // 分块并发数
+            RetryTimes: 3, // 分块失败重试次数
+            TaskId: '123', // 可以自己生成TaskId，用于取消下载
+          }, function (err, data) {
+              assert.ok(!err);
+              done();
+          });
+        }
+      });
+  });
+  test('downloadFile() 文件续传时远端文件已修改', function (done, assert) {
       var Key = '50mb.zip';
       var fileSize = 1024 * 1024 * 50;
       var filePath = createFileSync(path.resolve(__dirname, Key), fileSize);

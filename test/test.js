@@ -341,18 +341,18 @@ group('init cos', function() {
         Credentials.secretKey = 'abcdefg';
       }, 1000);
       putFile(initCos, done, assert, true);
-  });
-  test('getAuthorization error tmpSecretId', function(done, assert) {
-    var initCos = new COS({
-      getAuthorization: function (options, callback) {
-        callback({
-          tmpSecretId: config.SecretId,
-          TmpSecretKey: config.SecretKey,
-      });
-      }
     });
-    putFile(initCos, done, assert, false);
-  });
+    test('getAuthorization error tmpSecretId', function(done, assert) {
+      var initCos = new COS({
+        getAuthorization: function (options, callback) {
+          callback({
+            tmpSecretId: config.SecretId,
+            TmpSecretKey: config.SecretKey,
+        });
+        }
+      });
+      putFile(initCos, done, assert, false);
+    });
   test('getAuthorization error tmpSecretKey', function(done, assert) {
     var initCos = new COS({
       getAuthorization: function (options, callback) {
@@ -3675,6 +3675,7 @@ group('BucketInventory', function () {
           done();
       });
     });
+
 });
 
 group('Content-Type: false Bug', function () {

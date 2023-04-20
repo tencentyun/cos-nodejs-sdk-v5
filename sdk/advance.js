@@ -1308,7 +1308,8 @@ function downloadFile(params, callback) {
                 ['DEEP_ARCHIVE', 'ARCHIVE'].includes(storageClass) &&
                 (!restoreStatus || restoreStatus === 'ongoing-request="true"')
             ) {
-                return callback({statusCode, header: resHeaders, code: 'CannotDownload', message: 'Archive object can not download, please restore to Standard storage class.'});
+                // 自定义返回的错误码 与cos api无关
+                return callback({statusCode: 403, header: resHeaders, code: 'CannotDownload', message: 'Archive object can not download, please restore to Standard storage class.'});
             }
 
             // 整理文件信息

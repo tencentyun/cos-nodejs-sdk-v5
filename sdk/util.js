@@ -2,9 +2,9 @@
 
 var fs = require('fs');
 var crypto = require('crypto');
-var xml2js = require('xml2js');
-var xmlParser = new xml2js.Parser({explicitArray: false, ignoreAttrs: true});
-var xmlBuilder = new xml2js.Builder();
+var { XMLParser, XMLBuilder } = require('fast-xml-parser');
+var xmlParser = new XMLParser({ ignoreAttributes: true });
+var xmlBuilder = new XMLBuilder();
 
 function camSafeUrlEncode(str) {
     return encodeURIComponent(str)
@@ -187,17 +187,14 @@ var clearKey = function (obj) {
 
 // XML 对象转 JSON 对象
 var xml2json = function (bodyStr) {
-    var d = {};
-    xmlParser.parseString(bodyStr, function (err, result) {
-        d = result;
-    });
+    var d = xmlParser.parse(bodyStr);
 
     return d;
 };
 
 // JSON 对象转 XML 对象
 var json2xml = function (json) {
-    var xml = xmlBuilder.buildObject(json);
+    var xml = xmlBuilder.build(json);
     return xml;
 };
 

@@ -88,7 +88,6 @@ function putBucket(params, callback) {
     if (params.BucketAZConfig) conf.BucketAZConfig = params.BucketAZConfig;
     if (params.BucketArchConfig) conf.BucketArchConfig = params.BucketArchConfig;
     if (conf.BucketAZConfig || conf.BucketArchConfig) xml = util.json2xml({CreateBucketConfiguration: conf});
-    console.log(xml);
 
     submitRequest.call(this, {
         Action: 'name/cos:PutBucket',

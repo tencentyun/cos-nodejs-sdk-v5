@@ -88,6 +88,7 @@ function sliceUploadFile(params, callback) {
             AsyncLimit: AsyncLimit,
             ServerSideEncryption: ServerSideEncryption,
             UploadData: UploadData,
+            Headers: params.Headers,
             onProgress: onProgress
         }, function (err, data) {
             if (!self._isRunningTask(TaskId)) return;
@@ -537,6 +538,7 @@ function uploadSliceList(params, cb) {
             ServerSideEncryption: ServerSideEncryption,
             FilePath: FilePath,
             UploadData: UploadData,
+            Headers: params.Headers,
             onProgress: function (data) {
                 FinishSize += data.loaded - preAddSize;
                 preAddSize = data.loaded;
@@ -1306,7 +1308,8 @@ function downloadFile(params, callback) {
                 ['DEEP_ARCHIVE', 'ARCHIVE'].includes(storageClass) &&
                 (!restoreStatus || restoreStatus === 'ongoing-request="true"')
             ) {
-                return callback({statusCode, header: resHeaders, code: 'CannotDownload', message: 'Archive object can not download, please restore to Standard storage class.'});
+                // 自定义返回的错误码 与cos api无关
+                return callback({statusCode: 403, header: resHeaders, code: 'CannotDownload', message: 'Archive object can not download, please restore to Standard storage class.'});
             }
 
             // 整理文件信息

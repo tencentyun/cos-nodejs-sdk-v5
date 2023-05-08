@@ -2870,8 +2870,8 @@ function postNoiseReduction() {
       // QueueId: '', // 任务所在的队列 ID，非必须
       // CallBackFormat: '', // 任务回调格式，JSON 或 XML，默认 XML，优先级高于队列的回调格式，非必须
       // CallBackType: '', // 任务回调类型，Url 或 TDMQ，默认 Url，优先级高于队列的回调类型，非必须
-      // CallBack: '', // 任务回调地址，优先级高于队列的回调地址。设置为 no 时，表示队列的回调地址不产生回调，非必须	
-      // CallBackMqConfig: '', // 任务回调 TDMQ 配置，当 CallBackType 为 TDMQ 时必填，非必须	
+      // CallBack: '', // 任务回调地址，优先级高于队列的回调地址。设置为 no 时，表示队列的回调地址不产生回调，非必须
+      // CallBackMqConfig: '', // 任务回调 TDMQ 配置，当 CallBackType 为 TDMQ 时必填，非必须
     }
   });
   cos.request({
@@ -2910,8 +2910,8 @@ function postVoiceSeparate() {
       // QueueId: '', // 任务所在的队列 ID，非必须
       // CallBackFormat: '', // 任务回调格式，JSON 或 XML，默认 XML，优先级高于队列的回调格式，非必须
       // CallBackType: '', // 任务回调类型，Url 或 TDMQ，默认 Url，优先级高于队列的回调类型，非必须
-      // CallBack: '', // 任务回调地址，优先级高于队列的回调地址。设置为 no 时，表示队列的回调地址不产生回调，非必须	
-      // CallBackMqConfig: '', // 任务回调 TDMQ 配置，当 CallBackType 为 TDMQ 时必填，非必须	
+      // CallBack: '', // 任务回调地址，优先级高于队列的回调地址。设置为 no 时，表示队列的回调地址不产生回调，非必须
+      // CallBackMqConfig: '', // 任务回调 TDMQ 配置，当 CallBackType 为 TDMQ 时必填，非必须
     }
   });
   cos.request({
@@ -2950,8 +2950,8 @@ function postTts() {
       // QueueId: '', // 任务所在的队列 ID，非必须
       // CallBackFormat: '', // 任务回调格式，JSON 或 XML，默认 XML，优先级高于队列的回调格式，非必须
       // CallBackType: '', // 任务回调类型，Url 或 TDMQ，默认 Url，优先级高于队列的回调类型，非必须
-      // CallBack: '', // 任务回调地址，优先级高于队列的回调地址。设置为 no 时，表示队列的回调地址不产生回调，非必须	
-      // CallBackMqConfig: '', // 任务回调 TDMQ 配置，当 CallBackType 为 TDMQ 时必填，非必须	
+      // CallBack: '', // 任务回调地址，优先级高于队列的回调地址。设置为 no 时，表示队列的回调地址不产生回调，非必须
+      // CallBackMqConfig: '', // 任务回调 TDMQ 配置，当 CallBackType 为 TDMQ 时必填，非必须
     }
   });
   cos.request({
@@ -2995,8 +2995,8 @@ function postSpeechRecognition() {
       // QueueId: '', // 任务所在的队列 ID，非必须
       // CallBackFormat: '', // 任务回调格式，JSON 或 XML，默认 XML，优先级高于队列的回调格式，非必须
       // CallBackType: '', // 任务回调类型，Url 或 TDMQ，默认 Url，优先级高于队列的回调类型，非必须
-      // CallBack: '', // 任务回调地址，优先级高于队列的回调地址。设置为 no 时，表示队列的回调地址不产生回调，非必须	
-      // CallBackMqConfig: '', // 任务回调 TDMQ 配置，当 CallBackType 为 TDMQ 时必填，非必须	
+      // CallBack: '', // 任务回调地址，优先级高于队列的回调地址。设置为 no 时，表示队列的回调地址不产生回调，非必须
+      // CallBackMqConfig: '', // 任务回调 TDMQ 配置，当 CallBackType 为 TDMQ 时必填，非必须
     }
   });
   cos.request({
@@ -3080,6 +3080,773 @@ function getAsrBucket() {
   function(err, data){
       console.log(err || data);
   });
+}
+
+
+// 设置防盗链
+function setRefer() {
+    var host = config.Bucket + '.pic.' + config.Region + '.myqcloud.com/?hotlink';
+    var url = 'https://' + host;
+    var body = COS.util.json2xml({
+        Hotlink: {
+            Url: 'https://www.example.com', // 必须，域名地址
+            Type: 'white', // 必须，防盗链类型，white 为白名单，black 为黑名单，off 为关闭。
+        }
+    });
+    cos.request({
+            Method: 'PUT',
+            Url: url,
+            Body: body,
+            ContentType: 'application/xml',
+        },
+        function(err, data){
+            console.log(err || data);
+        });
+}
+
+// 查询防盗链
+function describeRefer() {
+    var host = config.Bucket + '.pic.' + config.Region + '.myqcloud.com/?hotlink';
+    var url = 'https://' + host;
+    cos.request({
+            Method: 'GET',
+            Url: url,
+        },
+        function(err, data){
+            console.log(err || data);
+        });
+}
+
+// 开通原图保护
+function openOriginProtect() {
+    var host = config.Bucket + '.pic.' + config.Region + '.myqcloud.com/?origin-protect';
+    var url = 'https://' + host;
+    cos.request({
+            Method: 'PUT',
+            Url: url,
+        },
+        function(err, data){
+            console.log(err || data);
+        });
+}
+
+// 查询原图保护状态
+function describeOriginProtect() {
+    var host = config.Bucket + '.pic.' + config.Region + '.myqcloud.com/?origin-protect';
+    var url = 'https://' + host;
+    cos.request({
+            Method: 'GET',
+            Url: url,
+        },
+        function(err, data){
+            console.log(err || data);
+        });
+}
+
+// 关闭原图保护
+function closeOriginProtect() {
+    var host = config.Bucket + '.pic.' + config.Region + '.myqcloud.com/?origin-protect';
+    var url = 'https://' + host;
+    cos.request({
+            Method: 'DELETE',
+            Url: url,
+        },
+        function(err, data){
+            console.log(err || data);
+        });
+}
+
+// 图片样式 - 增加样式
+function addImageStyle() {
+    var host = config.Bucket + '.pic.' + config.Region + '.myqcloud.com/?style';
+    var url = 'https://' + host;
+    var body = COS.util.json2xml({
+        AddStyle: {
+            StyleName: 'style_name1', // 必须，样式名称
+            StyleBody: 'imageMogr2/thumbnail/!50px', // 必须，样式详情
+        }
+    });
+    cos.request({
+            Method: 'PUT',
+            Url: url,
+            Body: body,
+            ContentType: 'application/xml',
+        },
+        function(err, data){
+            console.log(err || data);
+        });
+}
+
+// 图片样式 - 查询样式
+function describeImageStyles() {
+    var host = config.Bucket + '.pic.' + config.Region + '.myqcloud.com/?style';
+    var url = 'https://' + host;
+    cos.request({
+            Method: 'GET',
+            Url: url,
+            Query: {
+                // "style-name": 'style_name', // 非必填，样式名称
+            },
+        },
+        function(err, data){
+            console.log(err || data);
+        });
+}
+
+// 图片样式 - 删除样式
+function deleteImageStyle() {
+    var host = config.Bucket + '.pic.' + config.Region + '.myqcloud.com/?style';
+    var url = 'https://' + host;
+    var body = COS.util.json2xml({
+        DeleteStyle: {
+            StyleName: 'style_name1', // 必须，样式名称
+        }
+    });
+    cos.request({
+            Method: 'DELETE',
+            Url: url,
+            Body: body,
+            ContentType: 'application/xml',
+        },
+        function(err, data){
+            console.log(err || data);
+        });
+}
+
+// 开通 Guetzli 压缩
+function openImageGuetzli() {
+    var host = config.Bucket + '.pic.' + config.Region + '.myqcloud.com/?guetzli';
+    var url = 'https://' + host;
+    cos.request({
+            Method: 'PUT',
+            Url: url,
+        },
+        function(err, data){
+            console.log(err || data);
+        });
+}
+
+// 查询 Guetzli 状态
+function describeImageGuetzli() {
+    var host = config.Bucket + '.pic.' + config.Region + '.myqcloud.com/?guetzli';
+    var url = 'https://' + host;
+    cos.request({
+            Method: 'GET',
+            Url: url,
+        },
+        function(err, data){
+            console.log(err || data);
+        });
+}
+
+// 关闭 Guetzli 压缩
+function closeImageGuetzli() {
+    var host = config.Bucket + '.pic.' + config.Region + '.myqcloud.com/?guetzli';
+    var url = 'https://' + host;
+    cos.request({
+            Method: 'DELETE',
+            Url: url,
+        },
+        function(err, data){
+            console.log(err || data);
+        });
+}
+
+// 上传时使用图片压缩
+function advanceCompressExample1(){
+    var filename = 'example_photo.png'
+    var filepath = path.resolve(__dirname, filename);
+    cos.putObject({
+        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Region: config.Region,
+        Key: filename,
+        Body: fs.readFileSync(filepath),
+        Headers: {
+            // 通过 imageMogr2 接口进行 avif 压缩，可以根据需要压缩的类型填入不同的压缩格式：webp/heif/tpg/avif/svgc
+            'Pic-Operations':
+                '{"is_pic_info": 1, "rules": [{"fileid": "desample_photo.avif", "rule": "imageMogr2/format/webp"}]}',
+        },
+        onTaskReady: function (tid) {
+            TaskId = tid;
+        },
+        onProgress: function (progressData) {
+            console.log(JSON.stringify(progressData));
+        },
+    }, function (err, data) {
+        console.log(err || data);
+    });
+}
+
+// 对云上数据进行图片压缩
+function advanceCompressExample2(){
+    var filename = 'example_photo.png';
+    cos.request({
+        Bucket: config.Bucket,
+        Region: config.Region,
+        Key: filename,
+        Method: 'POST',
+        Action: 'image_process',
+        Headers: {
+            // 通过 imageMogr2 接口进行 avif 压缩，可以根据需要压缩的类型填入不同的压缩格式：webp/heif/tpg/avif/svgc
+            'Pic-Operations':
+                '{"is_pic_info": 1, "rules": [{"fileid": "desample_photo.avif", "rule": "imageMogr2/format/avif"}]}',
+        },
+    }, function (err, data) {
+        console.log(err || data);
+    });
+}
+
+// 下载时使用图片压缩
+function advanceCompressExample3(){
+    var filepath = path.resolve(__dirname, 'example_photo_ci_result.avif');
+    cos.getObject({
+            Bucket: config.Bucket,
+            Region: config.Region,
+            Key: 'example_photo.png',
+            QueryString: `imageMogr2/format/avif`, // 可以根据需要压缩的类型填入不同的压缩格式：webp/heif/tpg/avif/svgc
+        },
+        function (err, data) {
+            if(data){
+                fs.writeFileSync(filepath, data.Body);
+            } else {
+                console.log(err);
+            }
+        },
+    );
+}
+
+// 异常图片检测
+function createImageInspectJob() {
+    var key = '1.png';
+    var host = config.Bucket + '.cos.' + config.Region + '.myqcloud.com/' + key;
+    var url = 'https://' + host;
+    cos.request({
+            Method: 'GET',
+            Key: key,
+            Url: url,
+            RawBody: true,
+            Query: {
+                'ci-process': 'ImageInspect', /* 必须，操作类型，异常图片检测固定为：ImageInspect	*/
+            },
+        },
+        function(err, data){
+            // 从响应数据中解析出异常图片检测结果
+            let body = {};
+            if (data && data.Body) {
+                body = JSON.parse(data.Body) || {};
+                if(body) {
+                    data.body = body;
+                }
+            }
+            console.log(err || data);
+        });
+}
+
+// 更新图片处理队列
+function updatePicProcessQueue() {
+    var queueId = 'p36e92002ff5b418497076f31d33d4xxx';
+    var host = config.Bucket + '.ci.' + config.Region + '.myqcloud.com/picqueue/' + queueId;
+    var url = 'https://' + host;
+    var body = COS.util.json2xml({
+        Request: {
+            Name: 'My-Queue-Pic', // 必须，队列名称,长度不超过128
+            State: 'Active', // 必须，Active 表示队列内的作业会被调度执行。Paused 表示队列暂停，作业不再会被调度执行，队列内的所有作业状态维持在暂停状态，已经执行中的任务不受影响。
+            NotifyConfig: { // 必须，回调配置
+                State: 'On', // 必须，回调开关，Off/On，默认Off
+                Event: 'TaskFinish', // 回调事件，当 State=On时, 必选。任务完成：TaskFinish；工作流完成：WorkflowFinish
+                ResultFormat: 'XML', // 非必选，回调格式，JSON/XML
+                Type: 'Url', // 回调类型，当 State=On时, 必选，Url 或 TDMQ
+                Url: 'https://www.example.com', // 回调地址，当 State=On, 且Type=Url时, 必选
+                // MqMode: 'Off', // TDMQ 使用模式，当 State=On, 且Type=TDMQ时, 必选
+                // MqRegion: 'Off', // TDMQ 所属地域，当 State=On, 且Type=TDMQ时, 必选
+                // MqName: 'Off', // TDMQ 主题名称，当 State=On, 且Type=TDMQ时, 必选
+            }
+        }
+    });
+    cos.request({
+            Method: 'POST',
+            Key: 'picqueue/' + queueId,
+            Url: url,
+            Body: body,
+            ContentType: 'application/xml',
+        },
+        function(err, data){
+            console.log(err || data);
+        });
+}
+
+// 查询图片处理队列
+function describePicProcessQueues() {
+    var host = config.Bucket + '.ci.' + config.Region + '.myqcloud.com/picqueue';
+    var url = 'https://' + host;
+    cos.request({
+            Method: 'GET',
+            Key: 'picqueue',
+            Url: url,
+            Query: {
+                // queueIds: '', /* 非必须，队列 ID，以“,”符号分割字符串	*/
+                state: 'Active', /* 非必须，1. Active 表示队列内的作业会被媒体处理服务调度执行。2. Paused 表示队列暂停，作业不再会被媒体处理调度执行，队列内的所有作业状态维持在暂停状态，已经执行中的任务不受影响。	*/
+                pageNumber: 1, /* 非必须，第几页,默认值1	*/
+                pageSize: 10, /* 非必须，每页个数,默认值10	*/
+            },
+        },
+        function(err, data){
+            console.log(err || data);
+        });
+}
+
+// 查询已经开通文档预览的存储桶
+function describeDocProcessBuckets() {
+    var host = 'ci.' + config.Region + '.myqcloud.com/docbucket';
+    var url = 'https://' + host;
+    cos.request({
+            Method: 'GET',
+            Key: 'docbucket',
+            Url: url,
+            Query: {
+                // regions: '', /* 	非必须，地域信息，以“,”分隔字符串，支持 All、ap-shanghai、ap-beijing */
+                // bucketNames: '', /* 非必须，存储桶名称，以“,”分隔，支持多个存储桶，精确搜索	 */
+                // bucketName: '', /* 非必须，存储桶名称前缀，前缀搜索	 */
+                // pageNumber: 1, /* 非必须，第几页	 */
+                // pageSize: 10, /* 非必须，每页个数	 */
+            },
+        },
+        function(err, data){
+            console.log(err || data);
+        });
+}
+
+// 文档预览功能同步请求
+function previewDocumentAsync() {
+    var key = 'test.docx';
+    var host = config.Bucket + '.cos.' + config.Region + '.myqcloud.com/' + key;
+    var url = 'https://' + host;
+    cos.request({
+            Method: 'GET',
+            Key: key,
+            Url: url,
+            Query: {
+                ObjectKey: key, /* 对象文件名 */
+                'ci-process': 'doc-preview', /* 必须，数据万象处理能力，文档预览固定为 doc-preview	*/
+            },
+        },
+        function(err, data){
+            console.log(err || data);
+        });
+}
+
+// 提交文档转码任务
+function createDocProcessJobs() {
+    var host = config.Bucket + '.ci.' + config.Region + '.myqcloud.com/doc_jobs';
+    var url = 'https://' + host;
+    var body = COS.util.json2xml({
+        Request: {
+            Tag: 'DocProcess',
+            Input: {
+                Object: 'test.docx', // 存在cos里的路径
+            },
+            Operation: {
+                DocProcess: {
+                    TgtType: 'jpg',
+                },
+                Output: {
+                    Bucket: config.Bucket,
+                    Region: config.Region,
+                    Object: '1/文档转码_${Number}.jpg', // 转码后存到cos的路径
+                },
+            },
+            QueueId: 'p58639252a2cf45aba7a7f3335ffe3xxx', // 替换成自己的queueId
+        }
+    });
+    cos.request({
+            Method: 'POST',
+            Key: 'doc_jobs',
+            Url: url,
+            Body: body,
+            ContentType: 'application/xml',
+        },
+        function(err, data){
+            console.log(err || data);
+        });
+}
+
+// 查询指定的文档预览任务
+function describeDocProcessJob() {
+    var jobId = 'd622ab912ebdb11ed9baf0316d5139xxx';  // 替换成自己的jogId
+    var host = config.Bucket + '.ci.' + config.Region + '.myqcloud.com/doc_jobs/' + jobId;
+    var url = 'https://' + host;
+    cos.request({
+            Method: 'GET',
+            Key: 'doc_jobs/' + jobId,
+            Url: url,
+        },
+        function(err, data){
+            console.log(err || data);
+        });
+}
+
+// 拉取符合条件的文档预览任务
+function describeDocProcessJobs() {
+    var host = config.Bucket + '.ci.' + config.Region + '.myqcloud.com/doc_jobs';
+    var url = 'https://' + host;
+    cos.request({
+            Method: 'GET',
+            Key: 'doc_jobs',
+            Url: url,
+            Query: {
+                queueId: 'p58639252a2cf45aba7a7f3335ffe3xxx', // 替换成自己的queueId
+                tag: 'DocProcess',
+            },
+        },
+        function(err, data){
+            console.log(err || data);
+        });
+}
+
+// 更新文档预览队列
+function updateDocProcessQueue() {
+    var queueId = 'p58639252a2cf45aba7a7f3335ffe3xxx';  // 替换成自己的队列id
+    var host = config.Bucket + '.ci.' + config.Region + '.myqcloud.com/docqueue/' + queueId;
+    var url = 'https://' + host;
+    var body = COS.util.json2xml({
+        Request: {
+            Name: 'queue-doc-process-1', // 替换成自己的队列name
+            QueueID: queueId,
+            State: 'Active',
+            NotifyConfig: {
+                State: 'Off',
+            }
+        }
+    });
+    cos.request({
+            Method: 'PUT',
+            Key: 'docqueue/' + queueId,
+            Url: url,
+            Body: body,
+            ContentType: 'application/xml',
+        },
+        function(err, data){
+            console.log(err || data);
+        });
+}
+
+// 查询文档转码队列
+function describeDocProcessQueues() {
+    var host = config.Bucket + '.ci.' + config.Region + '.myqcloud.com/docqueue';
+    var url = 'https://' + host;
+    cos.request({
+            Method: 'GET',
+            Key: 'docqueue',
+            Url: url,
+            Query: {
+                // queueIds: '', /* 	非必须，队列 ID，以“,”符号分割字符串 */
+                // state: '', /* 非必须，1=Active,2=Paused 	 */
+                // pageNumber: 1, /* 非必须，第几页	 */
+                // pageSize: 2, /* 非必须，每页个数	 */
+            },
+        },
+        function(err, data){
+            console.log(err || data);
+        });
+}
+
+// 文档转 HTML
+function getDocHtmlUrl() {
+    cos.getObjectUrl({
+        Bucket: config.Bucket, // Bucket 格式：test-1250000000
+        Region: config.Region,
+        Key: 'test.docx',
+        Query: {
+            'ci-process': 'doc-preview', /* 必须，数据万象处理能力，文档预览固定为 doc-preview */
+            // srcType: '', /* 非必须，源数据的后缀类型，当前文档转换根据 COS 对象的后缀名来确定源数据类型。当 COS 对象没有后缀名时，可以设置该值 */
+            // page: '', /* 非必须，需转换的文档页码，默认从1开始计数；表格文件中 page 表示转换的第 X 个 sheet 的第 X 张图	*/
+            dstType: 'html', /* 非必须，转换输出目标文件类型 */
+        },
+    }, function(err, data) {
+        if (err) {
+            console.log(err);
+        } else {
+            // 使用浏览器打开url即可预览
+            var url = data.Url;
+            console.log(url);
+        }
+    });
+}
+
+// 获取在线文档预览地址
+function getDocHtmlPreviewUrl() {
+    var key = 'test.docx';
+    var host = config.Bucket + '.cos.' + config.Region + '.myqcloud.com/' + key;
+    var url = 'https://' + host;
+    cos.request({
+            Method: 'GET',
+            Key: key,
+            Url: url,
+            RawBody: true,
+            Query: {
+                'ci-process': 'doc-preview', /* 必须，预览固定参数，值为 doc-preview	*/
+                'dstType': 'html', /* 必须，预览类型，如需预览生成类型为 html 则填入 html	*/
+                'weboffice_url': 1, /* 非必须，是否获取预览链接。填入值为1会返回预览链接和Token信息；填入值为2只返回Token信息；不传会直接预览	*/
+            },
+        },
+        function(err, data){
+            // 从响应数据中解析出在线文档预览地址
+            let body = {};
+            if (data && data.Body) {
+                body = JSON.parse(data.Body) || {};
+            }
+            if(body && body.PreviewUrl) {
+                data.PreviewUrl = body.PreviewUrl;
+            }
+            console.log(err || data);
+        });
+}
+
+// 开通文件处理服务
+function createFileProcessBucket() {
+    var host = config.Bucket + '.ci.' + config.Region + '.myqcloud.com/file_bucket';
+    var url = 'https://' + host;
+    cos.request({
+            Method: 'POST',
+            Key: 'file_bucket',
+            Url: url,
+        },
+        function(err, data){
+            console.log(err || data);
+        });
+}
+
+// 更新文件处理队列
+function updateFileProcessQueue() {
+    var queueId = 'p5d0dc85debe149febdd6fd9b208aaxxx';
+    var host = config.Bucket + '.ci.' + config.Region + '.myqcloud.com/file_queue/' + queueId;
+    var url = 'https://' + host;
+    var body = COS.util.json2xml({
+        Request: {
+            Name: 'My-Queue-file', // 必须，队列名称,长度不超过128
+            State: 'Active', // 必须，Active 表示队列内的作业会被调度执行。Paused 表示队列暂停，作业不再会被调度执行，队列内的所有作业状态维持在暂停状态，已经执行中的任务不受影响。
+            NotifyConfig: { // 必须，回调配置
+                State: 'On', // 必须，回调开关，Off/On，默认Off
+                Event: 'TaskFinish', // 回调事件，当 State=On时, 必选。任务完成：TaskFinish；工作流完成：WorkflowFinish
+                ResultFormat: 'XML', // 非必选，回调格式，JSON/XML
+                Type: 'Url', // 回调类型，当 State=On时, 必选，Url 或 TDMQ
+                Url: 'https://www.example.com', // 回调地址，当 State=On, 且Type=Url时, 必选
+                // MqMode: 'Off', // TDMQ 使用模式，当 State=On, 且Type=TDMQ时, 必选
+                // MqRegion: 'Off', // TDMQ 所属地域，当 State=On, 且Type=TDMQ时, 必选
+                // MqName: 'Off', // TDMQ 主题名称，当 State=On, 且Type=TDMQ时, 必选
+            }
+        }
+    });
+    cos.request({
+            Method: 'POST',
+            Key: 'file_queue/' + queueId,
+            Url: url,
+            Body: body,
+            ContentType: 'application/xml',
+        },
+        function(err, data){
+            console.log(err || data);
+        });
+}
+
+// 查询文件处理队列
+function describeFileProcessQueues() {
+    var host = config.Bucket + '.ci.' + config.Region + '.myqcloud.com/file_queue';
+    var url = 'https://' + host;
+    cos.request({
+            Method: 'GET',
+            Key: 'file_queue',
+            Url: url,
+            Query: {
+                // queueIds: '', /* 非必须，队列 ID，以“,”符号分割字符串	*/
+                state: 'Active', /* 非必须，Active 表示队列内的作业会被调度执行。Paused 表示队列暂停，作业不再会被调度执行，队列内的所有作业状态维持在暂停状态，已经执行中的任务不受影响。	*/
+                pageNumber: 1, /* 第几页,默认值1	*/
+                pageSize: 10, /* 非必须，每页个数,默认值10	*/
+            },
+        },
+        function(err, data){
+            console.log(err || data);
+        });
+}
+
+// 哈希值计算同步请求
+function generateFileHash() {
+    var key = 'test.docx';
+    var host = config.Bucket + '.cos.' + config.Region + '.myqcloud.com/' + key;
+    var url = 'https://' + host;
+    cos.request({
+            Method: 'GET',
+            Key: key,
+            Url: url,
+            Query: {
+                'ci-process': 'filehash', /* 必须，操作类型，哈希值计算固定为：filehash	*/
+                'type': 'md5', /* 必须，支持的哈希算法类型，有效值：md5、sha1、sha256	*/
+                // 'addtoheader': false, /* 非必须，是否将计算得到的哈希值，自动添加至文件的自定义header，格式为：x-cos-meta-md5/sha1/sha256;有效值：true、false，不填则默认为false。	*/
+            },
+        },
+        function(err, data){
+            console.log(err || data);
+        });
+}
+
+// 提交哈希值计算任务
+function postFileHashTask() {
+    var host = config.Bucket + '.ci.' + config.Region + '.myqcloud.com/file_jobs';
+    var url = 'https://' + host;
+    var body = COS.util.json2xml({
+        Request: {
+            Tag: 'FileHashCode', // 必须
+            Input: {
+                Object: 'test.docx', // 文件名，取值为文件在当前存储桶中的完整名称
+            },
+            Operation: {
+                FileHashCodeConfig: {
+                    Type: 'MD5', // 哈希值的算法类型，有效值：MD5、SHA1、SHA256
+                    AddToHeader: 'false', // 是否将计算得到的哈希值添加至文件自定义header, 有效值：true、false，默认值为 false。
+                },
+                // UserData: '', // 透传用户信息, 可打印的 ASCII 码, 长度不超过1024
+            },
+            // QueueId: '', // 任务所在的队列 ID
+            // CallBack: 'http://callback.demo.com', // 任务回调的地址
+            // CallBackFormat: 'JSON', // 任务回调格式
+            // CallBackType: 'Url', // 任务回调类型，Url 或 TDMQ，默认 Url
+        }
+    });
+    cos.request({
+            Method: 'POST',
+            Key: 'file_jobs',
+            Url: url,
+            Body: body,
+            ContentType: 'application/xml',
+        },
+        function(err, data){
+            console.log(err || data);
+        });
+}
+
+// 查询哈希值计算任务结果
+function getFileHashTask() {
+    var jobId = 'f99ca3336ebde11ed96313ffa040a7xxx'; // 提交文件哈希值计算任务后会返回当前任务的jobId
+    var host = config.Bucket + '.ci.' + config.Region + '.myqcloud.com/file_jobs/' + jobId;
+    var url = 'https://' + host;
+    cos.request({
+            Method: 'GET',
+            Key: 'file_jobs/' + jobId,
+            Url: url,
+        },
+        function(err, data){
+            console.log(err || data);
+        });
+}
+
+// 提交文件解压任务
+function postFileUnCompressTask() {
+    var host = config.Bucket + '.ci.' + config.Region + '.myqcloud.com/file_jobs';
+    var url = 'https://' + host;
+    var body = COS.util.json2xml({
+        Request: {
+            Tag: 'FileUncompress', // 必须
+            Input: {
+                Object: 'testCompress/compressed.zip', // 文件名，取值为文件在当前存储桶中的完整名称
+            },
+            Operation: {
+                FileUncompressConfig: {
+                    Prefix: 'testCompress', // 指定解压后输出文件的前缀，不填则默认保存在存储桶根路径
+                    PrefixReplaced: '0', // 指定解压后的文件路径是否需要替换前缀,默认0
+                },
+                Output: {
+                    Bucket: config.Bucket, // 保存解压后文件的存储桶
+                    Region: config.Region, // 保存解压后文件的存储桶地域
+                },
+            },
+            // QueueId: '', // 任务所在的队列 ID
+            // CallBack: 'http://callback.demo.com', // 任务回调的地址
+            // CallBackFormat: 'JSON', // 任务回调格式
+            // CallBackType: 'Url', // 任务回调类型，Url 或 TDMQ，默认 Url
+        }
+    });
+    cos.request({
+            Method: 'POST',
+            Key: 'file_jobs',
+            Url: url,
+            Body: body,
+            ContentType: 'application/xml',
+        },
+        function(err, data){
+            console.log(err || data);
+        });
+}
+
+
+// 查询文件解压任务结果
+function getFileUnCompressTask() {
+    var jobId = 'f52028b26ebe211edae4c1b36c787axxx'; // 提交文件解压任务后会返回当前任务的jobId
+    var host = config.Bucket + '.ci.' + config.Region + '.myqcloud.com/file_jobs/' + jobId;
+    var url = 'https://' + host;
+    cos.request({
+            Method: 'GET',
+            Key: 'file_jobs/' + jobId,
+            Url: url,
+        },
+        function(err, data){
+            console.log(err || data);
+        });
+}
+
+// 提交文件压缩任务
+function postFileCompressTask() {
+    var host = config.Bucket + '.ci.' + config.Region + '.myqcloud.com/file_jobs';
+    var url = 'https://' + host;
+    var body = COS.util.json2xml({
+        Request: {
+            Tag: 'FileCompress', // 必须
+            Operation: {
+                FileCompressConfig: {
+                    Flatten: '0', // 文件打包时，是否需要去除源文件已有的目录结构.0:不需要;1:需要
+                    Format: 'zip', // 打包压缩的类型，有效值：zip、tar、tar.gz
+                    // UrlList、Prefix、Key 三者仅能选择一个，不能都为空，也不会同时生效
+                    // UrlList: '', // 索引文件的对象地址
+                    Prefix: '/', // 目录前缀
+                    Key: [''], // 支持对存储桶中的多个文件进行打包，个数不能超过 1000, 总大小不超过50G，否则会导致任务失败
+                },
+                Output: {
+                    Bucket: config.Bucket, // 保存压缩后文件的存储桶
+                    Region: config.Region, // 保存压缩后文件的存储桶地域
+                    Object: 'testCompress/compressed.zip', // 压缩后文件的文件名
+                },
+                UserData: '',
+            },
+            // QueueId: '', // 任务所在的队列 ID
+            // CallBack: 'http://callback.demo.com', // 任务回调的地址
+            // CallBackFormat: 'JSON', // 任务回调格式
+            // CallBackType: 'Url', // 任务回调类型，Url 或 TDMQ，默认 Url
+        }
+    });
+    cos.request({
+            Method: 'POST',
+            Key: 'file_jobs',
+            Url: url,
+            Body: body,
+            ContentType: 'application/xml',
+        },
+        function(err, data){
+            console.log(err || data);
+        });
+}
+
+// 查询文件压缩任务结果
+function getFileCompressTask() {
+    var jobId = 'fc3c90292ebdf11eda4be2be811d77xxx'; // 提交文件压缩任务后会返回当前任务的jobId
+    var host = config.Bucket + '.ci.' + config.Region + '.myqcloud.com/file_jobs/' + jobId;
+    var url = 'https://' + host;
+    cos.request({
+            Method: 'GET',
+            Key: 'file_jobs/' + jobId,
+            Url: url,
+        },
+        function(err, data){
+            console.log(err || data);
+        });
 }
 
 // 存储桶操作
@@ -3228,3 +3995,44 @@ function getAsrBucket() {
 // getAsrQueue();
 // putAsrQueue();
 // getAsrBucket();
+
+
+// setRefer();
+// describeRefer();
+// openOriginProtect();
+// describeOriginProtect();
+// closeOriginProtect();
+
+// addImageStyle();
+// describeImageStyles();
+// deleteImageStyle();
+// openImageGuetzli();
+// describeImageGuetzli();
+// closeImageGuetzli();
+// advanceCompressExample1();
+// advanceCompressExample2();
+// advanceCompressExample3();
+// createImageInspectJob();
+// updatePicProcessQueue();
+// describePicProcessQueues();
+
+// describeDocProcessBuckets();
+// previewDocumentAsync();
+// createDocProcessJobs();
+// describeDocProcessJob();
+// describeDocProcessJobs();
+// updateDocProcessQueue();
+// describeDocProcessQueues();
+// getDocHtmlUrl();
+// getDocHtmlPreviewUrl();
+
+// createFileProcessBucket();
+// updateFileProcessQueue();
+// describeFileProcessQueues();
+// generateFileHash();
+// postFileHashTask();
+// getFileHashTask();
+// postFileUnCompressTask();
+// getFileUnCompressTask();
+// postFileCompressTask();
+// getFileCompressTask();

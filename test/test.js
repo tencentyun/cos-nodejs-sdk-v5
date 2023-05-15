@@ -389,6 +389,96 @@ group('init cos', function() {
     });
     putFile(initCos, done, assert);
   });
+  test('SecretKey格式错误', function(done, assert) {
+      var initCos = new COS({
+        SecretId: config.SecretId,
+        SecretKey: config.SecretKey + ' ',
+      });
+      putFile(initCos, done, assert, false);
+    });
+    test('StrictSsl=false', function(done, assert) {
+      var initCos = new COS({
+        SecretId: config.SecretId,
+        SecretKey: config.SecretKey,
+        StrictSsl: false,
+      });
+      putFile(initCos, done, assert, true);
+    });
+    test('Tunnel=false', function(done, assert) {
+      var initCos = new COS({
+        SecretId: config.SecretId,
+        SecretKey: config.SecretKey,
+        Tunnel: false,
+      });
+      putFile(initCos, done, assert, true);
+    });
+    test('Timeout=6000', function(done, assert) {
+      var initCos = new COS({
+        SecretId: config.SecretId,
+        SecretKey: config.SecretKey,
+        Timeout: 6000,
+      });
+      putFile(initCos, done, assert, true);
+    });
+  test('模拟sms init', function(done, assert) {
+      var Credentials = {
+        secretId: config.SecretId,
+        secretKey: config.SecretKey,
+      };
+      var initCos = new COS({ Credentials });
+      setTimeout(() => {
+        Credentials.secretId = '123456';
+        Credentials.secretKey = 'abcdefg';
+      }, 1000);
+      putFile(initCos, done, assert, true);
+    });
+    test('getAuthorization error tmpSecretId', function(done, assert) {
+      var initCos = new COS({
+        getAuthorization: function (options, callback) {
+          callback({
+            tmpSecretId: config.SecretId,
+            TmpSecretKey: config.SecretKey,
+        });
+        }
+      });
+      putFile(initCos, done, assert, false);
+    });
+  test('getAuthorization error tmpSecretKey', function(done, assert) {
+    var initCos = new COS({
+      getAuthorization: function (options, callback) {
+        callback({
+          TmpSecretId: config.SecretId,
+          tmpSecretKey: config.SecretKey,
+      });
+      }
+    });
+    putFile(initCos, done, assert, false);
+  });
+  test('getAuthorization error', function(done, assert) {
+    var initCos = new COS({
+      getAuthorization: function (options, callback) {
+        callback({
+          TmpSecretId: config.SecretId,
+          TmpSecretKey: config.SecretKey,
+      });
+      }
+    });
+    putFile(initCos, done, assert, false);
+  });
+  test('getAuthorization', function(done, assert) {
+    var initCos = new COS({
+      getAuthorization: function (options, callback) {
+        var AuthData = cos.getAuth({
+          Method: 'put',
+          Key: '1.txt'
+        });
+        callback({
+          Authorization: AuthData
+        });
+      }
+    });
+    putFile(initCos, done, assert);
+  });
 });
 
 group('getService()', function () {
@@ -4870,6 +4960,22 @@ group('downloadFile', function () {
           done();
       });
   });
+  test('downloadFile() fileSize=0', function (done, assert) {
+      var Key = '0b.zip';
+      cos.downloadFile({
+          Bucket: config.Bucket, // Bucket 格式：test-1250000000
+          Region: config.Region,
+          Key: Key,
+          FilePath: './' + Key, // 本地保存路径
+          ChunkSize: 1024 * 1024 * 8, // 分块大小
+          ParallelLimit: 5, // 分块并发数
+          RetryTimes: 3, // 分块失败重试次数
+          TaskId: '123', // 可以自己生成TaskId，用于取消下载
+      }, function (err, data) {
+          assert.ok(err);
+          done();
+      });
+  });
   test('downloadFile() 小文件简单下载', function (done, assert) {
       var Key = '1mb.zip';
       var fileSize = 1024 * 1024 * 3;
@@ -4912,6 +5018,36 @@ group('downloadFile', function () {
           Headers: {
             'x-cos-traffic-limit': 81920000,
           },
+      }, function (err, data) {
+        if (err) {
+          done();
+        } else {
+          cos.downloadFile({
+            Bucket: config.Bucket, // Bucket 格式：test-1250000000
+            Region: config.Region,
+            Key: Key,
+            FilePath: './' + Key, // 本地保存路径
+            ChunkSize: 1024 * 1024 * 8, // 分块大小
+            ParallelLimit: 5, // 分块并发数
+            RetryTimes: 3, // 分块失败重试次数
+            TaskId: '123', // 可以自己生成TaskId，用于取消下载
+          }, function (err, data) {
+              assert.ok(!err);
+              done();
+          });
+        }
+      });
+  });
+  test('downloadFile() 文件续传时远端文件已修改', function (done, assert) {
+      var Key = '50mb.zip';
+      var fileSize = 1024 * 1024 * 50;
+      var filePath = createFileSync(path.resolve(__dirname, Key), fileSize);
+      cos.sliceUploadFile({
+          Bucket: config.Bucket,
+          Region: config.Region,
+          Key: Key,
+          FilePath: filePath,
+          TrafficLimit: 819200,
       }, function (err, data) {
         if (err) {
           done();

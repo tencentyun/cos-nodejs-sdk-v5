@@ -2326,8 +2326,8 @@ declare class COS {
   appendObject(params: COS.AppendObjectParams): Promise<COS.GeneralResult>;
 
   /** 分块下载 @see https://cloud.tencent.com/document/product/436/64981#.E5.88.86.E5.9D.97.E4.B8.8B.E8.BD.BD.E5.AF.B9.E8.B1.A1 */
-  downloadFile(params: COS.DownloadFileParams, callback: (err: COS.CosError, data: COS.GeneralResult) => void): void;
-  downloadFile(params: COS.DownloadFileParams): Promise<COS.GeneralResult>;
+  downloadFile(params: COS.DownloadFileParams, callback: (err: COS.CosError, data: COS.GetObjectResult) => void): void;
+  downloadFile(params: COS.DownloadFileParams): Promise<COS.GetObjectResult>;
 
   /** 获取 COS JSON API (v4) 签名 @see https://cloud.tencent.com/document/product/436/6054 */
   getV4Auth(params: COS.GetV4AuthParams): COS.Authorization;

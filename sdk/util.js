@@ -3,7 +3,11 @@
 var fs = require('fs');
 var crypto = require('crypto');
 var { XMLParser, XMLBuilder } = require('fast-xml-parser');
-var xmlParser = new XMLParser({ ignoreAttributes: true });
+var xmlParser = new XMLParser({
+  ignoreDeclaration: true, // 忽略 XML 声明
+  ignoreAttributes: true, // 忽略属性
+  parseTagValue: false, // 关闭自动解析
+});
 var xmlBuilder = new XMLBuilder();
 
 function camSafeUrlEncode(str) {

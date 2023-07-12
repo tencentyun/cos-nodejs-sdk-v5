@@ -1801,6 +1801,7 @@ function DescribeDocProcessQueues() {
  * 更新文档转码队列
  */
 function UpdateDocProcessQueue() {
+  // 任务所在的队列 ID，请使用查询队列(https://cloud.tencent.com/document/product/460/46946)获取或前往万象控制台(https://cloud.tencent.com/document/product/460/46487)在存储桶中查询
     let queueId = 'p31299c0b3f4742dda2fc1be3ea40xxxx'   // 需要更新的队列ID
     let host = config.Bucket + '.ci.' + config.Region + '.myqcloud.com';
     let url = 'https://' + host + '/docqueue/' + queueId;
@@ -2616,8 +2617,7 @@ function SyncAuditImageObject() {
         Query: {
             'ci-process': 'sensitive-content-recognition',
             // 'detect-url': '<url>',
-            // 'biz-type': '<type>', // 审核策略 id
-            // 'detect-type': 'porn,ads', // 审核类型 porn,ads
+            'biz-type': '', // 审核策略 id
             // 'interval': 5, // gif截取间隔帧数
             // 'max-frames': 5, // gif最大截帧数
         }
@@ -2654,7 +2654,6 @@ function SyncAuditImageUrl() {
             'ci-process': 'sensitive-content-recognition',
             'detect-url': 'https://ftp.bmp.ovh/imgs/2021/09/ee4e63607465ed8d.jpg',
             // 'biz-type': '<type>', // 审核策略 id
-            // 'detect-type': 'porn,ads', // 审核类型 porn,ads
             // 'interval': 5, // gif截取间隔帧数
             // 'max-frames': 5, // gif最大截帧数
         }
@@ -2683,9 +2682,8 @@ function SyncAuditImageUrls() {
                     Object: 'audit/2.jpg',
                 }],
                 Conf: {
-                    DetectType: 'Porn,Ads',
                     // Callback: '<url>', // 回调地址
-                    // BizType: '', // 审核策略
+                    BizType: '', // 审核策略
                 },
             },
         }),
@@ -2708,9 +2706,8 @@ function SyncAuditTextContent() {
                     Content: Buffer.from('高潮').toString('base64'),
                 },
                 Conf: {
-                    DetectType: 'Porn,Terrorism,Politics,Ads,Illegal,Abuse',
                     // Callback: '<url>', // 回调地址
-                    // BizType: '', // 审核策略
+                    BizType: '', // 审核策略
                 },
             },
         }),
@@ -2735,9 +2732,8 @@ function CreateAuditJob() {
                     Object: objectKey,
                 },
                 Conf: {
-                    DetectType: 'Porn,Ads',
                     // Callback: '<url>', // 回调地址
-                    // BizType: '', // 审核策略
+                    BizType: '', // 审核策略
                 },
             },
         }),
@@ -3033,6 +3029,7 @@ function getAsrQueue() {
 
 // 更新语音识别队列
 function putAsrQueue() {
+  // 任务所在的队列 ID，请使用查询队列(https://cloud.tencent.com/document/product/460/46946)获取或前往万象控制台(https://cloud.tencent.com/document/product/460/46487)在存储桶中查询
   var queueId = 'pcc77499e85c311edb9865254008618d9';
   var host = config.Bucket + '.ci.' + config.Region + '.myqcloud.com/asrqueue/' + queueId;
   var url = 'https://' + host;
@@ -3344,6 +3341,7 @@ function createImageInspectJob() {
 
 // 更新图片处理队列
 function updatePicProcessQueue() {
+  // 任务所在的队列 ID，请使用查询队列(https://cloud.tencent.com/document/product/460/46946)获取或前往万象控制台(https://cloud.tencent.com/document/product/460/46487)在存储桶中查询
     var queueId = 'p36e92002ff5b418497076f31d33d4xxx';
     var host = config.Bucket + '.ci.' + config.Region + '.myqcloud.com/picqueue/' + queueId;
     var url = 'https://' + host;
@@ -3455,7 +3453,6 @@ function createDocProcessJobs() {
                     Object: '1/文档转码_${Number}.jpg', // 转码后存到cos的路径
                 },
             },
-            QueueId: 'p58639252a2cf45aba7a7f3335ffe3xxx', // 替换成自己的queueId
         }
     });
     cos.request({
@@ -3494,7 +3491,6 @@ function describeDocProcessJobs() {
             Key: 'doc_jobs',
             Url: url,
             Query: {
-                queueId: 'p58639252a2cf45aba7a7f3335ffe3xxx', // 替换成自己的queueId
                 tag: 'DocProcess',
             },
         },
@@ -3505,6 +3501,7 @@ function describeDocProcessJobs() {
 
 // 更新文档预览队列
 function updateDocProcessQueue() {
+  // 任务所在的队列 ID，请使用查询队列(https://cloud.tencent.com/document/product/460/46946)获取或前往万象控制台(https://cloud.tencent.com/document/product/460/46487)在存储桶中查询
     var queueId = 'p58639252a2cf45aba7a7f3335ffe3xxx';  // 替换成自己的队列id
     var host = config.Bucket + '.ci.' + config.Region + '.myqcloud.com/docqueue/' + queueId;
     var url = 'https://' + host;
@@ -3618,6 +3615,7 @@ function createFileProcessBucket() {
 
 // 更新文件处理队列
 function updateFileProcessQueue() {
+  // 任务所在的队列 ID，请使用查询队列(https://cloud.tencent.com/document/product/460/46946)获取或前往万象控制台(https://cloud.tencent.com/document/product/460/46487)在存储桶中查询
     var queueId = 'p5d0dc85debe149febdd6fd9b208aaxxx';
     var host = config.Bucket + '.ci.' + config.Region + '.myqcloud.com/file_queue/' + queueId;
     var url = 'https://' + host;
@@ -3848,6 +3846,25 @@ function getFileCompressTask() {
             console.log(err || data);
         });
 }
+
+/**
+ * dna库接口
+*/
+
+function getDNAList() {
+    var host = config.Bucket + '.ci.' + config.Region + '.myqcloud.com/dnadb';
+    var url = 'https://' + host;
+    cos.request({
+        Method: 'GET',
+        Key: 'dnadb',
+        Url: url,
+    },
+    function(err, data){
+        console.log(err || data);
+    });
+}
+
+getDNAList();
 
 // 存储桶操作
 // getService();

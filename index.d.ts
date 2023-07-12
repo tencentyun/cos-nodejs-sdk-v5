@@ -1915,6 +1915,10 @@ Bulk：批量模式，恢复时间为24 - 48小时。 */
     Expires?: number,
     /** 是否使用全球加速 */
     UseAccelerate?: boolean,
+    /** 调用操作存储桶和对象的 API 时自定义请求域名。可以使用模板，如"{Bucket}.cos.{Region}.myqcloud.com"，即在调用 API 时会使用参数中传入的 Bucket 和 Region 进行替换。 */
+    Domain?: string,
+    /** http协议，枚举值'http:','https:' */
+    Protocol?: string,
   }
   /** getObjectUrl 接口返回值 */
   interface GetObjectUrlResult {

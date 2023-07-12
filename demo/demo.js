@@ -3847,25 +3847,6 @@ function getFileCompressTask() {
         });
 }
 
-/**
- * dna库接口
-*/
-
-function getDNAList() {
-    var host = config.Bucket + '.ci.' + config.Region + '.myqcloud.com/dnadb';
-    var url = 'https://' + host;
-    cos.request({
-        Method: 'GET',
-        Key: 'dnadb',
-        Url: url,
-    },
-    function(err, data){
-        console.log(err || data);
-    });
-}
-
-getDNAList();
-
 // 存储桶操作
 // getService();
 // getAuth();

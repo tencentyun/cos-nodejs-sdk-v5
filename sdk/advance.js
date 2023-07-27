@@ -1140,7 +1140,6 @@ function sliceCopyFile(params, callback) {
             params.PartList = list;
         })();
 
-        var TargetHeader;
         if (params.Headers['x-cos-metadata-directive'] === 'Replaced') {
             TargetHeader = params.Headers;
         } else {

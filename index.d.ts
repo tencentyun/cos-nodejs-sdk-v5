@@ -51,7 +51,7 @@ declare namespace COS {
   /** 存储桶的预设 ACL @see https://cloud.tencent.com/document/product/436/30752#.E9.A2.84.E8.AE.BE.E7.9A.84-acl */
   type BucketACL = 'private' | 'public-read' | 'public-read-write' | 'authenticated-read';
   /** 对象的预设 ACL @see https://cloud.tencent.com/document/product/436/30752#.E9.A2.84.E8.AE.BE.E7.9A.84-acl */
-  type ObjectACL = 'default' | 'private' | 'public-read' | 'authenticated-read' | 'bucket-owner-read' | 'bucket-owner-full-contro';
+  type ObjectACL = 'default' | 'private' | 'public-read' | 'authenticated-read' | 'bucket-owner-read' | 'bucket-owner-full-control';
   /** 二进制值的字符串，'true' | 'false' */
   type BooleanString = 'true' | 'false';
   /** 所有者的信息 */
@@ -1474,7 +1474,13 @@ Bulk：批量模式，恢复时间为24 - 48小时。 */
     'x-cos-meta-*'?: string
   }
   /** putObjectCopy 接口返回值 */
-  interface PutObjectCopyResult extends GeneralResult {}
+  interface PutObjectCopyResult extends GeneralResult {
+    ETag: string;
+    CRC64: string;
+    LastModified: string;
+    VersionId: string;
+    Location: Location;
+  }
 
   // putObjectTagging
   /** putObjectTagging 接口参数 */

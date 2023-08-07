@@ -1,10 +1,11 @@
 {
   "name": "cos-nodejs-sdk-v5",
-  "version": "2.12.3",
+  "version": "2.12.4",
   "description": "cos nodejs sdk v5",
   "main": "index.js",
   "types": "index.d.ts",
   "scripts": {
+    "prettier": "prettier --write sdk demo/demo.js test/test.js index.d.ts",
     "demo": "node demo/demo.js",
     "demo-sts": "node demo/demo-sts.js",
     "demo-sts-scope": "node demo/demo-sts-scope.js",
@@ -42,6 +43,7 @@
     "crc64-ecma182.js": "^1.0.0",
     "mocha": "^4.0.1",
     "nyc": "^15.1.0",
+    "prettier": "^3.0.1",
     "qcloud-cos-sts": "^3.0.0"
   },
   "engines": {

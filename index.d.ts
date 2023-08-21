@@ -595,7 +595,7 @@ declare namespace COS {
   /** getBucketCors 接口返回值 */
   interface GetBucketCorsResult extends GeneralResult {
     /** 存储桶跨域资源共享（CORS）访问控制规则 */
-    CORSRules: Record<string, any>;
+    CORSRules: Required<Omit<COS.CORSRule, 'MaxAgeSeconds'>>;
     /** 是否允许同一个 url 有多份缓存，如果设置为 true 浏览器在 img 标签加载和 ajax 加载同一个对象 url 将会使用不同缓存 */
     ResponseVary?: BooleanString;
   }

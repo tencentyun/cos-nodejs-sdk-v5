@@ -435,10 +435,8 @@ function getBucketCors(params, callback) {
 
       util.each(CORSRules, function (rule) {
         util.each(['AllowedOrigin', 'AllowedHeader', 'AllowedMethod', 'ExposeHeader'], function (key) {
-          var sKey = key + 's';
-          var val = rule[sKey] || rule[key] || [];
-          delete rule[key];
-          rule[sKey] = util.isArray(val) ? val : [val];
+          var val = rule[`${key}s`] || rule[key] || [];
+          rule[key] = util.isArray(val) ? val : [val];
         });
       });
 

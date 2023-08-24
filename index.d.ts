@@ -500,6 +500,20 @@ declare namespace COS {
     NextMarker?: string;
     /** 仅当响应条目有截断（IsTruncated 为 true）才会返回该节点，该节点的值为当前响应条目中的最后一个对象的版本 ID，当需要继续请求后续条目时，将该节点的值作为下一次请求的 version-id-marker 参数传入。该节点的值可能为空，此时下一次请求的 version-id-marker 参数也需要指定为空。 */
     NextVersionIdMarker?: string;
+    /** 编码格式，对应请求中的 encoding-type 参数，且仅当请求中指定了 encoding-type 参数才会返回该节点 */
+    EncodingType?: string;
+    /** 存储桶的名称，格式为<BucketName-APPID>，例如examplebucket-1250000000 */
+    Name: string;
+    /** 对象键匹配前缀，对应请求中的 prefix 参数 */
+    Prefix: string;
+    /** 起始对象键标记，从该标记之后（不含）按照 UTF-8 字典序返回对象版本条目，对应请求中的 key-marker 参数 */
+    KeyMarker: string;
+    /** 起始版本 ID 标记，从该标记之后（不含）返回对象版本条目，对应请求中的 version-id-marker 参数 */
+    VersionIdMarker: string;
+    /** 单次响应返回结果的最大条目数量，对应请求中的 max-keys 参数 */
+    MaxKeys: string;
+    /** 分隔符，对应请求中的 delimiter 参数，且仅当请求中指定了 delimiter 参数才会返回该节点 */
+    Delimiter?: string;
   }
 
   // deleteBucket
@@ -579,6 +593,7 @@ declare namespace COS {
     /** 跨域资源共享配置的有效时间，单位为秒，在有效时间内，浏览器无须为同一请求再次发起预检（OPTIONS）请求，对应 CORS 请求响应中的 Access-Control-Max-Age 头部，单条 CORSRule 只能配置一个 MaxAgeSeconds。 */
     MaxAgeSeconds?: number;
   };
+
   /** putBucketCors 接口参数 */
   interface PutBucketCorsParams extends BucketParams {
     /** 存储桶跨域资源共享（CORS）访问控制规则 */
@@ -1968,9 +1983,9 @@ Bulk：批量模式，恢复时间为24 - 48小时。 */
 
   interface DownloadFileResult extends GeneralResult {
     /** 对象的实体标签（Entity Tag），是对象被创建时标识对象内容的信息标签，可用于检查对象的内容是否发生变化，例如"8e0b617ca298a564c3331da28dcb50df"。此头部并不一定返回对象的 MD5 值，而是根据对象上传和加密方式而有所不同 */
-    ETag: ETag,
+    ETag: ETag;
     /** 对象的版本 ID */
-    VersionId?: string,
+    VersionId?: string;
   }
 
   // getV4Auth

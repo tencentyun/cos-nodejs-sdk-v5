@@ -541,29 +541,6 @@ group('putObject() 兼容老参数AppId', function () {
   });
 });
 
-group('putObject() 兼容老参数AppId', function () {
-  test('putObject()', function (done, assert) {
-      const sp = config.Bucket.split('-');
-      const len = sp.length;
-      const appId = sp[len - 1];
-      sp.pop();
-      const bucketShortName = sp.join('-');
-      cos.putObject({
-          Bucket: bucketShortName,
-          Region: config.Region,
-          AppId: appId,
-          Key: '12345.txt',
-          Body: '12345',
-          Headers: {
-            'x-cos-test': 1
-          },
-      }, function (err, data) {
-        assert.ok(!err);
-        done();
-      });
-    });
-});
-
 group('getObjectUrl()', function () {
   test('getObjectUrl()', function (done, assert) {
     var content = Date.now().toString();

@@ -69,7 +69,7 @@ function getService(params, callback) {
         statusCode: data.statusCode,
         headers: data.headers,
       });
-    },
+    }
   );
 }
 
@@ -120,7 +120,7 @@ function putBucket(params, callback) {
         statusCode: data.statusCode,
         headers: data.headers,
       });
-    },
+    }
   );
 }
 
@@ -145,7 +145,7 @@ function headBucket(params, callback) {
       headers: params.Headers,
       method: 'HEAD',
     },
-    callback,
+    callback
   );
 }
 
@@ -201,7 +201,7 @@ function getBucket(params, callback) {
       });
 
       callback(null, result);
-    },
+    }
   );
 }
 
@@ -235,7 +235,7 @@ function deleteBucket(params, callback) {
         statusCode: data.statusCode,
         headers: data.headers,
       });
-    },
+    }
   );
 }
 
@@ -293,7 +293,7 @@ function putBucketAcl(params, callback) {
         statusCode: data.statusCode,
         headers: data.headers,
       });
-    },
+    }
   );
 }
 
@@ -335,7 +335,7 @@ function getBucketAcl(params, callback) {
         headers: data.headers,
       });
       callback(null, result);
-    },
+    }
   );
 }
 
@@ -389,7 +389,7 @@ function putBucketCors(params, callback) {
         statusCode: data.statusCode,
         headers: data.headers,
       });
-    },
+    }
   );
 }
 
@@ -448,7 +448,7 @@ function getBucketCors(params, callback) {
         statusCode: data.statusCode,
         headers: data.headers,
       });
-    },
+    }
   );
 }
 
@@ -482,7 +482,7 @@ function deleteBucketCors(params, callback) {
         statusCode: data.statusCode || err.statusCode,
         headers: data.headers,
       });
-    },
+    }
   );
 }
 
@@ -506,7 +506,7 @@ function getBucketLocation(params, callback) {
       headers: params.Headers,
       action: 'location',
     },
-    callback,
+    callback
   );
 }
 
@@ -544,7 +544,7 @@ function putBucketPolicy(params, callback) {
         statusCode: data.statusCode,
         headers: data.headers,
       });
-    },
+    }
   );
 }
 
@@ -591,7 +591,7 @@ function getBucketPolicy(params, callback) {
         statusCode: data.statusCode,
         headers: data.headers,
       });
-    },
+    }
   );
 }
 
@@ -625,7 +625,7 @@ function deleteBucketPolicy(params, callback) {
         statusCode: data.statusCode || err.statusCode,
         headers: data.headers,
       });
-    },
+    }
   );
 }
 
@@ -670,7 +670,7 @@ function putBucketTagging(params, callback) {
         statusCode: data.statusCode,
         headers: data.headers,
       });
-    },
+    }
   );
 }
 
@@ -718,7 +718,7 @@ function getBucketTagging(params, callback) {
         statusCode: data.statusCode,
         headers: data.headers,
       });
-    },
+    }
   );
 }
 
@@ -752,7 +752,7 @@ function deleteBucketTagging(params, callback) {
         statusCode: data.statusCode,
         headers: data.headers,
       });
-    },
+    }
   );
 }
 
@@ -787,7 +787,7 @@ function putBucketLifecycle(params, callback) {
         statusCode: data.statusCode,
         headers: data.headers,
       });
-    },
+    }
   );
 }
 
@@ -826,7 +826,7 @@ function getBucketLifecycle(params, callback) {
         statusCode: data.statusCode,
         headers: data.headers,
       });
-    },
+    }
   );
 }
 
@@ -851,7 +851,7 @@ function deleteBucketLifecycle(params, callback) {
         statusCode: data.statusCode,
         headers: data.headers,
       });
-    },
+    }
   );
 }
 
@@ -888,7 +888,7 @@ function putBucketVersioning(params, callback) {
         statusCode: data.statusCode,
         headers: data.headers,
       });
-    },
+    }
   );
 }
 
@@ -908,7 +908,7 @@ function getBucketVersioning(params, callback) {
         !data.VersioningConfiguration && (data.VersioningConfiguration = {});
       }
       callback(err, data);
-    },
+    }
   );
 }
 
@@ -943,7 +943,7 @@ function putBucketReplication(params, callback) {
         statusCode: data.statusCode,
         headers: data.headers,
       });
-    },
+    }
   );
 }
 
@@ -984,7 +984,7 @@ function getBucketReplication(params, callback) {
         delete data.ReplicationConfiguration.Rule;
       }
       callback(err, data);
-    },
+    }
   );
 }
 
@@ -1009,7 +1009,7 @@ function deleteBucketReplication(params, callback) {
         statusCode: data.statusCode,
         headers: data.headers,
       });
-    },
+    }
   );
 }
 
@@ -1066,7 +1066,7 @@ function putBucketWebsite(params, callback) {
         statusCode: data.statusCode,
         headers: data.headers,
       });
-    },
+    }
   );
 }
 
@@ -1118,7 +1118,7 @@ function getBucketWebsite(params, callback) {
         statusCode: data.statusCode,
         headers: data.headers,
       });
-    },
+    }
   );
 }
 
@@ -1152,7 +1152,7 @@ function deleteBucketWebsite(params, callback) {
         statusCode: data.statusCode,
         headers: data.headers,
       });
-    },
+    }
   );
 }
 
@@ -1208,7 +1208,7 @@ function putBucketReferer(params, callback) {
         statusCode: data.statusCode,
         headers: data.headers,
       });
-    },
+    }
   );
 }
 
@@ -1259,7 +1259,7 @@ function getBucketReferer(params, callback) {
         statusCode: data.statusCode,
         headers: data.headers,
       });
-    },
+    }
   );
 }
 
@@ -1303,7 +1303,7 @@ function putBucketDomain(params, callback) {
         statusCode: data.statusCode,
         headers: data.headers,
       });
-    },
+    }
   );
 }
 
@@ -1340,7 +1340,7 @@ function getBucketDomain(params, callback) {
         statusCode: data.statusCode,
         headers: data.headers,
       });
-    },
+    }
   );
 }
 
@@ -1374,7 +1374,7 @@ function deleteBucketDomain(params, callback) {
         statusCode: data.statusCode,
         headers: data.headers,
       });
-    },
+    }
   );
 }
 
@@ -1418,7 +1418,7 @@ function putBucketOrigin(params, callback) {
         statusCode: data.statusCode,
         headers: data.headers,
       });
-    },
+    }
   );
 }
 
@@ -1455,7 +1455,7 @@ function getBucketOrigin(params, callback) {
         statusCode: data.statusCode,
         headers: data.headers,
       });
-    },
+    }
   );
 }
 
@@ -1489,7 +1489,7 @@ function deleteBucketOrigin(params, callback) {
         statusCode: data.statusCode,
         headers: data.headers,
       });
-    },
+    }
   );
 }
 
@@ -1533,7 +1533,7 @@ function putBucketLogging(params, callback) {
         statusCode: data.statusCode,
         headers: data.headers,
       });
-    },
+    }
   );
 }
 
@@ -1564,7 +1564,7 @@ function getBucketLogging(params, callback) {
         statusCode: data.statusCode,
         headers: data.headers,
       });
-    },
+    }
   );
 }
 
@@ -1633,7 +1633,7 @@ function putBucketInventory(params, callback) {
         statusCode: data.statusCode,
         headers: data.headers,
       });
-    },
+    }
   );
 }
 
@@ -1693,7 +1693,7 @@ function getBucketInventory(params, callback) {
         statusCode: data.statusCode,
         headers: data.headers,
       });
-    },
+    }
   );
 }
 
@@ -1760,7 +1760,7 @@ function listBucketInventory(params, callback) {
         headers: data.headers,
       });
       callback(null, ListInventoryConfigurationResult);
-    },
+    }
   );
 }
 
@@ -1798,7 +1798,7 @@ function deleteBucketInventory(params, callback) {
         statusCode: data.statusCode,
         headers: data.headers,
       });
-    },
+    }
   );
 }
 
@@ -1834,7 +1834,7 @@ function putBucketAccelerate(params, callback) {
         statusCode: data.statusCode,
         headers: data.headers,
       });
-    },
+    }
   );
 }
 
@@ -1853,7 +1853,7 @@ function getBucketAccelerate(params, callback) {
         !data.AccelerateConfiguration && (data.AccelerateConfiguration = {});
       }
       callback(err, data);
-    },
+    }
   );
 }
 
@@ -1887,7 +1887,7 @@ function putBucketEncryption(params, callback) {
         statusCode: data.statusCode,
         headers: data.headers,
       });
-    },
+    }
   );
 }
 
@@ -1919,7 +1919,7 @@ function getBucketEncryption(params, callback) {
       var Rules = util.makeArray((data.EncryptionConfiguration && data.EncryptionConfiguration.Rule) || []);
       data.EncryptionConfiguration = { Rules: Rules };
       callback(err, data);
-    },
+    }
   );
 }
 
@@ -1944,7 +1944,7 @@ function deleteBucketEncryption(params, callback) {
         statusCode: data.statusCode,
         headers: data.headers,
       });
-    },
+    }
   );
 }
 
@@ -1987,7 +1987,7 @@ function headObject(params, callback) {
       }
       data.ETag = util.attr(data.headers, 'etag', '');
       callback(null, data);
-    },
+    }
   );
 }
 
@@ -2031,7 +2031,7 @@ function listObjectVersions(params, callback) {
       });
 
       callback(null, result);
-    },
+    }
   );
 }
 
@@ -2164,7 +2164,7 @@ function getObject(params, callback) {
         headers: data.headers,
       });
       callback(null, result);
-    },
+    }
   );
   if (params.ReturnStream) return outputStream;
 }
@@ -2253,7 +2253,7 @@ function putObject(params, callback) {
           return callback(null, data);
         }
         callback(null, data);
-      },
+      }
     );
   });
 }
@@ -2293,7 +2293,7 @@ function deleteObject(params, callback) {
         statusCode: data.statusCode,
         headers: data.headers,
       });
-    },
+    }
   );
 }
 
@@ -2344,7 +2344,7 @@ function getObjectAcl(params, callback) {
         headers: data.headers,
       });
       callback(null, result);
-    },
+    }
   );
 }
 
@@ -2400,7 +2400,7 @@ function putObjectAcl(params, callback) {
         statusCode: data.statusCode,
         headers: data.headers,
       });
-    },
+    }
   );
 }
 
@@ -2451,7 +2451,7 @@ function optionsObject(params, callback) {
         statusCode: data.statusCode,
         headers: data.headers,
       });
-    },
+    }
   );
 }
 
@@ -2530,7 +2530,7 @@ function putObjectCopy(params, callback) {
         headers: data.headers,
       });
       callback(null, result);
-    },
+    }
   );
 }
 
@@ -2582,7 +2582,7 @@ function uploadPartCopy(params, callback) {
         headers: data.headers,
       });
       callback(null, result);
-    },
+    }
   );
 }
 
@@ -2634,7 +2634,7 @@ function deleteMultipleObject(params, callback) {
         headers: data.headers,
       });
       callback(null, result);
-    },
+    }
   );
 }
 
@@ -2664,7 +2664,7 @@ function restoreObject(params, callback) {
       action: 'restore',
       headers: headers,
     },
-    callback,
+    callback
   );
 }
 
@@ -2711,7 +2711,7 @@ function putObjectTagging(params, callback) {
         statusCode: data.statusCode,
         headers: data.headers,
       });
-    },
+    }
   );
 }
 
@@ -2761,7 +2761,7 @@ function getObjectTagging(params, callback) {
         statusCode: data.statusCode,
         headers: data.headers,
       });
-    },
+    }
   );
 }
 
@@ -2797,7 +2797,7 @@ function deleteObjectTagging(params, callback) {
         statusCode: data.statusCode,
         headers: data.headers,
       });
-    },
+    }
   );
 }
 
@@ -2870,7 +2870,7 @@ function selectObjectContent(params, callback) {
           util.extend(selectResult.error, {
             statusCode: data.statusCode,
             headers: data.headers,
-          }),
+          })
         );
       }
       var result = {
@@ -2882,7 +2882,7 @@ function selectObjectContent(params, callback) {
       // 只要有 records，就返回 Payload
       if (selectResult.records) result.Payload = Buffer.concat(selectResult.records);
       callback(null, result);
-    },
+    }
   );
   if (!params.ReturnStream && params.DataType !== 'raw') {
     selectResult.records = [];
@@ -2898,7 +2898,7 @@ function selectObjectContent(params, callback) {
           });
           callback();
         },
-      }),
+      })
     );
     outputStream.pipe(outputStream);
   }
@@ -2975,11 +2975,11 @@ function multipartInit(params, callback) {
           util.extend(data.InitiateMultipartUploadResult, {
             statusCode: data.statusCode,
             headers: data.headers,
-          }),
+          })
         );
       }
       callback(null, data);
-    },
+    }
   );
 }
 
@@ -3028,7 +3028,7 @@ function multipartUpload(params, callback) {
             statusCode: data.statusCode,
             headers: data.headers,
           });
-        },
+        }
       );
     });
   });
@@ -3117,7 +3117,7 @@ function multipartComplete(params, callback) {
         headers: data.headers,
       });
       callback(null, result);
-    },
+    }
   );
 }
 
@@ -3177,7 +3177,7 @@ function multipartList(params, callback) {
         headers: data.headers,
       });
       callback(null, result);
-    },
+    }
   );
 }
 
@@ -3228,7 +3228,7 @@ function multipartListPart(params, callback) {
         headers: data.headers,
       });
       callback(null, result);
-    },
+    }
   );
 }
 
@@ -3264,7 +3264,7 @@ function multipartAbort(params, callback) {
         statusCode: data.statusCode,
         headers: data.headers,
       });
-    },
+    }
   );
 }
 
@@ -3319,7 +3319,7 @@ function appendObject(params, callback) {
     function (err, data) {
       if (err) return callback(err);
       callback(null, data);
-    },
+    }
   );
 }
 
@@ -3362,7 +3362,7 @@ function request(params, callback) {
         delete data.body;
       }
       callback(err, data);
-    },
+    }
   );
 }
 
@@ -3492,7 +3492,7 @@ function getObjectUrl(params, callback) {
       setTimeout(function () {
         callback(null, { Url: signUrl });
       });
-    },
+    }
   );
 
   if (AuthData) {
@@ -3830,7 +3830,7 @@ function getAuthorizationAsync(params, callback) {
           self._StsCache.push(StsData);
           calcAuthByTmpKey();
         }
-      },
+      }
     );
   } else if (self.options.getSTS) {
     // 外部获取临时密钥
@@ -3850,7 +3850,7 @@ function getAuthorizationAsync(params, callback) {
         if (AuthError) return cb(AuthError);
         self._StsCache.push(StsData);
         calcAuthByTmpKey();
-      },
+      }
     );
   } else {
     // 内部计算获取签名
@@ -3976,7 +3976,7 @@ function submitRequest(params, callback) {
             callback(err, data);
           }
         });
-      },
+      }
     );
   };
   next(1);
@@ -4157,9 +4157,9 @@ function _submitRequest(params, callback) {
           new Error(
             'file size large than ' +
               process.binding('buffer').kMaxLength +
-              ', please use "Output" Stream to getObject.',
-          ),
-        ),
+              ', please use "Output" Stream to getObject.'
+          )
+        )
       );
     } else {
       var dataHandler = function (chunk) {

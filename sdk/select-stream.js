@@ -80,7 +80,7 @@ SelectStream.prototype = {
         var headerValue = this.chunk.toString(
           'ascii',
           offset + headerNameLength + 4,
-          offset + headerNameLength + 4 + headerValueLength,
+          offset + headerNameLength + 4 + headerValueLength
         );
         header[headerName] = headerValue;
         offset += headerNameLength + 4 + headerValueLength;

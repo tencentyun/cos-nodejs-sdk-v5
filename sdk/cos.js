@@ -78,7 +78,7 @@ var COS = function (options) {
   this.options.Timeout = Math.max(0, this.options.Timeout);
   if (this.options.AppId) {
     console.warn(
-      'warning: AppId has been deprecated, Please put it at the end of parameter Bucket(E.g: "test-1250000000").',
+      'warning: AppId has been deprecated, Please put it at the end of parameter Bucket(E.g: "test-1250000000").'
     );
   }
   // 云API SDK 用小写密钥，这里兼容并 warning
@@ -102,10 +102,10 @@ var COS = function (options) {
   }
   if (util.isWeb()) {
     console.warn(
-      'warning: cos-nodejs-sdk-v5 不支持浏览器使用，请改用 cos-js-sdk-v5，参考文档： https://cloud.tencent.com/document/product/436/11459',
+      'warning: cos-nodejs-sdk-v5 不支持浏览器使用，请改用 cos-js-sdk-v5，参考文档： https://cloud.tencent.com/document/product/436/11459'
     );
     console.warn(
-      'warning: cos-nodejs-sdk-v5 does not support browsers. Please use cos-js-sdk-v5 instead, See: https://cloud.tencent.com/document/product/436/11459',
+      'warning: cos-nodejs-sdk-v5 does not support browsers. Please use cos-js-sdk-v5 instead, See: https://cloud.tencent.com/document/product/436/11459'
     );
   }
   event.init(this);

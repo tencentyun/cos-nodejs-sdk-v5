@@ -38,7 +38,7 @@ function sliceUploadFile(params, callback) {
       {
         UploadId: params.UploadData.UploadId || '',
       },
-      UploadCompleteData,
+      UploadCompleteData
     );
     callback(null, _UploadCompleteData);
   });
@@ -70,7 +70,7 @@ function sliceUploadFile(params, callback) {
         session.removeUploadId.call(self, UploadData.UploadId);
         onProgress({ loaded: FileSize, total: FileSize }, true);
         ep.emit('upload_complete', data);
-      },
+      }
     );
   });
 
@@ -106,7 +106,7 @@ function sliceUploadFile(params, callback) {
           return ep.emit('error', err);
         }
         ep.emit('upload_slice_complete', data);
-      },
+      }
     );
   });
 
@@ -130,7 +130,7 @@ function sliceUploadFile(params, callback) {
           SliceSize: ChunkSize,
           onHashProgress: onHashProgress,
         },
-        params,
+        params
       );
       getUploadIdAndPartList.call(self, _params, function (err, UploadData) {
         if (!self._isRunningTask(TaskId)) return;
@@ -301,7 +301,7 @@ function getUploadIdAndPartList(params, callback) {
         Query: util.clone(params.Query),
         StorageClass: StorageClass,
       },
-      params,
+      params
     );
     self.multipartInit(_params, function (err, data) {
       if (!self._isRunningTask(TaskId)) return;
@@ -361,7 +361,7 @@ function getUploadIdAndPartList(params, callback) {
                 asyncCallback(); // 检查下一个 UploadId
               }
             });
-          },
+          }
         );
       },
       function (AvailableUploadData) {
@@ -372,7 +372,7 @@ function getUploadIdAndPartList(params, callback) {
         } else {
           ep.emit('no_available_upload_id');
         }
-      },
+      }
     );
   });
 
@@ -425,7 +425,7 @@ function getUploadIdAndPartList(params, callback) {
               PartList: PartListData.PartList,
             });
           }
-        },
+        }
       );
     };
     next(0);
@@ -468,7 +468,7 @@ function getUploadIdAndPartList(params, callback) {
           }
           ep.emit('no_available_upload_id');
         }
-      },
+      }
     );
   });
 
@@ -599,7 +599,7 @@ function uploadSliceList(params, cb) {
           }
           onProgress({ loaded: FinishSize, total: FileSize });
           asyncCallback(err || null, data);
-        },
+        }
       );
     },
     function (err) {
@@ -609,7 +609,7 @@ function uploadSliceList(params, cb) {
         UploadId: UploadData.UploadId,
         SliceList: UploadData.PartList,
       });
-    },
+    }
   );
 }
 
@@ -677,14 +677,14 @@ function uploadSliceItem(params, callback) {
                 if (err) return tryCallback(err);
                 PartItem.Uploaded = true;
                 return tryCallback(null, data);
-              },
+              }
             );
           });
         },
         function (err, data) {
           if (!self._isRunningTask(TaskId)) return;
           return callback(err, data);
-        },
+        }
       );
     });
   });
@@ -719,12 +719,12 @@ function uploadSliceComplete(params, callback) {
           Parts: Parts,
           Headers: Headers,
         },
-        tryCallback,
+        tryCallback
       );
     },
     function (err, data) {
       callback(err, data);
-    },
+    }
   );
 }
 
@@ -761,7 +761,7 @@ function abortUploadTask(params, callback) {
         AsyncLimit: AsyncLimit,
         AbortArray: AbortArray,
       },
-      callback,
+      callback
     );
   });
 
@@ -776,7 +776,7 @@ function abortUploadTask(params, callback) {
       function (err, data) {
         if (err) return callback(err);
         ep.emit('get_abort_array', data.UploadList || []);
-      },
+      }
     );
   } else if (Level === 'file') {
     // 文件级别的任务抛弃，抛弃该文件的全部上传任务
@@ -791,7 +791,7 @@ function abortUploadTask(params, callback) {
       function (err, data) {
         if (err) return callback(err);
         ep.emit('get_abort_array', data.UploadList || []);
-      },
+      }
     );
   } else if (Level === 'task') {
     // 单个任务级别的任务抛弃，抛弃指定 UploadId 的上传任务
@@ -848,7 +848,7 @@ function abortUploadTaskArray(params, callback) {
           };
           resultList[eachIndex] = { error: err, task: task };
           nextItem(null);
-        },
+        }
       );
       index++;
     },
@@ -873,7 +873,7 @@ function abortUploadTaskArray(params, callback) {
         successList: successList,
         errorList: errorList,
       });
-    },
+    }
   );
 }
 
@@ -1080,7 +1080,7 @@ function sliceCopyFile(params, callback) {
             UploadId: UploadData.UploadId,
             Parts: Parts,
           },
-          tryCallback,
+          tryCallback
         );
       },
       function (err, data) {
@@ -1092,7 +1092,7 @@ function sliceCopyFile(params, callback) {
         session.removeUploadId.call(self, UploadData.UploadId);
         onProgress({ loaded: FileSize, total: FileSize }, true);
         callback(null, data);
-      },
+      }
     );
   });
 
@@ -1129,7 +1129,7 @@ function sliceCopyFile(params, callback) {
                 PartNumber: PartNumber,
                 CopySourceRange: CopySourceRange,
               },
-              tryCallback,
+              tryCallback
             );
           },
           function (err, data) {
@@ -1138,7 +1138,7 @@ function sliceCopyFile(params, callback) {
             onProgress({ loaded: FinishSize, total: FileSize });
             SliceItem.ETag = data.ETag;
             asyncCallback(err || null, data);
-          },
+          }
         );
       },
       function (err) {
@@ -1148,7 +1148,7 @@ function sliceCopyFile(params, callback) {
           return callback(err);
         }
         ep.emit('copy_slice_complete', UploadData);
-      },
+      }
     );
   });
 
@@ -1165,7 +1165,7 @@ function sliceCopyFile(params, callback) {
           if (err) return callback(err);
           params.UploadId = data.UploadId;
           ep.emit('get_copy_data_finish', { UploadId: params.UploadId, PartList: params.PartList });
-        },
+        }
       );
     };
 
@@ -1215,7 +1215,7 @@ function sliceCopyFile(params, callback) {
             });
             ep.emit('get_copy_data_finish', { UploadId: UploadId, PartList: params.PartList });
           }
-        },
+        }
       );
     };
     next(0);
@@ -1300,9 +1300,9 @@ function sliceCopyFile(params, callback) {
         callback(
           util.error(
             new Error(
-              'get Content-Length error, please add "Content-Length" to CORS ExposeHeader setting.（ 获取Content-Length失败，请在CORS ExposeHeader设置中添加Content-Length，请参考文档：https://cloud.tencent.com/document/product/436/13318 ）',
-            ),
-          ),
+              'get Content-Length error, please add "Content-Length" to CORS ExposeHeader setting.（ 获取Content-Length失败，请在CORS ExposeHeader设置中添加Content-Length，请参考文档：https://cloud.tencent.com/document/product/436/13318 ）'
+            )
+          )
         );
         return;
       }
@@ -1341,7 +1341,7 @@ function sliceCopyFile(params, callback) {
         });
         ep.emit('get_file_size_finish');
       }
-    },
+    }
   );
 }
 
@@ -1375,12 +1375,12 @@ function copySliceItem(params, callback) {
         },
         function (err, data) {
           tryCallback(err || null, data);
-        },
+        }
       );
     },
     function (err, data) {
       return callback(err, data);
-    },
+    }
   );
 }
 
@@ -1424,9 +1424,9 @@ function downloadFile(params, callback) {
           callback(
             util.error(
               new Error(
-                'get Content-Length error, please add "Content-Length" to CORS ExposeHeader setting.（ 获取Content-Length失败，请在CORS ExposeHeader设置中添加Content-Length，请参考文档：https://cloud.tencent.com/document/product/436/13318 ）',
-              ),
-            ),
+                'get Content-Length error, please add "Content-Length" to CORS ExposeHeader setting.（ 获取Content-Length失败，请在CORS ExposeHeader设置中添加Content-Length，请参考文档：https://cloud.tencent.com/document/product/436/13318 ）'
+              )
+            )
           );
           return;
         }
@@ -1480,13 +1480,13 @@ function downloadFile(params, callback) {
               }
               onProgress({ loaded: FileSize, total: FileSize }, true);
               callback(err, data);
-            },
+            }
           );
         } else {
           // 大文件分片下载
           ep.emit('calc_suitable_chunk_size');
         }
-      },
+      }
     );
   });
 
@@ -1610,13 +1610,13 @@ function downloadFile(params, callback) {
                   onProgress({ loaded: FinishSize, total: FileSize });
                   tryCallback(err, data);
                 }
-              },
+              }
             );
           },
           function (err, data) {
             if (aborted) return;
             nextChunk(err, data);
-          },
+          }
         );
       },
       function (err, data) {
@@ -1624,7 +1624,7 @@ function downloadFile(params, callback) {
         onProgress({ loaded: FileSize, total: FileSize }, true);
         if (err) return ep.emit('error', err);
         ep.emit('download_chunks_complete');
-      },
+      }
     );
   });
 

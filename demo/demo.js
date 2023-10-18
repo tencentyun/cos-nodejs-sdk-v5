@@ -48,7 +48,7 @@ function getAuth() {
       '/' +
       camSafeUrlEncode(key).replace(/%2F/g, '/') +
       '?sign=' +
-      encodeURIComponent(auth),
+      encodeURIComponent(auth)
   );
 }
 
@@ -70,7 +70,7 @@ function getV4Auth() {
       '/' +
       camSafeUrlEncode(key).replace(/%2F/g, '/') +
       '?sign=' +
-      encodeURIComponent(auth),
+      encodeURIComponent(auth)
   );
 }
 
@@ -85,7 +85,7 @@ function getObjectUrl() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
   console.log(url);
 }
@@ -97,7 +97,7 @@ function getService() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -111,7 +111,7 @@ function putBucket() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -123,7 +123,7 @@ function getBucket() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -135,7 +135,7 @@ function headBucket() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -147,7 +147,7 @@ function deleteBucket() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -199,7 +199,7 @@ function putBucketAcl() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -211,7 +211,7 @@ function getBucketAcl() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -242,7 +242,7 @@ function putBucketCors() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -254,7 +254,7 @@ function getBucketCors() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -266,7 +266,7 @@ function deleteBucketCors() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -340,7 +340,7 @@ function putBucketPolicy() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -352,7 +352,7 @@ function getBucketPolicy() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -364,7 +364,7 @@ function deleteBucketPolicy() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -376,7 +376,7 @@ function getBucketLocation() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -392,7 +392,7 @@ function putBucketTagging() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -404,7 +404,7 @@ function getBucketTagging() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -416,7 +416,7 @@ function deleteBucketTagging() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -466,7 +466,7 @@ function putBucketLifecycle() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -478,7 +478,7 @@ function getBucketLifecycle() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -490,7 +490,7 @@ function deleteBucketLifecycle() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -505,7 +505,7 @@ function putBucketVersioning() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -517,7 +517,7 @@ function getBucketVersioning() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -544,7 +544,7 @@ function putBucketReplication() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -556,7 +556,7 @@ function getBucketReplication() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -568,7 +568,7 @@ function deleteBucketReplication() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -616,7 +616,7 @@ function putBucketWebsite() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -628,7 +628,7 @@ function getBucketWebsite() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -640,7 +640,7 @@ function deleteBucketWebsite() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -660,7 +660,7 @@ function putBucketReferer() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -672,7 +672,7 @@ function getBucketReferer() {
     },
     function (err, data) {
       console.log(err || JSON.stringify(data, null, '    '));
-    },
+    }
   );
 }
 
@@ -696,7 +696,7 @@ function putBucketDomain() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -708,7 +708,7 @@ function getBucketDomain() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -720,7 +720,7 @@ function deleteBucketDomain() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -762,7 +762,7 @@ function putBucketOrigin() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -774,7 +774,7 @@ function getBucketOrigin() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -786,7 +786,7 @@ function deleteBucketOrigin() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -805,7 +805,7 @@ function putBucketLogging() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -817,7 +817,7 @@ function getBucketLogging() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -830,7 +830,7 @@ function deleteBucketLogging() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -874,7 +874,7 @@ function putBucketInventory() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -887,7 +887,7 @@ function getBucketInventory() {
     },
     function (err, data) {
       console.log(err || JSON.stringify(data));
-    },
+    }
   );
 }
 
@@ -900,7 +900,7 @@ function deleteBucketInventory() {
     },
     function (err, data) {
       console.log(err || JSON.stringify(data));
-    },
+    }
   );
 }
 
@@ -912,7 +912,7 @@ function listBucketInventory() {
     },
     function (err, data) {
       console.log(err || JSON.stringify(data));
-    },
+    }
   );
 }
 
@@ -927,7 +927,7 @@ function putBucketAccelerate() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -939,7 +939,7 @@ function getBucketAccelerate() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -960,7 +960,7 @@ function putBucketEncryption() {
     },
     function (err, data) {
       console.log(JSON.stringify(err || data, null, 2));
-    },
+    }
   );
 }
 
@@ -972,7 +972,7 @@ function getBucketEncryption() {
     },
     function (err, data) {
       console.log(err || JSON.stringify(data));
-    },
+    }
   );
 }
 
@@ -984,7 +984,7 @@ function deleteBucketEncryption() {
     },
     function (err, data) {
       console.log(err || JSON.stringify(data));
-    },
+    }
   );
 }
 
@@ -1018,7 +1018,7 @@ function putObject() {
       function (err, data) {
         console.log(err || data);
         fs.unlinkSync(filepath);
-      },
+      }
     );
   });
 }
@@ -1056,7 +1056,7 @@ function putObject_base64ToBuffer() {
       function (err, data) {
         console.log(err || data);
         fs.unlinkSync(filepath);
-      },
+      }
     );
   });
 }
@@ -1072,7 +1072,7 @@ function putObjectCopy() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -1097,7 +1097,7 @@ function getObject() {
       } else {
         console.log(err);
       }
-    },
+    }
   );
 }
 
@@ -1110,7 +1110,7 @@ function headObject() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -1124,7 +1124,7 @@ function listObjectVersions() {
     },
     function (err, data) {
       console.log(err || JSON.stringify(data, null, '    '));
-    },
+    }
   );
 }
 
@@ -1156,7 +1156,7 @@ function putObjectAcl() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -1169,7 +1169,7 @@ function getObjectAcl() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -1182,7 +1182,7 @@ function deleteObject() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -1195,7 +1195,7 @@ function deleteMultipleObject() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -1214,7 +1214,7 @@ function restoreObject() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -1271,7 +1271,7 @@ function selectObjectContentStream() {
     {
       // DataType: 'raw',
     },
-    selectJsonOpt,
+    selectJsonOpt
   );
   var selectStream = cos.selectObjectContentStream(opt, function (err, data) {
     console.log(err || data);
@@ -1305,7 +1305,7 @@ function multipartList() {
     },
     function (err, data) {
       console.log(err || JSON.stringify(data, null, 2));
-    },
+    }
   );
 }
 
@@ -1320,7 +1320,7 @@ function multipartListPart() {
     },
     function (err, data) {
       console.log(err || JSON.stringify(data, null, 2));
-    },
+    }
   );
 }
 
@@ -1333,7 +1333,7 @@ function multipartInit() {
     },
     function (err, data) {
       console.log(err || JSON.stringify(data, null, 2));
-    },
+    }
   );
 }
 
@@ -1349,7 +1349,7 @@ function multipartUpload() {
     },
     function (err, data) {
       console.log(err || JSON.stringify(data, null, 2));
-    },
+    }
   );
 }
 
@@ -1369,7 +1369,7 @@ function multipartCom() {
     },
     function (err, data) {
       console.log(err || JSON.stringify(data, null, 2));
-    },
+    }
   );
 }
 
@@ -1383,7 +1383,7 @@ function multipartAbort() {
     },
     function (err, data) {
       console.log(err || JSON.stringify(data, null, 2));
-    },
+    }
   );
 }
 
@@ -1404,7 +1404,7 @@ function abortUploadTask() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -1437,7 +1437,7 @@ function sliceUploadFile() {
       function (err, data) {
         console.log(err || data);
         fs.unlinkSync(filepath);
-      },
+      }
     );
   });
 }
@@ -1478,7 +1478,7 @@ function uploadFile() {
         console.log('上传' + (err ? '失败' : '完成'));
         console.log(err || data);
         fs.unlinkSync(filepath);
-      },
+      }
     );
   });
 }
@@ -1521,7 +1521,7 @@ function uploadFiles() {
       function (err, data) {
         console.log(err || data);
         fs.unlinkSync(filepath);
-      },
+      }
     );
   });
 }
@@ -1553,7 +1553,7 @@ function sliceCopyFile() {
       } else {
         console.log(data);
       }
-    },
+    }
   );
 }
 
@@ -1570,7 +1570,7 @@ function putObjectTagging() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -1583,7 +1583,7 @@ function getObjectTagging() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -1596,7 +1596,7 @@ function deleteObjectTagging() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -1633,11 +1633,11 @@ function moveObject() {
             },
             function (err, data) {
               console.log(err || data);
-            },
+            }
           );
-        },
+        }
       );
-    },
+    }
   );
 }
 
@@ -1673,7 +1673,7 @@ function uploadFolder() {
       },
       function (err, data) {
         console.log(err || data);
-      },
+      }
     );
   });
 }
@@ -1689,7 +1689,7 @@ function createFolder() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -1735,7 +1735,7 @@ function listFolder() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -1780,7 +1780,7 @@ function deleteFolder() {
                   errorList.push(item);
                 });
               afterDeleted();
-            },
+            }
           );
         } else {
           afterDeleted();
@@ -1797,7 +1797,7 @@ function deleteFolder() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -1821,7 +1821,7 @@ function downloadFile() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 
   // 取消下载任务
@@ -1840,7 +1840,7 @@ function appendObject() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -1868,9 +1868,9 @@ function appendObject_continue() {
           // 也可以取到下一次上传的position继续追加上传
           var nextPosition = data.headers && data.headers['x-cos-next-append-position'];
           console.log(err || data);
-        },
+        }
       );
-    },
+    }
   );
 }
 
@@ -1892,7 +1892,7 @@ function request() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -1923,7 +1923,7 @@ function CIExample1() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -1948,7 +1948,7 @@ function CIExample2() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -1971,7 +1971,7 @@ function CIExample3() {
       } else {
         console.log(err);
       }
-    },
+    }
   );
 }
 
@@ -1992,7 +1992,7 @@ function CIExample4() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 
   // 生成带图片处理参数的文件URL，不带签名。
@@ -2006,7 +2006,7 @@ function CIExample4() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -2034,7 +2034,7 @@ function DescribeCIBuckets() {
     function (err, data) {
       // var CIStatus = data.CIStatus;
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -2054,7 +2054,7 @@ function GetMediaInfo() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -2082,7 +2082,7 @@ function GetSnapshot() {
     function (err, data) {
       // var Body = data.Body;
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -2106,7 +2106,7 @@ function GetDocProcess() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -2129,7 +2129,7 @@ function DescribeDocProcessQueues() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -2169,7 +2169,7 @@ function UpdateDocProcessQueue() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -2216,7 +2216,7 @@ function CreateDocProcessJobs() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -2237,7 +2237,7 @@ function DescribeDocProcessJob() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -2263,7 +2263,7 @@ function DescribeDocProcessJobs() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -2287,7 +2287,7 @@ function DescribeMediaBuckets() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -2307,7 +2307,7 @@ function DescribeMediaQueues() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -2346,7 +2346,7 @@ function UpdateMediaQueue() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -2384,7 +2384,7 @@ function CreateMediaTemplate() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -2408,7 +2408,7 @@ function DeleteMediaTemplate() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -2435,7 +2435,7 @@ function DescribeMediaTemplates() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -2473,7 +2473,7 @@ function UpdateMediaTemplate() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -2518,7 +2518,7 @@ function CreateMediaJobs() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -2539,7 +2539,7 @@ function CancelMediaJob() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -2560,7 +2560,7 @@ function DescribeMediaJob() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -2586,7 +2586,7 @@ function DescribeMediaJobs() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -2789,7 +2789,7 @@ function CreateWorkflow() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -2813,7 +2813,7 @@ function DeleteWorkflow() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -2836,7 +2836,7 @@ function DescribeWorkflow() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -2857,7 +2857,7 @@ function DescribeWorkflowExecution() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -2883,7 +2883,7 @@ function DescribeWorkflowExecutions() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -2963,7 +2963,7 @@ function UpdateWorkflow() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -2991,7 +2991,7 @@ function TriggerWorkflow() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -3013,7 +3013,7 @@ function SyncAuditImageObject() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -3034,7 +3034,7 @@ function GetPrivateM3U8() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -3055,7 +3055,7 @@ function SyncAuditImageUrl() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -3091,7 +3091,7 @@ function SyncAuditImageUrls() {
     },
     function (err, data) {
       console.log(err || data.Response.JobsDetail);
-    },
+    }
   );
 }
 
@@ -3118,7 +3118,7 @@ function SyncAuditTextContent() {
     },
     function (err, data) {
       console.log(err || data.Response.JobsDetail);
-    },
+    }
   );
 }
 
@@ -3147,7 +3147,7 @@ function CreateAuditJob() {
     },
     function (err, data) {
       console.log(err || data.Response.JobsDetail);
-    },
+    }
   );
 }
 
@@ -3161,7 +3161,7 @@ function DescribeAuditJob() {
     },
     function (err, data) {
       console.log(err || data.Response.JobsDetail);
-    },
+    }
   );
 }
 
@@ -3196,7 +3196,7 @@ function postLiveAuditing() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -3215,7 +3215,7 @@ function getLiveAuditingResult() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -3245,7 +3245,7 @@ function postVirusDetect() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -3262,7 +3262,7 @@ function getVirusDetectResult() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -3300,7 +3300,7 @@ function postNoiseReduction() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -3342,7 +3342,7 @@ function postVoiceSeparate() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -3384,7 +3384,7 @@ function postTts() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -3431,7 +3431,7 @@ function postSpeechRecognition() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -3453,7 +3453,7 @@ function getAsrQueue() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -3486,7 +3486,7 @@ function putAsrQueue() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -3509,7 +3509,7 @@ function getAsrBucket() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -3532,7 +3532,7 @@ function setRefer() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -3547,7 +3547,7 @@ function describeRefer() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -3562,7 +3562,7 @@ function openOriginProtect() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -3577,7 +3577,7 @@ function describeOriginProtect() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -3592,7 +3592,7 @@ function closeOriginProtect() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -3615,7 +3615,7 @@ function addImageStyle() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -3633,7 +3633,7 @@ function describeImageStyles() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -3655,7 +3655,7 @@ function deleteImageStyle() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -3670,7 +3670,7 @@ function openImageGuetzli() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -3685,7 +3685,7 @@ function describeImageGuetzli() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -3700,7 +3700,7 @@ function closeImageGuetzli() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -3728,7 +3728,7 @@ function advanceCompressExample1() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -3750,7 +3750,7 @@ function advanceCompressExample2() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -3770,7 +3770,7 @@ function advanceCompressExample3() {
       } else {
         console.log(err);
       }
-    },
+    }
   );
 }
 
@@ -3799,7 +3799,7 @@ function createImageInspectJob() {
         }
       }
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -3836,7 +3836,7 @@ function updatePicProcessQueue() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -3859,7 +3859,7 @@ function describePicProcessQueues() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -3882,7 +3882,7 @@ function describeDocProcessBuckets() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -3903,7 +3903,7 @@ function previewDocumentAsync() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -3939,7 +3939,7 @@ function createDocProcessJobs() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -3956,7 +3956,7 @@ function describeDocProcessJob() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -3975,7 +3975,7 @@ function describeDocProcessJobs() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -4005,7 +4005,7 @@ function updateDocProcessQueue() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -4027,7 +4027,7 @@ function describeDocProcessQueues() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -4053,7 +4053,7 @@ function getDocHtmlUrl() {
         var url = data.Url;
         console.log(url);
       }
-    },
+    }
   );
 }
 
@@ -4084,7 +4084,7 @@ function getDocHtmlPreviewUrl() {
         data.PreviewUrl = body.PreviewUrl;
       }
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -4100,7 +4100,7 @@ function createFileProcessBucket() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -4137,7 +4137,7 @@ function updateFileProcessQueue() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -4160,7 +4160,7 @@ function describeFileProcessQueues() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -4182,7 +4182,7 @@ function generateFileHash() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -4219,7 +4219,7 @@ function postFileHashTask() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -4236,7 +4236,7 @@ function getFileHashTask() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -4276,7 +4276,7 @@ function postFileUnCompressTask() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -4293,7 +4293,7 @@ function getFileUnCompressTask() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -4336,7 +4336,7 @@ function postFileCompressTask() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 
@@ -4353,7 +4353,7 @@ function getFileCompressTask() {
     },
     function (err, data) {
       console.log(err || data);
-    },
+    }
   );
 }
 

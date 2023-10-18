@@ -503,7 +503,7 @@ var apiWrapper = function (apiName, apiFn) {
             params.Region !== 'accelerate'
           ) {
             console.warn(
-              'warning: param Region format error, find help here: https://cloud.tencent.com/document/product/436/6224',
+              'warning: param Region format error, find help here: https://cloud.tencent.com/document/product/436/6224'
             );
           }
         }
@@ -520,7 +520,7 @@ var apiWrapper = function (apiName, apiFn) {
           }
           if (params.AppId) {
             console.warn(
-              'warning: AppId has been deprecated, Please put it at the end of parameter Bucket(E.g Bucket:"test-1250000000" ).',
+              'warning: AppId has been deprecated, Please put it at the end of parameter Bucket(E.g Bucket:"test-1250000000" ).'
             );
             delete params.AppId;
           }

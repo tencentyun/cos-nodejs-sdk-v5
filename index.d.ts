@@ -163,8 +163,8 @@ declare namespace COS {
     Domain?: string;
     /** getService方法可以使用的自定义域名 */
     ServiceDomain?: string;
-    /** 强制使用后缀式模式发请求。后缀式模式中 Bucket 会放在域名后的 pathname 里，并且 Bucket 会加入签名 pathname 计算，默认 false */
-    Protocol?: string;
+    /** http协议，枚举值'http:','https:','http','https:' */
+    Protocol?: 'http' | 'http:' | 'https' | 'https:';
     /** 设置代理，格式如 http://127.0.0.1:8888 */
     Proxy?: string;
     /** 透传给request */

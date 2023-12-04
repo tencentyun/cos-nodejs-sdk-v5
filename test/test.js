@@ -348,7 +348,7 @@ group('getService()', function () {
           }
         );
       })
-      .catch(function () { });
+      .catch(function () {});
   });
   test('getService 不传Region和Domain', function (done, assert) {
     var cos = new COS({
@@ -369,7 +369,7 @@ group('getService()', function () {
           done();
         });
       })
-      .catch(function () { });
+      .catch(function () {});
   });
   test('能正常列出 Bucket', function (done, assert) {
     prepareBucket()
@@ -391,7 +391,7 @@ group('getService()', function () {
           }
         );
       })
-      .catch(function () { });
+      .catch(function () {});
   });
 });
 
@@ -773,7 +773,7 @@ group('putObject(),cancelTask()', function () {
         done();
       }
     );
-    cos.on('task-list-update', function () { });
+    cos.on('task-list-update', function () {});
   });
 });
 
@@ -792,7 +792,7 @@ group('task 队列', function () {
             taskId = id;
           },
         },
-        function (err, data) { }
+        function (err, data) {}
       );
     };
     for (var i = 0; i < 1200; i++) {
@@ -881,8 +881,8 @@ group('sliceUploadFile() 完整上传文件', function () {
             FilePath: filePath,
             onTaskReady: function (taskId) {
               TaskId = taskId;
-              cos.on('list-update', info => {
-                const fileTask = info.list.find(item => item.id === taskId);
+              cos.on('list-update', (info) => {
+                const fileTask = info.list.find((item) => item.id === taskId);
                 if (fileTask && paused && restarted) {
                   if (fileTask.percent === 0) return;
                   assert.ok(fileTask.percent > 0.3, '暂停和重试成功');
@@ -953,7 +953,7 @@ group('sliceUploadFile() 完整上传文件', function () {
               }
             },
           },
-          function (err, data) { }
+          function (err, data) {}
         );
       }
     );
@@ -1249,7 +1249,7 @@ group('putObject()', function () {
           Bucket: config.Bucket,
           Region: config.Region,
           Key: filename,
-          onProgress: function (info) { },
+          onProgress: function (info) {},
           Output: outputStream,
         },
         function (err, data) {
@@ -2985,18 +2985,18 @@ group('BucketPolicy', function () {
         ],
         resource: [
           'qcs::cos:' +
-          config.Region +
-          ':uid/' +
-          AppId +
-          ':' +
-          BucketLongName +
-          '//' +
-          AppId +
-          '/' +
-          BucketShortName +
-          '/' +
-          Prefix +
-          '/*',
+            config.Region +
+            ':uid/' +
+            AppId +
+            ':' +
+            BucketLongName +
+            '//' +
+            AppId +
+            '/' +
+            BucketShortName +
+            '/' +
+            Prefix +
+            '/*',
         ], // 1250000000 是 appid
       },
     ],
@@ -3115,8 +3115,8 @@ group('BucketLocation', function () {
         };
         assert.ok(
           data.LocationConstraint === config.Region ||
-          data.LocationConstraint === map1[config.Region] ||
-          data.LocationConstraint === map2[config.Region]
+            data.LocationConstraint === map1[config.Region] ||
+            data.LocationConstraint === map2[config.Region]
         );
         done();
       }
@@ -3271,7 +3271,7 @@ group('BucketWebsite', function () {
       Redirect: {
         Protocol: 'https',
         ReplaceKeyWith: '404.html',
-        URLRedirect: 'Enabled'
+        URLRedirect: 'Enabled',
       },
     },
     {
@@ -3281,7 +3281,7 @@ group('BucketWebsite', function () {
       Redirect: {
         Protocol: 'https',
         ReplaceKeyPrefixWith: 'documents/',
-        URLRedirect: 'Enabled'
+        URLRedirect: 'Enabled',
       },
     },
     {
@@ -3291,7 +3291,7 @@ group('BucketWebsite', function () {
       Redirect: {
         Protocol: 'https',
         ReplaceKeyWith: 'picture.jpg',
-        URLRedirect: 'Enabled'
+        URLRedirect: 'Enabled',
       },
     },
   ];
@@ -4057,7 +4057,7 @@ group('Cache-Control', function () {
             console.log('data.headers 4057', data.headers);
             assert.ok(
               data.headers['cache-control'] === 'no-cache' ||
-              data.headers['cache-control'] === 'no-cache, max-age=259200',
+                data.headers['cache-control'] === 'no-cache, max-age=259200',
               'cache-control 正确'
             );
             done();
@@ -4139,7 +4139,7 @@ group('Cache-Control', function () {
             console.log('data.headers 4139', data.headers);
             assert.ok(
               data.headers['cache-control'] === 'no-cache' ||
-              data.headers['cache-control'] === 'no-cache, max-age=259200',
+                data.headers['cache-control'] === 'no-cache, max-age=259200',
               'cache-control 正确'
             );
             fs.unlinkSync(filePath);
@@ -5237,7 +5237,11 @@ group('BucketReplication', function () {
               Region: config.Region,
             },
             function (err, data) {
-              console.log('data.ReplicationConfiguration.Rules[0].ID', data.ReplicationConfiguration.Rules[0].ID, ruleId);
+              console.log(
+                'data.ReplicationConfiguration.Rules[0].ID',
+                data.ReplicationConfiguration.Rules[0].ID,
+                ruleId
+              );
               assert.ok(data.ReplicationConfiguration.Rules[0].ID === ruleId);
               done();
             }

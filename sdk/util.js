@@ -69,6 +69,7 @@ var signHeaders = [
   'origin',
   'range',
   'transfer-encoding',
+  'pic-operations',
 ];
 
 var getSignHeaderObj = function (headers) {

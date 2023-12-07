@@ -28,6 +28,7 @@ function sliceUploadFile(params, callback) {
     var _err = {
       UploadId: params.UploadData.UploadId || '',
       err: err,
+      ...(err && { ...err }),
     };
     return callback(_err);
   });

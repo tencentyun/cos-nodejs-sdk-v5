@@ -44,6 +44,7 @@ var defaultOptions = {
   UserAgent: '',
   ConfCwd: '',
   ForceSignHost: true, // 默认将host加入签名计算，关闭后可能导致越权风险，建议保持为true
+  AutoSwitchHost: true, // 重试请求自动切换cos备用域名
   // 动态秘钥，优先级Credentials > SecretId/SecretKey。注意Cred内是小写的secretId、secretKey
   Credentials: {
     secretId: '',
@@ -107,6 +108,12 @@ var COS = function (options) {
     console.warn(
       'warning: cos-nodejs-sdk-v5 does not support browsers. Please use cos-js-sdk-v5 instead, See: https://cloud.tencent.com/document/product/436/11459'
     );
+  }
+  if (this.options.ForcePathStyle) {
+    console.warn(
+      'cos-nodejs-sdk-v5不再支持使用path-style，仅支持使用virtual-hosted-style，参考文档：https://cloud.tencent.com/document/product/436/96243'
+    );
+    throw new Error('ForcePathStyle is not supported');
   }
   event.init(this);
   task.init(this);

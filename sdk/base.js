@@ -3924,7 +3924,7 @@ function allowRetry(err) {
       networkError = true;
     } else {
       const statusCode = Math.floor(err.statusCode / 100);
-      const requestId = err?.headers && (err?.headers['x-cos-request-id'] || err?.headers['x-ci-request-id']);
+      const requestId = err?.headers && err?.headers['x-cos-request-id'];
       if ((statusCode === 4 || statusCode === 5) && !requestId) {
         canRetry = self.options.AutoSwitchHost;
         networkError = true;

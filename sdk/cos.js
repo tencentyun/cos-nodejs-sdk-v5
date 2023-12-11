@@ -44,7 +44,7 @@ var defaultOptions = {
   UserAgent: '',
   ConfCwd: '',
   ForceSignHost: true, // 默认将host加入签名计算，关闭后可能导致越权风险，建议保持为true
-  AutoSwitchHost: true, // 重试请求自动切换cos备用域名
+  AutoSwitchHost: true,
   // 动态秘钥，优先级Credentials > SecretId/SecretKey。注意Cred内是小写的secretId、secretKey
   Credentials: {
     secretId: '',

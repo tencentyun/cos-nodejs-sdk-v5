@@ -198,7 +198,6 @@ declare namespace COS {
     Ip?: string;
     /** 默认将host加入签名计算，关闭后可能导致越权风险，建议保持为true */
     ForceSignHost?: boolean;
-    /** 请求失败时是否用备用域名重试，默认为true */
     AutoSwitchHost?: boolean;
     /** 获取签名的回调方法，如果没有 SecretId、SecretKey 时，必选 */
     getAuthorization?: (

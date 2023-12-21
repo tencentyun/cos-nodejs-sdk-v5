@@ -17,7 +17,7 @@ var cos = new COS({
   ChunkSize: 1024 * 1024 * 8, // 控制分片大小，单位 B，在同园区上传可以设置较大的分片大小
   Proxy: '',
   Protocol: 'https:',
-  FollowRedirect: false,
+  Timeout: 10000,
 });
 
 var TaskId;

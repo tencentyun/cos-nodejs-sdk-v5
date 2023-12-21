@@ -4006,6 +4006,7 @@ function submitRequest(params, callback) {
             const info = allowRetry.call(self, err);
             canRetry = info.canRetry || oldClockOffset !== self.options.SystemClockOffset;
             networkError = info.networkError;
+            console.log('*****请求失败', err.url);
           }
           if (err && !(params.body && params.body.pipe) && !params.outputStream && tryTimes < 2 && canRetry) {
             if (params.headers) {
@@ -4025,6 +4026,7 @@ function submitRequest(params, callback) {
             params.SwitchHost = switchHost;
             next(tryTimes + 1);
           } else {
+            console.log('*****不符合重试条件 抛错');
             callback(err, data);
           }
         });
@@ -4073,6 +4075,7 @@ function _submitRequest(params, callback) {
   if (params.SwitchHost) {
     // 更换请求的url
     url = url.replace(/myqcloud.com/, 'tencentcos.cn');
+    console.log('*****切换域名重试', url);
   }
   if (params.action) {
     url = url + '?' + params.action;

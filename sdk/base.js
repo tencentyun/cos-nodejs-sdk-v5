@@ -3020,6 +3020,7 @@ function multipartUpload(params, callback) {
           headers: params.Headers,
           onProgress: params.onProgress,
           body: params.Body || null,
+          SwitchHost: params.SwitchHost,
         },
         function (err, data) {
           if (err) return callback(err);
@@ -4006,7 +4007,7 @@ function submitRequest(params, callback) {
             const info = allowRetry.call(self, err);
             canRetry = info.canRetry || oldClockOffset !== self.options.SystemClockOffset;
             networkError = info.networkError;
-            console.log('*****请求失败', err.url);
+            console.log('*****请求失败', err.url, params.Action);
           }
           if (err && !(params.body && params.body.pipe) && !params.outputStream && tryTimes < 2 && canRetry) {
             if (params.headers) {
@@ -4026,7 +4027,16 @@ function submitRequest(params, callback) {
             params.SwitchHost = switchHost;
             next(tryTimes + 1);
           } else {
-            console.log('*****不符合重试条件 抛错');
+            if (err && params.Action === 'name/cos:UploadPart') {
+              const switchHost = canSwitchHost.call(self, {
+                requestUrl: err?.url || '',
+                clientCalcSign: AuthData?.SignFrom === 'client',
+                networkError,
+              });
+              err.switchHost = switchHost;
+            } else {
+              err && console.log('*****不符合重试条件 结束', params.Action);
+            }
             callback(err, data);
           }
         });

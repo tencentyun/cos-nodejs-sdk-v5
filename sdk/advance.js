@@ -653,6 +653,7 @@ function uploadSliceItem(params, callback) {
     util.getFileMd5(md5Body, function (err, md5) {
       var contentMd5 = md5 ? util.binaryBase64(md5) : '';
       var PartItem = UploadData.PartList[PartNumber - 1];
+      var switchHost = false;
       Async.retry(
         ChunkRetryTimes,
         function (tryCallback) {
@@ -672,9 +673,13 @@ function uploadSliceItem(params, callback) {
                 Headers: headers,
                 onProgress: params.onProgress,
                 ContentMD5: contentMd5,
+                SwitchHost: switchHost,
               },
               function (err, data) {
                 if (!self._isRunningTask(TaskId)) return;
+                if (err) {
+                  switchHost = err?.switchHost;
+                }
                 if (err) return tryCallback(err);
                 PartItem.Uploaded = true;
                 return tryCallback(null, data);
@@ -683,6 +688,9 @@ function uploadSliceItem(params, callback) {
           });
         },
         function (err, data) {
+          if (err) {
+            delete err.switchHost;
+          }
           if (!self._isRunningTask(TaskId)) return;
           return callback(err, data);
         }

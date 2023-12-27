@@ -4181,12 +4181,14 @@ function _submitRequest(params, callback) {
     var attrs = {};
     retResponse && retResponse.statusCode && (attrs.statusCode = retResponse.statusCode);
     retResponse && retResponse.headers && (attrs.headers = retResponse.headers);
+    console.log('=======================opt.url', opt.url);
     if (err) {
       opt.url && (attrs.url = opt.url);
       opt.method && (attrs.method = opt.method);
       err = util.extend(err || {}, attrs);
       callback(err, null);
     } else {
+      opt.url && (attrs.url = opt.url);
       data = util.extend(data || {}, attrs);
       callback(null, data);
     }

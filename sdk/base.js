@@ -3918,15 +3918,16 @@ function allowRetry(err) {
     /**
      * 归为网络错误
      * 1、no statusCode
-     * 2、statusCode === 4xx || 5xx && no requestId
+     * 2、statusCode === 3xx || 4xx || 5xx && no requestId
      */
     if (!err.statusCode) {
       canRetry = self.options.AutoSwitchHost;
       networkError = true;
     } else {
       const statusCode = Math.floor(err.statusCode / 100);
+      console.log('statusCode=================', err.statusCode);
       const requestId = err?.headers && err?.headers['x-cos-request-id'];
-      if ((statusCode === 4 || statusCode === 5) && !requestId) {
+      if ([3, 4, 5].includes(statusCode) && !requestId) {
         canRetry = self.options.AutoSwitchHost;
         networkError = true;
       }

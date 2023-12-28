@@ -4171,6 +4171,7 @@ function _submitRequest(params, callback) {
   // 特殊处理内容到写入流的情况，等待流 finish 后才 callback
   if (params.outputStream) callback = util.callbackAfterStreamFinish(params.outputStream, callback);
 
+  console.log('请求参数', JSON.stringify(opt));
   self.emit('before-send', opt);
   var sender = REQUEST(opt);
   var retResponse;

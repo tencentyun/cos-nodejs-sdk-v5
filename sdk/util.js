@@ -375,7 +375,8 @@ var hasMissingParams = function (apiName, params) {
     apiName.indexOf('Object') > -1 ||
     apiName.indexOf('multipart') > -1 ||
     apiName === 'sliceUploadFile' ||
-    apiName === 'abortUploadTask'
+    apiName === 'abortUploadTask' ||
+    apiName === 'uploadFile'
   ) {
     if (!Bucket) return 'Bucket';
     if (!Region) return 'Region';

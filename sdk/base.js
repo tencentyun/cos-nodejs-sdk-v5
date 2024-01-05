@@ -3925,7 +3925,6 @@ function allowRetry(err) {
       networkError = true;
     } else {
       const statusCode = Math.floor(err.statusCode / 100);
-      console.log('statusCode=================', err.statusCode);
       const requestId = err?.headers && err?.headers['x-cos-request-id'];
       if ([3, 4, 5].includes(statusCode) && !requestId) {
         canRetry = self.options.AutoSwitchHost;
@@ -4008,7 +4007,6 @@ function submitRequest(params, callback) {
             const info = allowRetry.call(self, err);
             canRetry = info.canRetry || oldClockOffset !== self.options.SystemClockOffset;
             networkError = info.networkError;
-            console.log('*****请求失败', err.url, params.Action);
           }
           if (err && !(params.body && params.body.pipe) && !params.outputStream && tryTimes < 2 && canRetry) {
             if (params.headers) {
@@ -4035,8 +4033,6 @@ function submitRequest(params, callback) {
                 networkError,
               });
               err.switchHost = switchHost;
-            } else {
-              err && console.log('*****不符合重试条件 结束', params.Action);
             }
             callback(err, data);
           }
@@ -4086,7 +4082,6 @@ function _submitRequest(params, callback) {
   if (params.SwitchHost) {
     // 更换请求的url
     url = url.replace(/myqcloud.com/, 'tencentcos.cn');
-    console.log('*****切换域名重试', url);
   }
   if (params.action) {
     url = url + '?' + params.action;
@@ -4171,7 +4166,6 @@ function _submitRequest(params, callback) {
   // 特殊处理内容到写入流的情况，等待流 finish 后才 callback
   if (params.outputStream) callback = util.callbackAfterStreamFinish(params.outputStream, callback);
 
-  console.log('请求参数', JSON.stringify(opt));
   self.emit('before-send', opt);
   var sender = REQUEST(opt);
   var retResponse;
@@ -4183,7 +4177,6 @@ function _submitRequest(params, callback) {
     var attrs = {};
     retResponse && retResponse.statusCode && (attrs.statusCode = retResponse.statusCode);
     retResponse && retResponse.headers && (attrs.headers = retResponse.headers);
-    console.log('=======================opt.url', opt.url);
     if (err) {
       opt.url && (attrs.url = opt.url);
       opt.method && (attrs.method = opt.method);

@@ -102,6 +102,7 @@ var COS = function (options) {
     console.error('error: SecretKey format is incorrect. Please check');
   }
   if (util.isWeb()) {
+    console.log('Tip: 使用 electron 等跨平台技术可正常使用Nodejs SDK，请忽略下方浏览器环境警告');
     console.warn(
       'warning: cos-nodejs-sdk-v5 不支持浏览器使用，请改用 cos-js-sdk-v5，参考文档： https://cloud.tencent.com/document/product/436/11459'
     );

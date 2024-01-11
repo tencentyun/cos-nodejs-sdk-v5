@@ -25,11 +25,10 @@ function sliceUploadFile(params, callback) {
   // 上传过程中出现错误，返回错误
   ep.on('error', function (err) {
     if (!self._isRunningTask(TaskId)) return;
-    var _err = {
+    var _err = util.extend({
       UploadId: params.UploadData.UploadId || '',
-      err: err,
-      ...(err && { ...err }),
-    };
+      err: err, // 这样是不太友好的老代码，可能有开发者使用，先保留
+    }, err);
     return callback(_err);
   });
 

@@ -3020,6 +3020,7 @@ function multipartUpload(params, callback) {
           headers: params.Headers,
           onProgress: params.onProgress,
           body: params.Body || null,
+          SwitchHost: params.SwitchHost,
         },
         function (err, data) {
           if (err) return callback(err);
@@ -3644,9 +3645,7 @@ var getSignHost = function (opt) {
       region: useAccelerate ? 'accelerate' : opt.Region,
     });
   var urlHost = url.replace(/^https?:\/\/([^/]+)(\/.*)?$/, '$1');
-  var standardHostReg = new RegExp('^([a-z\\d-]+-\\d+\\.)?(cos|cosv6|ci|pic)\\.([a-z\\d-]+)\\.myqcloud\\.com$');
-  if (standardHostReg.test(urlHost)) return urlHost;
-  return '';
+  return urlHost;
 };
 
 // 异步获取签名
@@ -3747,6 +3746,7 @@ function getAuthorizationAsync(params, callback) {
       Token: StsData.Token || '',
       ClientIP: StsData.ClientIP || '',
       ClientUA: StsData.ClientUA || '',
+      SignFrom: 'client',
     };
     cb(null, AuthData);
   };
@@ -3870,6 +3870,7 @@ function getAuthorizationAsync(params, callback) {
       var AuthData = {
         Authorization: Authorization,
         SecurityToken: self.options.SecurityToken || self.options.XCosSecurityToken,
+        SignFrom: 'client',
       };
       cb(null, AuthData);
       return AuthData;
@@ -3878,9 +3879,11 @@ function getAuthorizationAsync(params, callback) {
   return '';
 }
 
-// 调整时间偏差
+// 判断当前请求出错时能否重试
 function allowRetry(err) {
-  var allowRetry = false;
+  var self = this;
+  var canRetry = false;
+  var networkError = false;
   var isTimeError = false;
   var serverDate = (err.headers && (err.headers.date || err.headers.Date)) || (err.error && err.error.ServerTime);
   try {
@@ -3894,6 +3897,7 @@ function allowRetry(err) {
     }
   } catch (e) {}
   if (err) {
+    // 调整时间偏差
     if (isTimeError && serverDate) {
       var serverTime = Date.parse(serverDate);
       if (
@@ -3902,15 +3906,48 @@ function allowRetry(err) {
       ) {
         console.error('error: Local time is too skewed.');
         this.options.SystemClockOffset = serverTime - Date.now();
-        allowRetry = true;
+        canRetry = true;
       }
     } else if (Math.floor(err.statusCode / 100) === 5) {
-      allowRetry = true;
+      canRetry = true;
     } else if (err.code === 'ECONNRESET') {
-      allowRetry = true;
+      canRetry = true;
+    }
+    /**
+     * 归为网络错误
+     * 1、no statusCode
+     * 2、statusCode === 3xx || 4xx || 5xx && no requestId
+     */
+    if (!err.statusCode) {
+      canRetry = self.options.AutoSwitchHost;
+      networkError = true;
+    } else {
+      const statusCode = Math.floor(err.statusCode / 100);
+      const requestId = err?.headers && err?.headers['x-cos-request-id'];
+      if ([3, 4, 5].includes(statusCode) && !requestId) {
+        canRetry = self.options.AutoSwitchHost;
+        networkError = true;
+      }
     }
   }
-  return allowRetry;
+  return { canRetry, networkError };
+}
+
+/**
+ * requestUrl：请求的url，用于判断是否cos主域名，true才切
+ * clientCalcSign：是否客户端计算签名，服务端返回的签名不能切，true才切
+ * networkError：是否未知网络错误，true才切
+ * */
+function canSwitchHost({ requestUrl, clientCalcSign, networkError }) {
+  if (!this.options.AutoSwitchHost) return false;
+  if (!requestUrl) return false;
+  if (!clientCalcSign) return false;
+  if (!networkError) return false;
+  const commonReg = /^https?:\/\/[^\/]*\.cos\.[^\/]*\.myqcloud\.com(\/.*)?$/;
+  const accelerateReg = /^https?:\/\/[^\/]*\.cos\.accelerate\.myqcloud\.com(\/.*)?$/;
+  // 当前域名是cos主域名才切换
+  const isCommonCosHost = commonReg.test(requestUrl) && !accelerateReg.test(requestUrl);
+  return isCommonCosHost;
 }
 
 // 获取签名并发起请求
@@ -3937,6 +3974,11 @@ function submitRequest(params, callback) {
     params.SignHost || getSignHost.call(this, { Bucket: params.Bucket, Region: params.Region, Url: params.url });
   var next = function (tryTimes) {
     var oldClockOffset = self.options.SystemClockOffset;
+    if (params.SwitchHost) {
+      // 更换要签的host
+      SignHost = SignHost.replace(/myqcloud.com/, 'tencentcos.cn');
+    }
+
     getAuthorizationAsync.call(
       self,
       {
@@ -3951,18 +3993,20 @@ function submitRequest(params, callback) {
         ResourceKey: params.ResourceKey,
         Scope: params.Scope,
         ForceSignHost: self.options.ForceSignHost,
+        SwitchHost: params.SwitchHost,
       },
       function (err, AuthData) {
         if (err) return callback(err);
         params.AuthData = AuthData;
         _submitRequest.call(self, params, function (err, data) {
-          if (
-            err &&
-            !(params.body && params.body.pipe) &&
-            !params.outputStream &&
-            tryTimes < 2 &&
-            (oldClockOffset !== self.options.SystemClockOffset || allowRetry.call(self, err))
-          ) {
+          let canRetry = false;
+          let networkError = false;
+          if (err) {
+            const info = allowRetry.call(self, err);
+            canRetry = info.canRetry || oldClockOffset !== self.options.SystemClockOffset;
+            networkError = info.networkError;
+          }
+          if (err && !(params.body && params.body.pipe) && !params.outputStream && tryTimes < 2 && canRetry) {
             if (params.headers) {
               delete params.headers.Authorization;
               delete params.headers['token'];
@@ -3971,8 +4015,23 @@ function submitRequest(params, callback) {
               params.headers['x-cos-security-token'] && delete params.headers['x-cos-security-token'];
               params.headers['x-ci-security-token'] && delete params.headers['x-ci-security-token'];
             }
+            // 进入重试逻辑时 需判断是否需要切换cos备用域名
+            const switchHost = canSwitchHost.call(self, {
+              requestUrl: err?.url || '',
+              clientCalcSign: AuthData?.SignFrom === 'client',
+              networkError,
+            });
+            params.SwitchHost = switchHost;
             next(tryTimes + 1);
           } else {
+            if (err && params.Action === 'name/cos:UploadPart') {
+              const switchHost = canSwitchHost.call(self, {
+                requestUrl: err?.url || '',
+                clientCalcSign: AuthData?.SignFrom === 'client',
+                networkError,
+              });
+              err.switchHost = switchHost;
+            }
             callback(err, data);
           }
         });
@@ -4018,6 +4077,10 @@ function _submitRequest(params, callback) {
       region: region,
       object: object,
     });
+  if (params.SwitchHost) {
+    // 更换请求的url
+    url = url.replace(/myqcloud.com/, 'tencentcos.cn');
+  }
   if (params.action) {
     url = url + '?' + params.action;
   }
@@ -4113,6 +4176,8 @@ function _submitRequest(params, callback) {
     retResponse && retResponse.statusCode && (attrs.statusCode = retResponse.statusCode);
     retResponse && retResponse.headers && (attrs.headers = retResponse.headers);
     if (err) {
+      opt.url && (attrs.url = opt.url);
+      opt.method && (attrs.method = opt.method);
       err = util.extend(err || {}, attrs);
       callback(err, null);
     } else {

@@ -674,7 +674,7 @@ function uploadSliceItem(params, callback) {
               function (err, data) {
                 if (!self._isRunningTask(TaskId)) return;
                 if (err) {
-                  switchHost = err?.switchHost;
+                  switchHost = err.switchHost || false;
                 }
                 if (err) return tryCallback(err);
                 PartItem.Uploaded = true;

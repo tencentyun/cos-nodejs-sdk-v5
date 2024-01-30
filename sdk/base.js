@@ -3923,7 +3923,7 @@ function allowRetry(err) {
       networkError = true;
     } else {
       const statusCode = Math.floor(err.statusCode / 100);
-      const requestId = err?.headers && err?.headers['x-cos-request-id'];
+      const requestId = err.headers ? err.headers['x-cos-request-id'] : '';
       if ([3, 4, 5].includes(statusCode) && !requestId) {
         canRetry = self.options.AutoSwitchHost;
         networkError = true;
@@ -4017,8 +4017,8 @@ function submitRequest(params, callback) {
             }
             // 进入重试逻辑时 需判断是否需要切换cos备用域名
             const switchHost = canSwitchHost.call(self, {
-              requestUrl: err?.url || '',
-              clientCalcSign: AuthData?.SignFrom === 'client',
+              requestUrl: err.url || '',
+              clientCalcSign: AuthData.SignFrom === 'client',
               networkError,
             });
             params.SwitchHost = switchHost;
@@ -4026,8 +4026,8 @@ function submitRequest(params, callback) {
           } else {
             if (err && params.Action === 'name/cos:UploadPart') {
               const switchHost = canSwitchHost.call(self, {
-                requestUrl: err?.url || '',
-                clientCalcSign: AuthData?.SignFrom === 'client',
+                requestUrl: err.url || '',
+                clientCalcSign: AuthData.SignFrom === 'client',
                 networkError,
               });
               err.switchHost = switchHost;

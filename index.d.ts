@@ -1808,7 +1808,9 @@ Bulk：批量模式，恢复时间为24 - 48小时。 */
   // uploadFiles
   type UploadFileItemParams = (PutObjectParams | SliceUploadFileParams) & {
     /** 要上传的本地文件路径 */
-    FilePath: string;
+    FilePath?: string;
+    /** 要上传对象内容 */
+    Body?: UploadBody;
     /** 上传的进度回调方法 */
     onProgress?: onProgress;
     /** 上传完成回调方法 */

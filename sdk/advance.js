@@ -26,7 +26,7 @@ function sliceUploadFile(params, callback) {
   ep.on('error', function (err) {
     if (!self._isRunningTask(TaskId)) return;
     err.UploadId = params.UploadData.UploadId || '';
-    return callback(_err);
+    return callback(err);
   });
 
   // 上传分块完成，开始 uploadSliceComplete 操作

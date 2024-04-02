@@ -351,6 +351,18 @@ declare namespace COS {
     Region?: Region;
     /** 发请求时带上的 Header 字段 */
     Headers?: Headers;
+    /** 传入标签键 */
+    TagKey?: string;
+    /** 传入标签值 */
+    TagValue?: string;
+    /** GMT 时间戳，和 CreateRange 参数一起使用，支持根据创建时间过滤存储桶 */
+    CreateTime?: number;
+    /** 和 CreateTime 参数一起使用，支持根据创建时间过滤存储桶 */
+    CreateRange?: 'lt' | 'gt' | 'lte' | 'gte' | string;
+    /** 起始标记，从该标记之后（不含）按照 UTF-8 字典序返回存储桶条目 */
+    Marker?: string;
+    /** 单次返回最大的条目数量，默认值为2000，最大为2000 */
+    MaxKeys?: number;
   }
   /** getService 接口返回值 */
   interface GetServiceResult extends GeneralResult {

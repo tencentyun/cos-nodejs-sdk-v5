@@ -393,6 +393,31 @@ group('getService()', function () {
       })
       .catch(function () {});
   });
+  test('能正常列出 Bucket 多参数', function (done, assert) {
+    prepareBucket()
+      .then(function () {
+        cos.getService(
+          {
+            Region: config.Region,
+            CreateRange: 'gt',
+            CreateTime: 1642662645,
+            MaxKeys: 2000,
+          },
+          function (err, data) {
+            var hasBucket = false;
+            data.Buckets &&
+              data.Buckets.forEach(function (item) {
+                if (item.Name === BucketLongName && (item.Location === config.Region || !item.Location)) {
+                  hasBucket = true;
+                }
+              });
+            assert.ok(hasBucket);
+            done();
+          }
+        );
+      })
+      .catch(function () {});
+  });
 });
 
 group('putBucket()', function () {

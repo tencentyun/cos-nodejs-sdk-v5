@@ -91,11 +91,14 @@ function getObjectUrl() {
 }
 
 function getService() {
-  cos.getService(
-    {
-      Region: 'ap-guangzhou',
-    },
-    function (err, data) {
+  cos.getService({
+      // Region: 'ap-beijing',
+      CreateRange: 'lt',
+      CreateTime: 1642662645,
+      // TagKey: 'k1',
+      // TagValue: 'v1',
+      MaxKeys: 20,
+    }, function (err, data) {
       console.log(err || data);
     }
   );

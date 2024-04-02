@@ -52,6 +52,14 @@ function getService(params, callback) {
       method: 'GET',
       headers: params.Headers,
       SignHost: SignHost,
+      qs: {
+        tagkey: params.TagKey,
+        tagvalue: params.TagValue,
+        'create-time': params.CreateTime,
+        range: params.CreateRange,
+        marker: params.Marker,
+        'max-keys': params.MaxKeys,
+      },
     },
     function (err, data) {
       if (err) return callback(err);

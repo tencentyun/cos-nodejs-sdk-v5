@@ -3462,7 +3462,7 @@ function getAsrQueue() {
 
 // 更新语音识别队列
 function putAsrQueue() {
-  // 任务所在的队列 ID，请使用查询队列(https://cloud.tencent.com/document/product/460/46946)获取或前往万象控制台(https://cloud.tencent.com/document/product/460/46487)在存储桶中查询
+  // 任务所在的队列 ID，请使用查询队列(https://cloud.tencent.com/document/product/460/46234)获取或前往万象控制台(https://cloud.tencent.com/document/product/460/46487)在存储桶中查询
   var queueId = 'pcc77499e85c311edb9865254008618d9';
   var host = config.Bucket + '.ci.' + config.Region + '.myqcloud.com/asrqueue/' + queueId;
   var url = 'https://' + host;
@@ -3808,7 +3808,7 @@ function createImageInspectJob() {
 
 // 更新图片处理队列
 function updatePicProcessQueue() {
-  // 任务所在的队列 ID，请使用查询队列(https://cloud.tencent.com/document/product/460/46946)获取或前往万象控制台(https://cloud.tencent.com/document/product/460/46487)在存储桶中查询
+  // 任务所在的队列 ID，请使用查询队列(https://cloud.tencent.com/document/product/460/79395)获取或前往万象控制台(https://cloud.tencent.com/document/product/460/46487)在存储桶中查询
   var queueId = 'p36e92002ff5b418497076f31d33d4xxx';
   var host = config.Bucket + '.ci.' + config.Region + '.myqcloud.com/picqueue/' + queueId;
   var url = 'https://' + host;
@@ -4109,7 +4109,7 @@ function createFileProcessBucket() {
 
 // 更新文件处理队列
 function updateFileProcessQueue() {
-  // 任务所在的队列 ID，请使用查询队列(https://cloud.tencent.com/document/product/460/46946)获取或前往万象控制台(https://cloud.tencent.com/document/product/460/46487)在存储桶中查询
+  // 任务所在的队列 ID，请使用查询队列(https://cloud.tencent.com/document/product/460/86421)获取或前往万象控制台(https://cloud.tencent.com/document/product/460/46487)在存储桶中查询
   var queueId = 'p5d0dc85debe149febdd6fd9b208aaxxx';
   var host = config.Bucket + '.ci.' + config.Region + '.myqcloud.com/file_queue/' + queueId;
   var url = 'https://' + host;

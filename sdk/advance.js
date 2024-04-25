@@ -1506,7 +1506,7 @@ function downloadFile(params, callback) {
   });
 
   // 计算合适的分片大小
-  ep.on('calc_suitable_chunk_size', function (SourceHeaders) {
+  ep.on('calc_suitable_chunk_size', function () {
     // 控制分片大小
     var SIZE = [1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 1024 * 2, 1024 * 4, 1024 * 5];
     var AutoChunkSize = 1024 * 1024;
@@ -1535,7 +1535,7 @@ function downloadFile(params, callback) {
   });
 
   // 准备要下载的空文件
-  ep.on('prepare_file', function (SourceHeaders) {
+  ep.on('prepare_file', function () {
     fs.writeFile(FilePath, '', (err) => {
       if (err) {
         ep.emit('error', err.code === 'EISDIR' ? { code: 'exist_same_dir', message: FilePath } : err);
@@ -1547,7 +1547,7 @@ function downloadFile(params, callback) {
 
   // 计算合适的分片大小
   var result;
-  ep.on('start_download_chunks', function (SourceHeaders) {
+  ep.on('start_download_chunks', function () {
     onProgress({ loaded: 0, total: FileSize }, true);
     var maxPartNumber = PartList.length;
     Async.eachLimit(
@@ -1649,8 +1649,11 @@ function downloadFile(params, callback) {
   });
 
   // 监听 取消任务
-  var killTask = function () {
-    aborted = true;
+  var killTask = function (info) {
+    var killingTaskId = info.TaskId || '';
+    if (killingTaskId === TaskId) {
+      aborted = true;
+    }
   };
   TaskId && self.on('inner-kill-task', killTask);
 

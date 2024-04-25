@@ -6079,6 +6079,42 @@ group('downloadFile', function () {
       }
     );
   });
+  test('downloadFile() 下载文件时取消下载', function (done, assert) {
+    var Key = '10mb.zip';
+    var fileSize = 1024 * 1024 * 10;
+    var filePath = createFileSync(path.resolve(__dirname, Key), fileSize);
+    cos.sliceUploadFile(
+      {
+        Bucket: config.Bucket,
+        Region: config.Region,
+        Key: Key,
+        FilePath: filePath,
+      },
+      function (err, data) {
+        if (err) {
+          done();
+        } else {
+          cos.downloadFile({
+              Bucket: config.Bucket, // Bucket 格式：test-1250000000
+              Region: config.Region,
+              Key: Key,
+              FilePath: './' + Key, // 本地保存路径
+              ChunkSize: 1024 * 1024 * 8, // 分块大小
+              ParallelLimit: 5, // 分块并发数
+              RetryTimes: 3, // 分块失败重试次数
+              TaskId: 'downloadFile-123', // 可以自己生成TaskId，用于取消下载
+              onProgress: function (progressData) {
+                if (progressData.percent >= 0.1) {
+                  cos.emit('inner-kill-task', {TaskId: 'downloadFile-123'});
+                  assert.ok(err);
+                  done();
+                }
+              },
+            });
+        }
+      }
+    );
+  });
 });
 
 // group('数据万象', function () {

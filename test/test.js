@@ -79,12 +79,9 @@ var cos = new COS({
 var tempCOS = new COS({
   getAuthorization: function (options, callback) {
     var url = 'http://9.134.125.65:3333/sts'; // 如果是 npm run sts.js 起的 nodejs server，使用这个
-    var xhr = new XMLHttpRequest();
-    xhr.open('get', url, true);
-    xhr.setRequestHeader('Content-Type', 'application/json');
-    xhr.onload = function (e) {
+    request({ url }, function (err, response, body) {
       try {
-        var data = JSON.parse(e.target.responseText);
+        var data = JSON.parse(body);
         var credentials = data.credentials;
       } catch (e) {}
       if (!data || !credentials) {
@@ -98,8 +95,8 @@ var tempCOS = new COS({
         ExpiredTime: data.expiredTime, // 时间戳，单位秒，如：1580000000
         ScopeLimit: true, // 细粒度控制权限需要设为 true，会限制密钥只在相同请求时重复使用
       });
-    };
-    xhr.send(JSON.stringify(options.Scope));
+      }
+    );
   },
 });
 
@@ -108,13 +105,10 @@ var oldTempCOS = new COS({
   // UseAccelerate: true,
   getAuthorization: function (options, callback) {
     var url = 'http://9.134.125.65:3333/sts'; // 如果是 npm run sts.js 起的 nodejs server，使用这个
-    var xhr = new XMLHttpRequest();
-    xhr.open('get', url, true);
-    xhr.setRequestHeader('Content-Type', 'application/json');
-    xhr.onload = function (e) {
+    request({ url }, function (err, response, body) {
       try {
-        var data = JSON.parse(e.target.responseText);
-        var credentials = data.credentials;
+        var data = JSON.parse(body);
+        var credentials = body.credentials;
       } catch (e) {}
       if (!data || !credentials) {
         return console.error('credentials invalid:\n' + JSON.stringify(data, null, 2));
@@ -127,8 +121,7 @@ var oldTempCOS = new COS({
         ExpiredTime: data.expiredTime, // 时间戳，单位秒，如：1580000000
         ScopeLimit: true, // 细粒度控制权限需要设为 true，会限制密钥只在相同请求时重复使用
       });
-    };
-    xhr.send(JSON.stringify(options.Scope));
+    });
   },
 });
 
@@ -137,12 +130,9 @@ var getSignCOS = new COS({
   // UseAccelerate: true,
   getAuthorization: function (options, callback) {
     var url = 'http://9.134.125.65:3333/uploadSign'; // 如果是 npm run sts.js 起的 nodejs server，使用这个
-    var xhr = new XMLHttpRequest();
-    xhr.open('get', url, true);
-    xhr.setRequestHeader('Content-Type', 'application/json');
-    xhr.onload = function (e) {
+    request({ url }, function (err, response, body) {
       try {
-        var data = JSON.parse(e.target.responseText);
+        var data = JSON.parse(body);
       } catch (e) {}
       if (!data) {
         return console.error('credentials invalid:\n' + JSON.stringify(data, null, 2));
@@ -150,8 +140,7 @@ var getSignCOS = new COS({
       callback({
         Authorization: data?.signMap?.PutObject
       });
-    };
-    xhr.send();
+    });
   },
 });
 
@@ -159,27 +148,23 @@ var getStsCOS = new COS({
   // UseAccelerate: true,
   getSTS: function (options, callback) {
     var url = 'http://9.134.125.65:3333/sts'; // 如果是 npm run sts.js 起的 nodejs server，使用这个
-    var xhr = new XMLHttpRequest();
-    xhr.open('POST', url, true);
-    xhr.setRequestHeader('Content-Type', 'application/json');
-    xhr.onload = function (e) {
+    request({ url }, function (err, response, body) {
       try {
-        var data = JSON.parse(e.target.responseText);
+        var data = JSON.parse(body);
         var credentials = data.credentials;
       } catch (e) {}
       if (!data || !credentials) {
         return console.error('credentials invalid:\n' + JSON.stringify(data, null, 2));
       }
       callback({
-        TmpSecretId: credentials.TmpSecretId || credentials.tmpSecretId,
-        TmpSecretKey: credentials.TmpSecretKey || credentials.tmpSecretKey,
-        SecurityToken: credentials.SessionToken || credentials.sessionToken,
+        TmpSecretId: credentials.tmpSecretId,
+        TmpSecretKey: credentials.tmpSecretKey,
+        SecurityToken: credentials.sessionToken,
         StartTime: data.startTime, // 时间戳，单位秒，如：1580000000，建议返回服务器时间作为签名的开始时间，避免用户浏览器本地时间偏差过大导致签名错误
         ExpiredTime: data.expiredTime, // 时间戳，单位秒，如：1580000000
         ScopeLimit: true, // 细粒度控制权限需要设为 true，会限制密钥只在相同请求时重复使用
       });
-    };
-    xhr.send();
+    });
   },
 });
 
@@ -6458,65 +6443,3 @@ group('request', function () {
     );
   });
 });
-
-// group('数据万象', function () {
-//     test('describeMediaBuckets()', function (done, assert) {
-//         var host = 'ci.' + config.Region + '.myqcloud.com';
-//         var url = 'https://' + host + '/mediabucket';
-//         cos.request({
-//             Bucket: config.Bucket,
-//             Region: config.Region,
-//             Method: 'GET',
-//             Key: 'mediabucket', /** 固定值，必须 */
-//             Url: url,
-//             Query: {
-//                 pageNumber: '1', /** 第几页，非必须 */
-//                 pageSize: '10', /** 每页个数，非必须 */
-//                 // regions: 'ap-chengdu', /** 地域信息，例如'ap-beijing'，支持多个值用逗号分隔如'ap-shanghai,ap-beijing'，非必须 */
-//                 // bucketNames: 'test-1250000000', /** 存储桶名称，精确搜索，例如'test-1250000000'，支持多个值用逗号分隔如'test1-1250000000,test2-1250000000'，非必须 */
-//                 // bucketName: 'test', /** 存储桶名称前缀，前缀搜索，例如'test'，支持多个值用逗号分隔如'test1,test2'，非必须 */
-//             }
-//         },
-//         function(err, data){
-//             assert.ok(!err);
-//             done();
-//         });
-//     });
-//     test('getMediaInfo()', function (done, assert) {
-//         cos.request({
-//           Bucket: config.Bucket,
-//           Region: config.Region,
-//           Method: 'GET',
-//           Key: 'test.mp4',
-//           Query: {
-//               'ci-process': 'videoinfo' /** 固定值，必须 */
-//           }
-//         },
-//         function(err, data){
-//             assert.ok(!err);
-//             done();
-//         });
-//     });
-//     test('GetSnapshot()', function (done, assert) {
-//         cos.request({
-//             Bucket: config.Bucket,
-//             Region: config.Region,
-//             Method: 'GET',
-//             Key: 'test.mp4',
-//             Query: {
-//                 'ci-process': 'snapshot', /** 固定值，必须 */
-//                 time: 1, /** 截图的时间点，单位为秒，必须 */
-//                 // width: 0, /** 截图的宽，非必须 */
-//                 // height: 0, /** 截图的高，非必须 */
-//                 // format: 'jpg', /** 截图的格式，支持 jpg 和 png，默认 jpg，非必须 */
-//                 // rotate: 'auto', /** 图片旋转方式，默认为'auto'，非必须 */
-//                 // mode: 'exactframe', /** 截帧方式，默认为'exactframe'，非必须 */
-//             },
-//             RawBody: true,
-//         },
-//         function(err, data){
-//             assert.ok(!err);
-//             done();
-//         });
-//     });
-// });

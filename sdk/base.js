@@ -14,10 +14,6 @@ var fs = require('fs');
  * @param  {Function}  callback     回调函数，必须
  */
 function getService(params, callback) {
-  if (typeof params === 'function') {
-    callback = params;
-    params = {};
-  }
   var protocol = this.options.Protocol || (util.isBrowser && location.protocol === 'http:' ? 'http:' : 'https:');
   var domain = this.options.ServiceDomain;
   var appId = params.AppId || this.options.appId;

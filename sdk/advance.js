@@ -1401,18 +1401,11 @@ function copySliceItem(params, callback) {
 
 // 分片下载文件
 function downloadFile(params, callback) {
-  var Key = util.simplifyPath(params.Key);
-  if (Key === '/' || Key === '') {
-    callback(util.error(new Error('Key format error')));
-    return;
-  }
-  if (Key.startsWith('/')) {
-    Key = Key.substr(1);
-  }
   var self = this;
   var TaskId = params.TaskId || util.uuid();
   var Bucket = params.Bucket;
   var Region = params.Region;
+  var Key = params.Key;
   var FilePath = params.FilePath;
   var FileSize;
   var FinishSize = 0;

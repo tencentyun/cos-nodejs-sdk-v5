@@ -736,24 +736,6 @@ var encodeBase64 = function (str, safe) {
   return base64Str;
 };
 
-var simplifyPath = function(path) {
-  var stack = [];
-  var parts = path.split('/');
-  for (var i = 0; i < parts.length; i++) {
-      var part = parts[i];
-      if (part === '.' || part === '') {
-          continue;
-      } else if (part === '..') {
-          if (stack.length > 0) {
-              stack.pop();
-          }
-      } else {
-          stack.push(part);
-      }
-  }
-  return '/' + stack.join('/');
-};
-
 var util = {
   noop: noop,
   formatParams: formatParams,
@@ -790,7 +772,6 @@ var util = {
   isCIHost: isCIHost,
   getSourceParams: getSourceParams,
   encodeBase64: encodeBase64,
-  simplifyPath: simplifyPath,
 };
 
 module.exports = util;

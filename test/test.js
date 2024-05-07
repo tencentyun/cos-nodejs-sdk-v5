@@ -3,8 +3,16 @@ var path = require('path');
 var COS = require('../index');
 var request = require('request');
 var util = require('../demo/util');
-var config = require('../demo/config');
 var Stream = require('stream');
+
+var config = {
+  SecretId: process.env.SecretId || '',
+  SecretKey: process.env.SecretKey || '',
+  Bucket: process.env.Bucket || '',
+  Region: process.env.Region || '',
+  Uin: process.env.Uin || '',
+  StsUrl: process.env.nodejssdkStsUrl || '',
+};
 
 // 先删除测试文件zip
 const dir = path.resolve(__dirname);
@@ -55,9 +63,9 @@ var group = function (name, fn) {
 };
 var proxy = '';
 
-if (!config.SecretId || !config.SecretKey || !config.Bucket || !config.Region || !config.Uin) {
-  console.log('Please check for complete configuration information in demo/config.js');
-  console.log('请检查demo/config.js是否有完整的配置信息');
+if (!config.SecretId || !config.SecretKey || !config.Bucket || !config.Region || !config.Uin || !config.StsUrl) {
+  console.log('Please check for complete configuration information in env');
+  console.log('请检查环境变量是否完整');
   return;
 }
 
@@ -6047,71 +6055,6 @@ group('sliceUploadFile() 续传', function () {
         );
       }
     );
-  });
-});
-
-function getObjectErrorKey(Key, done) {
-  cos.getObject(
-    {
-      Bucket: config.Bucket,
-      Region: config.Region,
-      Key,
-    },
-    function (err, data) {
-      assert.ok(err.message === 'Key format error');
-      done();
-    }
-  );
-}
-
-function downloadFileErrorKey(Key, done) {
-  cos.downloadFile(
-    {
-      Bucket: config.Bucket,
-      Region: config.Region,
-      Key,
-      FilePath: './' + Key
-    },
-    function (err, data) {
-      assert.ok(err.message === 'Key format error');
-      done();
-    }
-  );
-}
-
-group('getObject() object key format error', function () {
-  test('getObject() object key format error 1', function (done) {
-    getObjectErrorKey('///////', done);
-  });
-  test('getObject() object key format error 2', function (done) {
-    getObjectErrorKey('/abc/../', done);
-  });
-  test('getObject() object key format error 3', function (done) {
-    getObjectErrorKey('/./', done);
-  });
-  test('getObject() object key format error 4', function (done) {
-    getObjectErrorKey('///abc/.//def//../../', done);
-  });
-  test('getObject() object key format error 5', function (done) {
-    getObjectErrorKey('/././///abc/.//def//../../', done);
-  });
-});
-
-group('downloadFile() object key format error', function () {
-  test('downloadFile() object key format error 1', function (done) {
-    downloadFileErrorKey('///////', done);
-  });
-  test('downloadFile() object key format error 2', function (done) {
-    downloadFileErrorKey('/abc/../', done);
-  });
-  test('downloadFile() object key format error 3', function (done) {
-    downloadFileErrorKey('/./', done);
-  });
-  test('downloadFile() object key format error 4', function (done) {
-    downloadFileErrorKey('///abc/.//def//../../', done);
-  });
-  test('downloadFile() object key format error 5', function (done) {
-    downloadFileErrorKey('/././///abc/.//def//../../', done);
   });
 });
 

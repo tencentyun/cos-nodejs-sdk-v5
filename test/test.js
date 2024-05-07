@@ -86,7 +86,7 @@ var cos = new COS({
 // 使用临时密钥
 var tempCOS = new COS({
   getAuthorization: function (options, callback) {
-    var url = 'http://9.134.125.65:3344/sts'; // 如果是 npm run sts.js 起的 nodejs server，使用这个
+    var url = `${config.StsUrl}/sts`; // 如果是 npm run sts.js 起的 nodejs server，使用这个
     request({ url }, function (err, response, body) {
       try {
         var data = JSON.parse(body);
@@ -112,7 +112,7 @@ var tempCOS = new COS({
 var oldTempCOS = new COS({
   // UseAccelerate: true,
   getAuthorization: function (options, callback) {
-    var url = 'http://9.134.125.65:3344/sts'; // 如果是 npm run sts.js 起的 nodejs server，使用这个
+    var url = `${config.StsUrl}/sts`; // 如果是 npm run sts.js 起的 nodejs server，使用这个
     request({ url }, function (err, response, body) {
       try {
         var data = JSON.parse(body);
@@ -137,7 +137,7 @@ var oldTempCOS = new COS({
 var getSignCOS = new COS({
   // UseAccelerate: true,
   getAuthorization: function (options, callback) {
-    var url = 'http://9.134.125.65:3344/uploadSign'; // 如果是 npm run sts.js 起的 nodejs server，使用这个
+    var url = `${config.StsUrl}/uploadSign`; // 如果是 npm run sts.js 起的 nodejs server，使用这个
     request({ url }, function (err, response, body) {
       try {
         var data = JSON.parse(body);
@@ -155,7 +155,7 @@ var getSignCOS = new COS({
 var getStsCOS = new COS({
   // UseAccelerate: true,
   getSTS: function (options, callback) {
-    var url = 'http://9.134.125.65:3344/sts'; // 如果是 npm run sts.js 起的 nodejs server，使用这个
+    var url = `${config.StsUrl}/sts`; // 如果是 npm run sts.js 起的 nodejs server，使用这个
     request({ url }, function (err, response, body) {
       try {
         var data = JSON.parse(body);

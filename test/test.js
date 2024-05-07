@@ -78,7 +78,7 @@ var cos = new COS({
 // 使用临时密钥
 var tempCOS = new COS({
   getAuthorization: function (options, callback) {
-    var url = 'http://9.134.125.65:3333/sts'; // 如果是 npm run sts.js 起的 nodejs server，使用这个
+    var url = 'http://9.134.125.65:3344/sts'; // 如果是 npm run sts.js 起的 nodejs server，使用这个
     request({ url }, function (err, response, body) {
       try {
         var data = JSON.parse(body);
@@ -104,7 +104,7 @@ var tempCOS = new COS({
 var oldTempCOS = new COS({
   // UseAccelerate: true,
   getAuthorization: function (options, callback) {
-    var url = 'http://9.134.125.65:3333/sts'; // 如果是 npm run sts.js 起的 nodejs server，使用这个
+    var url = 'http://9.134.125.65:3344/sts'; // 如果是 npm run sts.js 起的 nodejs server，使用这个
     request({ url }, function (err, response, body) {
       try {
         var data = JSON.parse(body);
@@ -129,7 +129,7 @@ var oldTempCOS = new COS({
 var getSignCOS = new COS({
   // UseAccelerate: true,
   getAuthorization: function (options, callback) {
-    var url = 'http://9.134.125.65:3333/uploadSign'; // 如果是 npm run sts.js 起的 nodejs server，使用这个
+    var url = 'http://9.134.125.65:3344/uploadSign'; // 如果是 npm run sts.js 起的 nodejs server，使用这个
     request({ url }, function (err, response, body) {
       try {
         var data = JSON.parse(body);
@@ -147,7 +147,7 @@ var getSignCOS = new COS({
 var getStsCOS = new COS({
   // UseAccelerate: true,
   getSTS: function (options, callback) {
-    var url = 'http://9.134.125.65:3333/sts'; // 如果是 npm run sts.js 起的 nodejs server，使用这个
+    var url = 'http://9.134.125.65:3344/sts'; // 如果是 npm run sts.js 起的 nodejs server，使用这个
     request({ url }, function (err, response, body) {
       try {
         var data = JSON.parse(body);
@@ -169,7 +169,7 @@ var getStsCOS = new COS({
 });
 
 // 临时密钥允许的路径
-var tempCOSPrefix = 'js-sdk/test/';
+var tempCOSPrefix = 'nodejs-sdk/test/';
 
 var AppId;
 var Bucket = config.Bucket;
@@ -277,7 +277,7 @@ group('init cos', function () {
       {
         Bucket: config.Bucket,
         Region: config.Region,
-        Key: COS.util.encodeBase64(key),
+        Key: key,
         Body: content,
       },
       function (err, data) {
@@ -343,13 +343,18 @@ group('init cos', function () {
     });
     putFile(initCos, done, assert, true);
   });
-  test('ForcePathStyle', function (done, assert) {
-    var initCos = new COS({
-      SecretId: config.SecretId,
-      SecretKey: config.SecretKey,
-      ForcePathStyle: true,
-    });
-    putFile(initCos, done, assert, false);
+  test('ForcePathStyle', function (done) {
+    try {
+      var initCos = new COS({
+        SecretId: config.SecretId,
+        SecretKey: config.SecretKey,
+        ForcePathStyle: true,
+      });
+      putFile(initCos, done, false);
+    } catch (e) {
+      assert.ok(e.message === 'ForcePathStyle is not supported');
+      done();
+    }
   });
   test('模拟sms init', function (done, assert) {
     var Credentials = {
@@ -951,7 +956,7 @@ group('putObject(),cancelTask()', function () {
       {
         Bucket: config.Bucket,
         Region: config.Region,
-        Key: filename,
+        Key: COS.util.encodeBase64(filename),
         Body: Buffer.from(Array(1024 * 1024 * 10).fill(0)),
         onTaskReady: function (taskId) {
           TaskId = taskId;
@@ -1578,9 +1583,6 @@ group('putObject()', function () {
             Key: filename,
           },
           function (err, data) {
-            console.log('data.Body', data.Body.toString());
-            console.log('content.toString()', content.toString());
-            console.log('data.headers', data.headers);
             assert.ok(
               data.Body && data.Body.toString() === content.toString() && (data.headers && data.headers.etag) === ETag
             );

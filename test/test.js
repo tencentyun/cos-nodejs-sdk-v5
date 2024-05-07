@@ -6050,6 +6050,71 @@ group('sliceUploadFile() 续传', function () {
   });
 });
 
+function getObjectErrorKey(Key, done) {
+  cos.getObject(
+    {
+      Bucket: config.Bucket,
+      Region: config.Region,
+      Key,
+    },
+    function (err, data) {
+      assert.ok(err.message === 'Key format error');
+      done();
+    }
+  );
+}
+
+function downloadFileErrorKey(Key, done) {
+  cos.downloadFile(
+    {
+      Bucket: config.Bucket,
+      Region: config.Region,
+      Key,
+      FilePath: './' + Key
+    },
+    function (err, data) {
+      assert.ok(err.message === 'Key format error');
+      done();
+    }
+  );
+}
+
+group('getObject() object key format error', function () {
+  test('getObject() object key format error 1', function (done) {
+    getObjectErrorKey('///////', done);
+  });
+  test('getObject() object key format error 2', function (done) {
+    getObjectErrorKey('/abc/../', done);
+  });
+  test('getObject() object key format error 3', function (done) {
+    getObjectErrorKey('/./', done);
+  });
+  test('getObject() object key format error 4', function (done) {
+    getObjectErrorKey('///abc/.//def//../../', done);
+  });
+  test('getObject() object key format error 5', function (done) {
+    getObjectErrorKey('/././///abc/.//def//../../', done);
+  });
+});
+
+group('downloadFile() object key format error', function () {
+  test('downloadFile() object key format error 1', function (done) {
+    downloadFileErrorKey('///////', done);
+  });
+  test('downloadFile() object key format error 2', function (done) {
+    downloadFileErrorKey('/abc/../', done);
+  });
+  test('downloadFile() object key format error 3', function (done) {
+    downloadFileErrorKey('/./', done);
+  });
+  test('downloadFile() object key format error 4', function (done) {
+    downloadFileErrorKey('///abc/.//def//../../', done);
+  });
+  test('downloadFile() object key format error 5', function (done) {
+    downloadFileErrorKey('/././///abc/.//def//../../', done);
+  });
+});
+
 group('getStream() 流式下载 ECONNREFUSED 错误', function () {
   test('getStream() 流式下载 ECONNREFUSED 错误', function (done, assert) {
     cos.options.Domain = '127.0.0.1:12345';
@@ -6422,3 +6487,4 @@ group('request', function () {
     );
   });
 });
+process.exit(0);

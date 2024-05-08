@@ -1086,7 +1086,7 @@ group('sliceUploadFile() ', function () {
       SecretId: config.SecretId,
       SecretKey: config.SecretKey,
     });
-    var filename = '10m.zip';
+    var filename = Date.now().toString(36) + '-10m.zip';
     var filePath = createFileSync(path.resolve(__dirname, filename), 1024 * 1024 * 10);
     var paused = false;
     var restarted = false;
@@ -1111,7 +1111,6 @@ group('sliceUploadFile() ', function () {
         Level: 'file',
       },
       function (err, data) {
-        
         cos.sliceUploadFile(
           {
             Bucket: config.Bucket,
@@ -4336,7 +4335,7 @@ group('Cache-Control', function () {
       {
         Bucket: config.Bucket,
         Region: config.Region,
-        Key: '1mb.zip',
+        Key: filename,
         FilePath: filePath,
       },
       function (err, data) {
@@ -4344,7 +4343,7 @@ group('Cache-Control', function () {
           {
             Bucket: config.Bucket,
             Region: config.Region,
-            Key: '1mb.zip',
+            Key: filename,
           },
           function (err, data) {
             console.log(`data.headers['cache-control']`, data.headers['cache-control']);
@@ -4362,7 +4361,7 @@ group('Cache-Control', function () {
       {
         Bucket: config.Bucket,
         Region: config.Region,
-        Key: '1mb.zip',
+        Key: filename,
         FilePath: filePath,
         CacheControl: 'max-age=7200',
       },
@@ -4371,7 +4370,7 @@ group('Cache-Control', function () {
           {
             Bucket: config.Bucket,
             Region: config.Region,
-            Key: '1mb.zip',
+            Key: filename,
           },
           function (err, data) {
             console.log(`data.headers['cache-control']:max-age=7200=`, data.headers['cache-control']);

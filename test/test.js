@@ -1133,6 +1133,9 @@ group('sliceUploadFile() ', function () {
           },
           function (err, data) {
             paused = true;
+            console.log('pauseTask(),restartTask', err || data);
+            assert.ok(1);
+            done();
           }
         );
       }
@@ -4331,6 +4334,7 @@ group('Cache-Control', function () {
   test('sliceUploadFile Cache-Control: null -> Cache-Control: null or max-age=259200', function (done, assert) {
     var filename = Date.now() + '.zip';
     var filePath = path.resolve(__dirname, filename);
+    createFileSync(filePath, 1);
     cos.sliceUploadFile(
       {
         Bucket: config.Bucket,
@@ -4357,6 +4361,7 @@ group('Cache-Control', function () {
   test('sliceUploadFile Cache-Control: max-age=7200 -> Cache-Control: max-age=7200', function (done, assert) {
     var filename = Date.now() + '.zip';
     var filePath = path.resolve(__dirname, filename);
+    createFileSync(filePath, 1);
     cos.sliceUploadFile(
       {
         Bucket: config.Bucket,

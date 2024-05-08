@@ -464,6 +464,7 @@ group('init cos', function () {
         FilePath: filePath,
       },
       function (err, data) {
+        console.log(err || data);
         assert.ok(!err);
         done();
       }
@@ -1092,6 +1093,17 @@ group('sliceUploadFile() ', function () {
     var filePath = createFileSync(path.resolve(__dirname, filename), 1024 * 1024 * 10);
     var paused = false;
     var restarted = false;
+    var TaskId;
+    var updateFn = function(info) {
+      const fileTask = info.list.find((item) => item.id === TaskId);
+      if (fileTask && paused && restarted) {
+        fs.unlinkSync(filePath);
+        cos.off('list-update', updateFn);
+        assert.ok(fileTask.state === 'success');
+        done();
+      }
+    }
+    cos.on('list-update', updateFn);
     cos.abortUploadTask(
       {
         Bucket: config.Bucket,
@@ -1100,7 +1112,7 @@ group('sliceUploadFile() ', function () {
         Level: 'file',
       },
       function (err, data) {
-        var TaskId;
+        
         cos.sliceUploadFile(
           {
             Bucket: config.Bucket,
@@ -1109,25 +1121,15 @@ group('sliceUploadFile() ', function () {
             FilePath: filePath,
             onTaskReady: function (taskId) {
               TaskId = taskId;
-              cos.on('list-update', (info) => {
-                const fileTask = info.list.find((item) => item.id === taskId);
-                if (fileTask && paused && restarted) {
-                  if (fileTask.percent === 0) return;
-                  assert.ok(fileTask.percent > 0.3, '暂停和重试成功');
-                  cos.cancelTask(TaskId);
-                  fs.unlinkSync(filePath);
-                  done();
-                }
-              });
             },
             onProgress: function (info) {
-              if (!paused && info.percent > 0.6) {
+              if (!paused && info.percent >= 0.3) {
                 cos.pauseTask(TaskId);
                 paused = true;
                 setTimeout(function () {
                   restarted = true;
                   cos.restartTask(TaskId);
-                }, 1000);
+                }, 100);
               }
             },
           },
@@ -4329,6 +4331,8 @@ group('Cache-Control', function () {
   });
   // sliceUploadFile
   test('sliceUploadFile Cache-Control: null -> Cache-Control: null or max-age=259200', function (done, assert) {
+    var filename = Date.now() + '.zip';
+    var filePath = path.resolve(__dirname, filename);
     cos.sliceUploadFile(
       {
         Bucket: config.Bucket,
@@ -4352,6 +4356,8 @@ group('Cache-Control', function () {
     );
   });
   test('sliceUploadFile Cache-Control: max-age=7200 -> Cache-Control: max-age=7200', function (done, assert) {
+    var filename = Date.now() + '.zip';
+    var filePath = path.resolve(__dirname, filename);
     cos.sliceUploadFile(
       {
         Bucket: config.Bucket,

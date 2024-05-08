@@ -116,7 +116,7 @@ var oldTempCOS = new COS({
     request({ url }, function (err, response, body) {
       try {
         var data = JSON.parse(body);
-        var credentials = body.credentials;
+        var credentials = data.credentials;
       } catch (e) {}
       if (!data || !credentials) {
         return console.error('credentials invalid:\n' + JSON.stringify(data, null, 2));
@@ -432,7 +432,6 @@ group('init cos', function () {
         Body: '12345',
       },
       function (err, data) {
-        console.log('使用临时密钥 putObject', err || data);
         assert.ok(!err);
         done();
       }
@@ -447,7 +446,6 @@ group('init cos', function () {
         Body: '12345',
       },
       function (err, data) {
-        console.log('使用临时密钥 getStsCOS', err || data);
         assert.ok(!err);
         done();
       }
@@ -464,7 +462,6 @@ group('init cos', function () {
         FilePath: filePath,
       },
       function (err, data) {
-        console.log(err || data);
         assert.ok(!err);
         done();
       }
@@ -1097,10 +1094,12 @@ group('sliceUploadFile() ', function () {
     var updateFn = function(info) {
       const fileTask = info.list.find((item) => item.id === TaskId);
       if (fileTask && paused && restarted) {
-        fs.unlinkSync(filePath);
-        cos.off('list-update', updateFn);
-        assert.ok(fileTask.state === 'success');
-        done();
+        if (fileTask.state === 'success') {
+          fs.unlinkSync(filePath);
+          cos.off('list-update', updateFn);
+          assert.ok(1);
+          done();
+        }
       }
     }
     cos.on('list-update', updateFn);
@@ -4348,6 +4347,7 @@ group('Cache-Control', function () {
             Key: '1mb.zip',
           },
           function (err, data) {
+            console.log(`data.headers['cache-control']`, data.headers['cache-control']);
             assert.ok(data.headers['cache-control'] === undefined || data.headers['cache-control'] === 'max-age=259200');
             done();
           }
@@ -4374,6 +4374,7 @@ group('Cache-Control', function () {
             Key: '1mb.zip',
           },
           function (err, data) {
+            console.log(`data.headers['cache-control']:max-age=7200=`, data.headers['cache-control']);
             assert.ok(data.headers['cache-control'] === 'max-age=7200');
             done();
           }

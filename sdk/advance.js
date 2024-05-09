@@ -1401,7 +1401,7 @@ function copySliceItem(params, callback) {
 
 // 分片下载文件
 function downloadFile(params, callback) {
-  if (this.Options.ObjectKeySimplifyCheck) {
+  if (this.options.ObjectKeySimplifyCheck) {
     // getObject 的 Key 需要格式化，避免调用成 getBucket
     var formatKey = util.simplifyPath(params.Key);
     if (formatKey === '/') {

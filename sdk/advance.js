@@ -1401,18 +1401,19 @@ function copySliceItem(params, callback) {
 
 // 分片下载文件
 function downloadFile(params, callback) {
-  var Key = util.simplifyPath(params.Key);
-  if (Key === '/' || Key === '') {
-    callback(util.error(new Error('Key format error')));
-    return;
-  }
-  if (Key.startsWith('/')) {
-    Key = Key.substr(1);
+  if (this.Options.ObjectKeySimplifyCheck) {
+    // getObject 的 Key 需要格式化，避免调用成 getBucket
+    var formatKey = util.simplifyPath(params.Key);
+    if (formatKey === '/') {
+      callback(util.error(new Error('The Getobject Key is illegal')));
+      return;
+    }
   }
   var self = this;
   var TaskId = params.TaskId || util.uuid();
   var Bucket = params.Bucket;
   var Region = params.Region;
+  var Key = params.Key;
   var FilePath = params.FilePath;
   var FileSize;
   var FinishSize = 0;

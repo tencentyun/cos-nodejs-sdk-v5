@@ -201,6 +201,7 @@ declare namespace COS {
     /** 默认将host加入签名计算，关闭后可能导致越权风险，建议保持为true */
     ForceSignHost?: boolean;
     AutoSwitchHost?: boolean;
+    ObjectKeySimplifyCheck?: boolean;
     /** 自定义拷贝源解析器 */
     CopySourceParser?: null | CopySourceParserFunction;
     /** 获取签名的回调方法，如果没有 SecretId、SecretKey 时，必选 */

@@ -6077,7 +6077,7 @@ function getObjectErrorKey(Key, done) {
       Key,
     },
     function (err, data) {
-      assert.ok(err.message === 'Key format error');
+      assert.ok(err.message === 'The Getobject Key is illegal');
       done();
     }
   );
@@ -6092,44 +6092,44 @@ function downloadFileErrorKey(Key, done) {
       FilePath: './' + Key
     },
     function (err, data) {
-      assert.ok(err.message === 'Key format error');
+      assert.ok(err.message === 'The Getobject Key is illegal');
       done();
     }
   );
 }
 
-group('getObject() object key format error', function () {
-  test('getObject() object key format error 1', function (done) {
+group('getObject() object The Getobject Key is illegal', function () {
+  test('getObject() object The Getobject Key is illegal 1', function (done) {
     getObjectErrorKey('///////', done);
   });
-  test('getObject() object key format error 2', function (done) {
+  test('getObject() object The Getobject Key is illegal 2', function (done) {
     getObjectErrorKey('/abc/../', done);
   });
-  test('getObject() object key format error 3', function (done) {
+  test('getObject() object The Getobject Key is illegal 3', function (done) {
     getObjectErrorKey('/./', done);
   });
-  test('getObject() object key format error 4', function (done) {
+  test('getObject() object The Getobject Key is illegal 4', function (done) {
     getObjectErrorKey('///abc/.//def//../../', done);
   });
-  test('getObject() object key format error 5', function (done) {
+  test('getObject() object The Getobject Key is illegal 5', function (done) {
     getObjectErrorKey('/././///abc/.//def//../../', done);
   });
 });
 
-group('downloadFile() object key format error', function () {
-  test('downloadFile() object key format error 1', function (done) {
+group('downloadFile() object The Getobject Key is illegal', function () {
+  test('downloadFile() object The Getobject Key is illegal 1', function (done) {
     downloadFileErrorKey('///////', done);
   });
-  test('downloadFile() object key format error 2', function (done) {
+  test('downloadFile() object The Getobject Key is illegal 2', function (done) {
     downloadFileErrorKey('/abc/../', done);
   });
-  test('downloadFile() object key format error 3', function (done) {
+  test('downloadFile() object The Getobject Key is illegal 3', function (done) {
     downloadFileErrorKey('/./', done);
   });
-  test('downloadFile() object key format error 4', function (done) {
+  test('downloadFile() object The Getobject Key is illegal 4', function (done) {
     downloadFileErrorKey('///abc/.//def//../../', done);
   });
-  test('downloadFile() object key format error 5', function (done) {
+  test('downloadFile() object The Getobject Key is illegal 5', function (done) {
     downloadFileErrorKey('/././///abc/.//def//../../', done);
   });
 });

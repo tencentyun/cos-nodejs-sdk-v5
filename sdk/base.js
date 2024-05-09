@@ -2069,10 +2069,6 @@ function getObject(params, callback) {
       return;
     }
   }
-  // 去掉第一个斜杆
-  if (formatKey.startsWith('/')) {
-    formatKey = formatKey.substr(1);
-  }
   var reqParams = params.Query || {};
   var reqParamsStr = params.QueryString || '';
 

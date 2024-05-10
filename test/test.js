@@ -6069,36 +6069,21 @@ group('sliceUploadFile() 续传', function () {
   });
 });
 
-function getObjectErrorKey(Key, done) {
-  cos.getObject(
-    {
-      Bucket: config.Bucket,
-      Region: config.Region,
-      Key,
-    },
-    function (err, data) {
-      assert.ok(err.message === 'The Getobject Key is illegal');
-      done();
-    }
-  );
-}
 
-function downloadFileErrorKey(Key, done) {
-  cos.downloadFile(
-    {
-      Bucket: config.Bucket,
-      Region: config.Region,
-      Key,
-      FilePath: './' + Key
-    },
-    function (err, data) {
-      assert.ok(err.message === 'The Getobject Key is illegal');
-      done();
-    }
-  );
-}
-
-group('getObject() object The Getobject Key is illegal', function () {
+group('getObject() 默认开启合并 Key 校验', function () {
+  function getObjectErrorKey(Key, done) {
+    cos.getObject(
+      {
+        Bucket: config.Bucket,
+        Region: config.Region,
+        Key,
+      },
+      function (err, data) {
+        assert.ok(err.message === 'The Getobject Key is illegal');
+        done();
+      }
+    );
+  }
   test('getObject() object The Getobject Key is illegal 1', function (done) {
     getObjectErrorKey('///////', done);
   });
@@ -6116,7 +6101,93 @@ group('getObject() object The Getobject Key is illegal', function () {
   });
 });
 
-group('downloadFile() object The Getobject Key is illegal', function () {
+group('getObject() 手动关闭合并 Key 校验', function () {
+  var cos = new COS({
+    // 必选参数
+    SecretId: config.SecretId,
+    SecretKey: config.SecretKey,
+    Protocol: 'http',
+    ObjectKeySimplifyCheck: false,
+  });
+  function putObjectAndGetObject(Key, done) {
+    const Body = Key;
+    cos.putObject({
+      Bucket: config.Bucket,
+      Region: config.Region,
+      Key,
+      Body,
+    }, function(err, data) {
+      if (err) {
+        done(err);
+      } else {
+        cos.getObject(
+          {
+            Bucket: config.Bucket,
+            Region: config.Region,
+            Key,
+          },
+          function (err, data) {
+            assert.ok(data.Body.toString() === Body);
+            done();
+          }
+        );
+      }
+    });
+  }
+  test('getObject() object The Getobject Key is illegal 1', function (done) {
+    // 会转成 getBucket
+    cos.getObject(
+      {
+        Bucket: config.Bucket,
+        Region: config.Region,
+        Key: '///////',
+      },
+      function (err, data) {
+        assert.ok(data.Body.toString().includes('ListBucketResult'));
+        done();
+      }
+    );
+  });
+  test('getObject() object The Getobject Key is illegal 2', function (done) {
+    putObjectAndGetObject('/abc/../', done);
+  });
+  test('getObject() object The Getobject Key is illegal 3', function (done) {
+      // 会转成 getBucket
+      cos.getObject(
+        {
+          Bucket: config.Bucket,
+          Region: config.Region,
+          Key: '/./',
+        },
+        function (err, data) {
+          assert.ok(data.Body.toString().includes('ListBucketResult'));
+          done();
+        }
+      );
+  });
+  test('getObject() object The Getobject Key is illegal 4', function (done) {
+    putObjectAndGetObject('///abc/.//def//../../', done);
+  });
+  test('getObject() object The Getobject Key is illegal 5', function (done) {
+    putObjectAndGetObject('/././///abc/.//def//../../', done);
+  });
+});
+
+group('downloadFile() 默认开启合并 Key 校验', function () {
+  function downloadFileErrorKey(Key, done) {
+    cos.downloadFile(
+      {
+        Bucket: config.Bucket,
+        Region: config.Region,
+        Key,
+        FilePath: './' + Key
+      },
+      function (err, data) {
+        assert.ok(err.message === 'The Getobject Key is illegal');
+        done();
+      }
+    );
+  }
   test('downloadFile() object The Getobject Key is illegal 1', function (done) {
     downloadFileErrorKey('///////', done);
   });

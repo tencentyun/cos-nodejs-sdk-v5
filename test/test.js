@@ -6303,7 +6303,8 @@ group('downloadFile', function () {
         TaskId: '123', // 可以自己生成TaskId，用于取消下载
       },
       function (err, data) {
-        assert.ok(err);
+        fs.unlinkSync(filePath);
+        assert.ok(!err);
         done();
       }
     );
@@ -6334,6 +6335,7 @@ group('downloadFile', function () {
               TaskId: '123', // 可以自己生成TaskId，用于取消下载
             },
             function (err, data) {
+              fs.unlinkSync(filePath);
               assert.ok(!err);
               done();
             }
@@ -6374,6 +6376,7 @@ group('downloadFile', function () {
               TaskId: '123', // 可以自己生成TaskId，用于取消下载
             },
             function (err, data) {
+              fs.unlinkSync(filePath);
               assert.ok(!err);
               done();
             }
@@ -6481,6 +6484,7 @@ group('downloadFile', function () {
               onProgress: function (progressData) {
                 if (progressData.percent >= 0.1) {
                   cos.emit('inner-kill-task', { TaskId: 'downloadFile-123' });
+                  fs.unlinkSync(filePath);
                   assert.ok(1);
                   done();
                 }

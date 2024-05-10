@@ -527,8 +527,9 @@ var apiWrapper = function (apiName, apiFn) {
             delete params.AppId;
           }
         }
-        // 如果 Key 是 / 开头，强制去掉第一个 /
-        if (!self.options.UseRawKey && params.Key && params.Key.substr(0, 1) === '/') {
+        // 除了下列 api，如果 Key 是 / 开头，强制去掉第一个 /
+        var dontRemoveApi = ['sliceUploadFile', 'uploadFile', 'downloadFile', 'sliceCopyFile'];
+        if (!self.options.UseRawKey && params.Key && params.Key.substr(0, 1) === '/' && !dontRemoveApi.includes(apiName)) {
           params.Key = params.Key.substr(1);
         }
       }

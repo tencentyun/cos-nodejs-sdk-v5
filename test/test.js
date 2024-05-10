@@ -6205,6 +6205,48 @@ group('downloadFile() 默认开启合并 Key 校验', function () {
   });
 });
 
+group('downloadFile() 手动关闭合并 Key 校验', function () {
+  var cos = new COS({
+    // 必选参数
+    SecretId: config.SecretId,
+    SecretKey: config.SecretKey,
+    Protocol: 'http',
+    ObjectKeySimplifyCheck: false,
+  });
+  function getObjectOrGetBucket(Key, hasEtag, done) {
+    cos.downloadFile(
+      {
+        Bucket: config.Bucket,
+        Region: config.Region,
+        Key,
+        FilePath: './' + Key
+      },
+      function (err, data) {
+        const isGetBucket = data.ETag === '';
+        const isGetObject = data.ETag !== '';
+        const ok = hasETag ? isGetObject : isGetBucket;
+        assert.ok(ok);
+        done();
+      }
+    );
+  }
+  test('downloadFile() object The Getobject Key is illegal 1', function (done) {
+    getObjectOrGetBucket('///////', false, done);
+  });
+  test('downloadFile() object The Getobject Key is illegal 2', function (done) {
+    getObjectOrGetBucket('/abc/../', false, done);
+  });
+  test('downloadFile() object The Getobject Key is illegal 3', function (done) {
+    getObjectOrGetBucket('/./', false, done);
+  });
+  test('downloadFile() object The Getobject Key is illegal 4', function (done) {
+    getObjectOrGetBucket('///abc/.//def//../../', true, done);
+  });
+  test('downloadFile() object The Getobject Key is illegal 5', function (done) {
+    getObjectOrGetBucket('/././///abc/.//def//../../', true, done);
+  });
+});
+
 group('getStream() 流式下载 ECONNREFUSED 错误', function () {
   test('getStream() 流式下载 ECONNREFUSED 错误', function (done, assert) {
     cos.options.Domain = '127.0.0.1:12345';

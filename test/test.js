@@ -6247,7 +6247,7 @@ group('downloadFile() 手动关闭合并 Key 校验', function () {
     getObjectOrGetBucket('///////', false, done);
   });
   test('downloadFile() object The Getobject Key is illegal 2', function (done) {
-    getObjectOrGetBucket('/abc/../', false, done);
+    getObjectOrGetBucket('/abc/../', true, done);
   });
   test('downloadFile() object The Getobject Key is illegal 3', function (done) {
     getObjectOrGetBucket('/./', false, done);
@@ -6346,6 +6346,7 @@ group('downloadFile', function () {
   });
   test('downloadFile() fileSize=0', function (done, assert) {
     var Key = '0b.zip';
+    var FilePath = './' + Key;
     cos.downloadFile(
       {
         Bucket: config.Bucket, // Bucket 格式：test-1250000000
@@ -6358,7 +6359,7 @@ group('downloadFile', function () {
         TaskId: '123', // 可以自己生成TaskId，用于取消下载
       },
       function (err, data) {
-        fs.unlinkSync(filePath);
+        fs.unlinkSync(FilePath);
         assert.ok(!err);
         done();
       }

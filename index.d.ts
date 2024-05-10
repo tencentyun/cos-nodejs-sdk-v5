@@ -198,6 +198,10 @@ declare namespace COS {
     /** 是否开启长链接，默认开启 */
     KeepAlive?: boolean;
     Ip?: string;
+    /** 是否严格校验 HTTPS 证书，默认 true */
+    StrictSsl?: boolean;
+    /** 自定义 UserAgent */
+    UserAgent?: string;
     /** 默认将host加入签名计算，关闭后可能导致越权风险，建议保持为true */
     ForceSignHost?: boolean;
     AutoSwitchHost?: boolean;

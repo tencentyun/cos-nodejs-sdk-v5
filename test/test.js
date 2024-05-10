@@ -6214,21 +6214,34 @@ group('downloadFile() 手动关闭合并 Key 校验', function () {
     ObjectKeySimplifyCheck: false,
   });
   function getObjectOrGetBucket(Key, hasEtag, done) {
-    cos.downloadFile(
-      {
-        Bucket: config.Bucket,
-        Region: config.Region,
-        Key,
-        FilePath: './' + Key
-      },
-      function (err, data) {
-        const isGetBucket = data.ETag === '';
-        const isGetObject = data.ETag !== '';
-        const ok = hasETag ? isGetObject : isGetBucket;
-        assert.ok(ok);
+    const Body = Key;
+    cos.putObject({
+      Bucket: config.Bucket,
+      Region: config.Region,
+      Key,
+      Body,
+    }, function(err, data) {
+      if (err) {
         done();
+      } else {
+        cos.downloadFile(
+          {
+            Bucket: config.Bucket,
+            Region: config.Region,
+            Key,
+            FilePath: './testFile'
+          },
+          function (err, data) {
+            const isGetBucket = data.ETag === '';
+            const isGetObject = data.ETag !== '';
+            const ok = hasEtag ? isGetObject : isGetBucket;
+            fs.unlinkSync('./testFile');
+            assert.ok(ok);
+            done();
+          }
+        );
       }
-    );
+    });
   }
   test('downloadFile() object The Getobject Key is illegal 1', function (done) {
     getObjectOrGetBucket('///////', false, done);

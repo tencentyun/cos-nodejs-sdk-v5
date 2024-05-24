@@ -527,8 +527,9 @@ var apiWrapper = function (apiName, apiFn) {
             delete params.AppId;
           }
         }
-        // 如果 Key 是 / 开头，强制去掉第一个 /
-        if (!self.options.UseRawKey && params.Key && params.Key.substr(0, 1) === '/') {
+        // 除了下列 api，如果 Key 是 / 开头，强制去掉第一个 /
+        var dontRemoveApi = ['sliceUploadFile', 'uploadFile', 'downloadFile', 'sliceCopyFile'];
+        if (!self.options.UseRawKey && params.Key && params.Key.substr(0, 1) === '/' && !dontRemoveApi.includes(apiName)) {
           params.Key = params.Key.substr(1);
         }
       }
@@ -736,6 +737,21 @@ var encodeBase64 = function (str, safe) {
   return base64Str;
 };
 
+var simplifyPath = function (path) {
+  const names = path.split('/');
+  const stack = [];
+  for (const name of names) {
+    if (name === '..') {
+      if (stack.length) {
+        stack.pop();
+      }
+    } else if (name.length && name !== '.') {
+      stack.push(name);
+    }
+  }
+  return '/' + stack.join('/');
+};
+
 var util = {
   noop: noop,
   formatParams: formatParams,
@@ -772,6 +788,7 @@ var util = {
   isCIHost: isCIHost,
   getSourceParams: getSourceParams,
   encodeBase64: encodeBase64,
+  simplifyPath: simplifyPath,
 };
 
 module.exports = util;

@@ -1401,6 +1401,14 @@ function copySliceItem(params, callback) {
 
 // 分片下载文件
 function downloadFile(params, callback) {
+  if (this.options.ObjectKeySimplifyCheck) {
+    // getObject 的 Key 需要格式化，避免调用成 getBucket
+    var formatKey = util.simplifyPath(params.Key);
+    if (formatKey === '/') {
+      callback(util.error(new Error('The Getobject Key is illegal')));
+      return;
+    }
+  }
   var self = this;
   var TaskId = params.TaskId || util.uuid();
   var Bucket = params.Bucket;
@@ -1434,8 +1442,8 @@ function downloadFile(params, callback) {
         if (err) return ep.emit('error', err);
 
         // 获取文件大小
-        FileSize = params.FileSize = parseInt(data.headers['content-length']);
-        if (FileSize === undefined || !FileSize) {
+        FileSize = params.FileSize = data.headers['content-length'] ? parseInt(data.headers['content-length']) : undefined;
+        if (FileSize === undefined) {
           callback(
             util.error(
               new Error(

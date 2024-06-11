@@ -4251,8 +4251,45 @@ function _submitRequest(params, callback) {
         }
         var body = bodyBuf.toString();
 
+        // 响应错误时兼容 xml 和 json
+        var parseError = function (responseBody) {
+          var parsedBody = {};
+          var isXml = false;
+          try {
+            if (responseBody.indexOf('<') > -1 && responseBody.indexOf('>') > -1) {
+              var json = util.xml2json(responseBody) || {};
+              parsedBody = json && json.Error;
+              isXml = true;
+            }
+          } catch (e) {}
+          if (!isXml) {
+            try {
+              // 替换 json 中的换行符为空格，否则解析会出错
+              responseBody = responseBody.replace(/\n/g, ' ');
+              parsedBody = JSON.parse(responseBody);
+            } catch (e) {}
+          }
+          return parsedBody;
+        };
+
         // 不对 body 进行转换，body 直接挂载返回
-        if (rawBody && statusSuccess) return cb(null, { body: bodyBuf });
+        if (rawBody) {
+          if (statusSuccess) {
+            cb(null, { body: bodyBuf });
+          } else {
+            var errorBody = {};
+            if (typeof body === 'string') {
+              errorBody = parseError(body);
+            } else {
+              errorBody = body;
+            }
+            cb(
+              util.error(new Error(errorBody.Message || 'response body error'), { code: errorBody.Code, error: errorBody })
+            );
+          }
+          chunkList = null;
+          return;
+        }
 
         // 解析 xml body
         var json = {};

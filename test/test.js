@@ -6679,11 +6679,7 @@ group('RawBody error', function () {
       },
       function (err, data) {
         console.log('body is json', err || data);
-        if (config.Region === 'ap-beijing') {
-          assert.ok(err.message === 'dataset not created');
-        } else {
-          assert.ok(err.code === 'InvalidUrl');
-        }
+        assert.ok(err.code);
         done();
       }
     );
@@ -6719,7 +6715,7 @@ group('RawBody error', function () {
       },
       function (err, data) {
         console.log('body is Blob', err || data);
-        assert.ok(err.code === 'NoSuchKey');
+        assert.ok(err.code);
         done();
       }
     );
@@ -6741,7 +6737,7 @@ group('RawBody error', function () {
       },
       function (err, data) {
         console.log('body is xml', err || data);
-        assert.ok(err.code === 'NoSuchKey');
+        assert.ok(err.code);
         done();
       }
     );

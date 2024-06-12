@@ -103,8 +103,7 @@ var tempCOS = new COS({
         ExpiredTime: data.expiredTime, // 时间戳，单位秒，如：1580000000
         ScopeLimit: true, // 细粒度控制权限需要设为 true，会限制密钥只在相同请求时重复使用
       });
-      }
-    );
+    });
   },
 });
 
@@ -146,7 +145,7 @@ var getSignCOS = new COS({
         return console.error('credentials invalid:\n' + JSON.stringify(data, null, 2));
       }
       callback({
-        Authorization: data?.signMap?.PutObject
+        Authorization: data?.signMap?.PutObject,
       });
     });
   },
@@ -299,7 +298,7 @@ group('init cos', function () {
       SecretId: config.SecretId,
       SecretKey: config.SecretKey,
       AppId: 12500000000,
-      Protocol: 'https'
+      Protocol: 'https',
     });
     assert.ok(initCos.options.AppId);
     done();
@@ -505,7 +504,7 @@ group('init cos', function () {
         Bucket: config.Bucket,
         Region: config.Region,
         Key: '1.txt',
-        FilePath: filePath
+        FilePath: filePath,
       },
       function (err, data) {
         assert.ok(err);
@@ -515,15 +514,18 @@ group('init cos', function () {
   });
 });
 
-group('兼容性测试', function() {
+group('兼容性测试', function () {
   test('getBucketACL 老用法', function (done) {
-    cos.getBucketACL({
-      Bucket: config.Bucket,
-      Region: config.Region,
-    },function (err, data) {
-      assert.ok(!err);
-      done();
-    });
+    cos.getBucketACL(
+      {
+        Bucket: config.Bucket,
+        Region: config.Region,
+      },
+      function (err, data) {
+        assert.ok(!err);
+        done();
+      }
+    );
   });
 });
 
@@ -1091,7 +1093,7 @@ group('sliceUploadFile() ', function () {
     var paused = false;
     var restarted = false;
     var TaskId;
-    var updateFn = function(info) {
+    var updateFn = function (info) {
       const fileTask = info.list.find((item) => item.id === TaskId);
       if (fileTask && paused && restarted) {
         if (fileTask.state === 'success') {
@@ -1101,7 +1103,7 @@ group('sliceUploadFile() ', function () {
           done();
         }
       }
-    }
+    };
     cos.on('list-update', updateFn);
     cos.abortUploadTask(
       {
@@ -1253,14 +1255,14 @@ group('sliceUploadFile() ', function () {
         Region: config.Region,
         Key: filename,
         FilePath: filePath,
-        onProgress: function(info) {
+        onProgress: function (info) {
           if (info.percent >= 0.2) {
             if (!deleted) {
               fs.rmSync(filePath);
               deleted = true;
             }
           }
-        }
+        },
       },
       function (err, data) {
         assert(err);
@@ -1776,7 +1778,7 @@ group('putObject()', function () {
         Bucket: config.Bucket,
         Region: config.Region,
         Key: Key,
-        FilePath: ''
+        FilePath: '',
       },
       function (err, data) {
         assert.ok(err);
@@ -4274,7 +4276,9 @@ group('Cache-Control', function () {
             Key: '1mb.zip',
           },
           function (err, data) {
-            assert.ok(data.headers['cache-control'] === undefined || data.headers['cache-control'] === 'max-age=259200');
+            assert.ok(
+              data.headers['cache-control'] === undefined || data.headers['cache-control'] === 'max-age=259200'
+            );
             done();
           }
         );
@@ -4322,8 +4326,10 @@ group('Cache-Control', function () {
             Key: '1mb.zip',
           },
           function (err, data) {
-            assert.ok(data.headers['cache-control'] === 'no-cache' ||
-                data.headers['cache-control'] === 'no-cache, max-age=259200');
+            assert.ok(
+              data.headers['cache-control'] === 'no-cache' ||
+                data.headers['cache-control'] === 'no-cache, max-age=259200'
+            );
             done();
           }
         );
@@ -4351,7 +4357,9 @@ group('Cache-Control', function () {
           },
           function (err, data) {
             console.log(`data.headers['cache-control']`, data.headers['cache-control']);
-            assert.ok(data.headers['cache-control'] === undefined || data.headers['cache-control'] === 'max-age=259200');
+            assert.ok(
+              data.headers['cache-control'] === undefined || data.headers['cache-control'] === 'max-age=259200'
+            );
             done();
           }
         );
@@ -4406,8 +4414,10 @@ group('Cache-Control', function () {
             Key: '1mb.zip',
           },
           function (err, data) {
-            assert.ok(data.headers['cache-control'] === 'no-cache' ||
-                data.headers['cache-control'] === 'no-cache, max-age=259200');
+            assert.ok(
+              data.headers['cache-control'] === 'no-cache' ||
+                data.headers['cache-control'] === 'no-cache, max-age=259200'
+            );
             fs.unlinkSync(filePath);
             done();
           }
@@ -6069,7 +6079,6 @@ group('sliceUploadFile() 续传', function () {
   });
 });
 
-
 group('getObject() 默认开启合并 Key 校验', function () {
   function getObjectErrorKey(Key, done) {
     cos.getObject(
@@ -6111,28 +6120,31 @@ group('getObject() 手动关闭合并 Key 校验', function () {
   });
   function putObjectAndGetObject(Key, done) {
     const Body = Key;
-    cos.putObject({
-      Bucket: config.Bucket,
-      Region: config.Region,
-      Key,
-      Body,
-    }, function(err, data) {
-      if (err) {
-        done(err);
-      } else {
-        cos.getObject(
-          {
-            Bucket: config.Bucket,
-            Region: config.Region,
-            Key,
-          },
-          function (err, data) {
-            assert.ok(data.Body.toString() === Body);
-            done();
-          }
-        );
+    cos.putObject(
+      {
+        Bucket: config.Bucket,
+        Region: config.Region,
+        Key,
+        Body,
+      },
+      function (err, data) {
+        if (err) {
+          done(err);
+        } else {
+          cos.getObject(
+            {
+              Bucket: config.Bucket,
+              Region: config.Region,
+              Key,
+            },
+            function (err, data) {
+              assert.ok(data.Body.toString() === Body);
+              done();
+            }
+          );
+        }
       }
-    });
+    );
   }
   test('getObject() object The Getobject Key is illegal 1', function (done) {
     // 会转成 getBucket
@@ -6152,18 +6164,18 @@ group('getObject() 手动关闭合并 Key 校验', function () {
     putObjectAndGetObject('/abc/../', done);
   });
   test('getObject() object The Getobject Key is illegal 3', function (done) {
-      // 会转成 getBucket
-      cos.getObject(
-        {
-          Bucket: config.Bucket,
-          Region: config.Region,
-          Key: '/./',
-        },
-        function (err, data) {
-          assert.ok(data.Body.toString().includes('ListBucketResult'));
-          done();
-        }
-      );
+    // 会转成 getBucket
+    cos.getObject(
+      {
+        Bucket: config.Bucket,
+        Region: config.Region,
+        Key: '/./',
+      },
+      function (err, data) {
+        assert.ok(data.Body.toString().includes('ListBucketResult'));
+        done();
+      }
+    );
   });
   test('getObject() object The Getobject Key is illegal 4', function (done) {
     putObjectAndGetObject('///abc/.//def//../../', done);
@@ -6180,7 +6192,7 @@ group('downloadFile() 默认开启合并 Key 校验', function () {
         Bucket: config.Bucket,
         Region: config.Region,
         Key,
-        FilePath: './' + Key
+        FilePath: './' + Key,
       },
       function (err, data) {
         assert.ok(err.message === 'The Getobject Key is illegal');
@@ -6215,33 +6227,36 @@ group('downloadFile() 手动关闭合并 Key 校验', function () {
   });
   function getObjectOrGetBucket(Key, hasEtag, done) {
     const Body = Key;
-    cos.putObject({
-      Bucket: config.Bucket,
-      Region: config.Region,
-      Key,
-      Body,
-    }, function(err, data) {
-      if (err) {
-        done();
-      } else {
-        cos.downloadFile(
-          {
-            Bucket: config.Bucket,
-            Region: config.Region,
-            Key,
-            FilePath: './testFile'
-          },
-          function (err, data) {
-            const isGetBucket = data.ETag === '';
-            const isGetObject = data.ETag !== '';
-            const ok = hasEtag ? isGetObject : isGetBucket;
-            fs.unlinkSync('./testFile');
-            assert.ok(ok);
-            done();
-          }
-        );
+    cos.putObject(
+      {
+        Bucket: config.Bucket,
+        Region: config.Region,
+        Key,
+        Body,
+      },
+      function (err, data) {
+        if (err) {
+          done();
+        } else {
+          cos.downloadFile(
+            {
+              Bucket: config.Bucket,
+              Region: config.Region,
+              Key,
+              FilePath: './testFile',
+            },
+            function (err, data) {
+              const isGetBucket = data.ETag === '';
+              const isGetObject = data.ETag !== '';
+              const ok = hasEtag ? isGetObject : isGetBucket;
+              fs.unlinkSync('./testFile');
+              assert.ok(ok);
+              done();
+            }
+          );
+        }
       }
-    });
+    );
   }
   test('downloadFile() object The Getobject Key is illegal 1', function (done) {
     getObjectOrGetBucket('///////', false, done);
@@ -6529,23 +6544,23 @@ group('downloadFile', function () {
           done();
         } else {
           cos.downloadFile({
-              Bucket: config.Bucket, // Bucket 格式：test-1250000000
-              Region: config.Region,
-              Key: Key,
-              FilePath: './' + Key, // 本地保存路径
-              ChunkSize: 1024 * 1024 * 2, // 分块大小
-              ParallelLimit: 5, // 分块并发数
-              RetryTimes: 3, // 分块失败重试次数
-              TaskId: 'downloadFile-123', // 可以自己生成TaskId，用于取消下载
-              onProgress: function (progressData) {
-                if (progressData.percent >= 0.1) {
-                  cos.emit('inner-kill-task', { TaskId: 'downloadFile-123' });
-                  fs.unlinkSync(filePath);
-                  assert.ok(1);
-                  done();
-                }
-              },
-            });
+            Bucket: config.Bucket, // Bucket 格式：test-1250000000
+            Region: config.Region,
+            Key: Key,
+            FilePath: './' + Key, // 本地保存路径
+            ChunkSize: 1024 * 1024 * 2, // 分块大小
+            ParallelLimit: 5, // 分块并发数
+            RetryTimes: 3, // 分块失败重试次数
+            TaskId: 'downloadFile-123', // 可以自己生成TaskId，用于取消下载
+            onProgress: function (progressData) {
+              if (progressData.percent >= 0.1) {
+                cos.emit('inner-kill-task', { TaskId: 'downloadFile-123' });
+                fs.unlinkSync(filePath);
+                assert.ok(1);
+                done();
+              }
+            },
+          });
         }
       }
     );
@@ -6553,8 +6568,7 @@ group('downloadFile', function () {
 });
 
 group('request', function () {
-  var base64Url =
-  `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`;
+  var base64Url = `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`;
   // 需要转为Blob上传
   var body = Buffer.from(base64Url, 'base64');
   test('putObject pic-operations()', function (done) {
@@ -6627,7 +6641,7 @@ group('request', function () {
             Url: url,
             RawBody: true,
             Query: {
-                'ci-process': 'ImageInspect', /* 必须，操作类型，异常图片检测固定为：ImageInspect	*/
+              'ci-process': 'ImageInspect' /* 必须，操作类型，异常图片检测固定为：ImageInspect	*/,
             },
           },
           function (err, data) {
@@ -6635,6 +6649,96 @@ group('request', function () {
             done();
           }
         );
+      }
+    );
+  });
+});
+
+group('RawBody error', function () {
+  // 从 Bucket 里拆出 AppId
+  const AppId = config.Bucket.substr(config.Bucket.lastIndexOf('-') + 1);
+  test('body is json', function (done) {
+    const key = 'dataset'; // 固定值
+    const host = `${AppId}.ci.${config.Region}.myqcloud.com`;
+    const url = `https://${host}/${key}`;
+    cos.request(
+      {
+        Method: 'GET', // 固定值，必须
+        Key: key, // 必须
+        Url: url, // 请求的url，必须
+        Query: {
+          // 数据集名称，同一个账户下唯一。;是否必传：是
+          datasetname: 'test-not-found-112233',
+          // 是否需要实时统计数据集中文件相关信息。有效值： false：不统计，返回的文件的总大小、数量信息可能不正确也可能都为0。 true：需要统计，返回数据集中当前的文件的总大小、数量信息。 默认值为false。;是否必传：否
+          statistics: false,
+        },
+        Headers: {
+          // 设置响应体为json，固定值，必须
+          Accept: 'application/json',
+        },
+      },
+      function (err, data) {
+        console.log('body is json', err || data);
+        assert.ok(err.code);
+        done();
+      }
+    );
+  });
+  test('body is Blob', function (done) {
+    const key = '2221333test.mp4'; // ObjectKey: 存在cos的媒体文件路径，比如test.mp4
+    const host = `${config.Bucket}.cos.${config.Region}.tencentcos.cn`;
+    const url = `https://${host}/${key}`;
+    cos.request(
+      {
+        Method: 'GET', // 固定值，必须
+        Key: key, // 必须
+        Url: url, // 请求的url，必须
+        Query: {
+          // 操作类型，固定使用 snapshot;是否必传：是
+          'ci-process': 'snapshot',
+          // 截图的时间点，单位为秒;是否必传：是
+          time: 1,
+          // 截图的宽。默认为0;是否必传：否
+          width: 0,
+          // 截图的高。默认为0;是否必传：否
+          height: 0,
+          // 截图的格式，支持 jpg 和 png，默认 jpg;是否必传：否
+          format: 'jpg',
+          // 图片旋转方式auto：按视频旋转信息进行自动���转off：不旋转默认值为 auto;是否必传：否
+          rotate: 'auto',
+          // 截帧方式keyframe：截取指定时间点之前的最近的一个关键帧exactframe：截取指定时间点的帧默认值为 exactframe;是否必传：否
+          mode: 'exactframe',
+        },
+        RawBody: true,
+        // 可选返回文件格式为blob
+        DataType: 'blob',
+      },
+      function (err, data) {
+        console.log('body is Blob', err || data);
+        assert.ok(err.code);
+        done();
+      }
+    );
+  });
+  test('body is xml', function (done) {
+    const key = '2视频/peachtest.mp4.m3u8'; // ObjectKey: 存在cos的媒体文件路径，比如test.mp4
+    cos.request(
+      {
+        Bucket: config.Bucket,
+        Region: config.Region,
+        Method: 'GET', // 固定值，必须
+        Key: key, // 必须
+        Query: {
+          // 操作类型，固定使用 pm3u8;是否必传：是
+          'ci-process': 'pm3u8',
+          // 私有 ts 资源 url 下载凭证的相对有效期，单位为秒，范围为[3600, 43200];是否必传：是
+          expires: 3600,
+        },
+      },
+      function (err, data) {
+        console.log('body is xml', err || data);
+        assert.ok(err.code);
+        done();
       }
     );
   });

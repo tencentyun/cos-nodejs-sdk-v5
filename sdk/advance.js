@@ -45,7 +45,9 @@ function sliceUploadFile(params, callback) {
     var metaHeaders = {};
     util.each(params.Headers, function (val, k) {
       var shortKey = k.toLowerCase();
-      if (shortKey.indexOf('x-cos-meta-') === 0 || shortKey === 'pic-operations') metaHeaders[k] = val;
+      if (shortKey.indexOf('x-cos-meta-') === 0 || shortKey === 'pic-operations') {
+        metaHeaders[k] = val;
+      }
     });
     uploadSliceComplete.call(
       self,
@@ -1442,7 +1444,9 @@ function downloadFile(params, callback) {
         if (err) return ep.emit('error', err);
 
         // 获取文件大小
-        FileSize = params.FileSize = data.headers['content-length'] ? parseInt(data.headers['content-length']) : undefined;
+        FileSize = params.FileSize = data.headers['content-length']
+          ? parseInt(data.headers['content-length'])
+          : undefined;
         if (FileSize === undefined) {
           callback(
             util.error(

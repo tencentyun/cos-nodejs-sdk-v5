@@ -3,6 +3,8 @@ var fs = require('fs');
 var Async = require('./async');
 var EventProxy = require('./event').EventProxy;
 var util = require('./util');
+var crc64 = require('../lib/crc64');
+
 
 // 文件分块上传全过程，暴露的分块上传接口
 function sliceUploadFile(params, callback) {
@@ -61,12 +63,12 @@ function sliceUploadFile(params, callback) {
       },
       function (err, data) {
         if (!self._isRunningTask(TaskId)) return;
-        session.removeUsing(UploadData.UploadId);
+        session.upload.removeUsing(UploadData.UploadId);
         if (err) {
           onProgress(null, true);
           return ep.emit('error', err);
         }
-        session.removeUploadId.call(self, UploadData.UploadId);
+        session.upload.removeUploadId.call(self, UploadData.UploadId);
         onProgress({ loaded: FileSize, total: FileSize }, true);
         ep.emit('upload_complete', data);
       }
@@ -76,9 +78,9 @@ function sliceUploadFile(params, callback) {
   // 获取 UploadId 完成，开始上传每个分片
   ep.on('get_upload_data_finish', function (UploadData) {
     // 处理 UploadId 缓存
-    var uuid = session.getFileId(params.FileStat, params.ChunkSize, Bucket, Key);
-    uuid && session.saveUploadId.call(self, uuid, UploadData.UploadId, self.options.UploadIdCacheLimit); // 缓存 UploadId
-    session.setUsing(UploadData.UploadId); // 标记 UploadId 为正在使用
+    var uuid = session.upload.getFileId(params.FileStat, params.ChunkSize, Bucket, Key);
+    uuid && session.upload.saveUploadId.call(self, uuid, UploadData.UploadId, self.options.UploadIdCacheLimit); // 缓存 UploadId
+    session.upload.setUsing(UploadData.UploadId); // 标记 UploadId 为正在使用
 
     // 获取 UploadId
     onProgress(null, true); // 任务状态开始 uploading
@@ -323,7 +325,7 @@ function getUploadIdAndPartList(params, callback) {
       function (UploadId, asyncCallback) {
         if (!self._isRunningTask(TaskId)) return;
         // 如果正在上传，跳过
-        if (session.using[UploadId]) {
+        if (session.upload.using[UploadId]) {
           asyncCallback(); // 检查下一个 UploadId
           return;
         }
@@ -339,7 +341,7 @@ function getUploadIdAndPartList(params, callback) {
           function (err, PartListData) {
             if (!self._isRunningTask(TaskId)) return;
             if (err) {
-              session.removeUsing(UploadId);
+              session.upload.removeUsing(UploadId);
               return ep.emit('error', err);
             }
             var PartList = PartListData.PartList;
@@ -378,8 +380,8 @@ function getUploadIdAndPartList(params, callback) {
   // 在本地缓存找可用的 UploadId
   ep.on('seek_local_avail_upload_id', function (RemoteUploadIdList) {
     // 在本地找可用的 UploadId
-    var uuid = session.getFileId(params.FileStat, params.ChunkSize, Bucket, Key);
-    var LocalUploadIdList = session.getUploadIdList.call(self, uuid);
+    var uuid = session.upload.getFileId(params.FileStat, params.ChunkSize, Bucket, Key);
+    var LocalUploadIdList = session.upload.getUploadIdList.call(self, uuid);
     if (!uuid || !LocalUploadIdList) {
       ep.emit('has_and_check_upload_id', RemoteUploadIdList);
       return;
@@ -393,12 +395,12 @@ function getUploadIdAndPartList(params, callback) {
       var UploadId = LocalUploadIdList[index];
       // 如果不在远端 UploadId 列表里，跳过并删除
       if (!util.isInArray(RemoteUploadIdList, UploadId)) {
-        session.removeUploadId.call(self, UploadId);
+        session.upload.removeUploadId.call(self, UploadId);
         next(index + 1);
         return;
       }
       // 如果正在上传，跳过
-      if (session.using[UploadId]) {
+      if (session.upload.using[UploadId]) {
         next(index + 1);
         return;
       }
@@ -415,7 +417,7 @@ function getUploadIdAndPartList(params, callback) {
           if (!self._isRunningTask(TaskId)) return;
           if (err) {
             // 如果 UploadId 获取会出错，跳过并删除
-            session.removeUploadId.call(self, UploadId);
+            session.upload.removeUploadId.call(self, UploadId);
             next(index + 1);
           } else {
             // 找到可用 UploadId
@@ -458,11 +460,11 @@ function getUploadIdAndPartList(params, callback) {
           ep.emit('seek_local_avail_upload_id', RemoteUploadIdList);
         } else {
           // 远端没有 UploadId，清理缓存的 UploadId
-          var uuid = session.getFileId(params.FileStat, params.ChunkSize, Bucket, Key),
+          var uuid = session.upload.getFileId(params.FileStat, params.ChunkSize, Bucket, Key),
             LocalUploadIdList;
-          if (uuid && (LocalUploadIdList = session.getUploadIdList.call(self, uuid))) {
+          if (uuid && (LocalUploadIdList = session.upload.getUploadIdList.call(self, uuid))) {
             util.each(LocalUploadIdList, function (UploadId) {
-              session.removeUploadId.call(self, UploadId);
+              session.upload.removeUploadId.call(self, UploadId);
             });
           }
           ep.emit('no_available_upload_id');
@@ -1101,12 +1103,12 @@ function sliceCopyFile(params, callback) {
         );
       },
       function (err, data) {
-        session.removeUsing(UploadData.UploadId); // 标记 UploadId 没被使用了，因为复制没提供重试，所以只要出错，就是 UploadId 停用了。
+        session.upload.removeUsing(UploadData.UploadId); // 标记 UploadId 没被使用了，因为复制没提供重试，所以只要出错，就是 UploadId 停用了。
         if (err) {
           onProgress(null, true);
           return callback(err);
         }
-        session.removeUploadId.call(self, UploadData.UploadId);
+        session.upload.removeUploadId.call(self, UploadData.UploadId);
         onProgress({ loaded: FileSize, total: FileSize }, true);
         callback(null, data);
       }
@@ -1115,9 +1117,9 @@ function sliceCopyFile(params, callback) {
 
   ep.on('get_copy_data_finish', function (UploadData) {
     // 处理 UploadId 缓存
-    var uuid = session.getCopyFileId(CopySource, SourceResHeaders, ChunkSize, Bucket, Key);
-    uuid && session.saveUploadId.call(self, uuid, UploadData.UploadId, self.options.UploadIdCacheLimit); // 缓存 UploadId
-    session.setUsing(UploadData.UploadId); // 标记 UploadId 为正在使用
+    var uuid = session.upload.getCopyFileId(CopySource, SourceResHeaders, ChunkSize, Bucket, Key);
+    uuid && session.upload.saveUploadId.call(self, uuid, UploadData.UploadId, self.options.UploadIdCacheLimit); // 缓存 UploadId
+    session.upload.setUsing(UploadData.UploadId); // 标记 UploadId 为正在使用
 
     var needCopySlices = util.filter(UploadData.PartList, function (SliceItem) {
       if (SliceItem['Uploaded']) {
@@ -1160,7 +1162,7 @@ function sliceCopyFile(params, callback) {
       },
       function (err) {
         if (err) {
-          session.removeUsing(UploadData.UploadId); // 标记 UploadId 没被使用了，因为复制没提供重试，所以只要出错，就是 UploadId 停用了。
+          session.upload.removeUsing(UploadData.UploadId); // 标记 UploadId 没被使用了，因为复制没提供重试，所以只要出错，就是 UploadId 停用了。
           onProgress(null, true);
           return callback(err);
         }
@@ -1187,8 +1189,8 @@ function sliceCopyFile(params, callback) {
     };
 
     // 在本地找可用的 UploadId
-    var uuid = session.getCopyFileId(CopySource, SourceResHeaders, ChunkSize, Bucket, Key);
-    var LocalUploadIdList = session.getUploadIdList.call(self, uuid);
+    var uuid = session.upload.getCopyFileId(CopySource, SourceResHeaders, ChunkSize, Bucket, Key);
+    var LocalUploadIdList = session.upload.getUploadIdList.call(self, uuid);
     if (!uuid || !LocalUploadIdList) return createNewUploadId();
 
     var next = function (index) {
@@ -1196,7 +1198,7 @@ function sliceCopyFile(params, callback) {
       if (index >= LocalUploadIdList.length) return createNewUploadId();
       var UploadId = LocalUploadIdList[index];
       // 如果正在被使用，跳过
-      if (session.using[UploadId]) return next(index + 1);
+      if (session.upload.using[UploadId]) return next(index + 1);
       // 判断 UploadId 是否存在线上
       wholeMultipartListPart.call(
         self,
@@ -1209,11 +1211,11 @@ function sliceCopyFile(params, callback) {
         function (err, PartListData) {
           if (err) {
             // 如果 UploadId 获取会出错，跳过并删除
-            session.removeUploadId.call(self, UploadId);
+            session.upload.removeUploadId.call(self, UploadId);
             next(index + 1);
           } else {
             // 如果异步回来 UploadId 已经被用了，也跳过
-            if (session.using[UploadId]) return next(index + 1);
+            if (session.upload.using[UploadId]) return next(index + 1);
             // 找到可用 UploadId
             var finishETagMap = {};
             var offset = 0;
@@ -1417,6 +1419,8 @@ function downloadFile(params, callback) {
   var Region = params.Region;
   var Key = params.Key;
   var FilePath = params.FilePath;
+  var TmpPath = FilePath + '.part';
+  var checkCrc64 = params.CheckCrc64 || false;
   var FileSize;
   var FinishSize = 0;
   var onProgress;
@@ -1427,6 +1431,7 @@ function downloadFile(params, callback) {
   var PartList;
   var aborted = false;
   var head = {};
+  var downloadId;
 
   ep.on('error', function (err) {
     callback(err);
@@ -1538,32 +1543,87 @@ function downloadFile(params, callback) {
         PartNumber: partNumber,
         start: start,
         end: end,
+        loaded: false,
       };
       list.push(item);
     }
     PartList = list;
 
-    ep.emit('prepare_file');
+    ep.emit('seek_local_avail_download_id');
   });
 
-  // 准备要下载的空文件
-  ep.on('prepare_file', function () {
-    fs.writeFile(FilePath, '', (err) => {
-      if (err) {
-        ep.emit('error', err.code === 'EISDIR' ? { code: 'exist_same_dir', message: FilePath } : err);
-      } else {
-        ep.emit('start_download_chunks');
-      }
+  // 在本地缓存找可用的 DownloadId
+  ep.on('seek_local_avail_download_id', function () {
+    downloadId = session.download.getFileId(FilePath, FileSize, head.mtime, ChunkSize, Bucket, Key);
+    var localDownloadInfo = session.download.getDownloadInfo.call(self, downloadId);
+    // 本地无缓存记录，需要从头下载
+    if (!downloadId || !localDownloadInfo) {
+      ep.emit('prepare_file', false);
+      return;
+    }
+    // 本地缓存和远端文件已经不一致，需要重新下载
+    if (localDownloadInfo.size !== head.size ||
+      localDownloadInfo.crc64ecma !== head.crc64ecma) {
+      ep.emit('prepare_file', false);
+      return;
+    }
+    ep.emit('prepare_file', true);
+  });
+
+  var saveDownloadInfo = function() {
+    session.download.saveDownloadId(downloadId, {
+      key: params.Key,
+      size: FileSize,
+      crc64ecma: head.crc64ecma,
+      parts: PartList
     });
+  }
+
+  var removeDownloadInfo = function(downloadId) {
+    session.download.removeUploadId(downloadId);
+  }
+
+  // 准备要下载的文件
+  ep.on('prepare_file', function (continueDownload) {
+    if (continueDownload) {
+      // 可以续下载
+      var localDownloadInfo = session.download.getDownloadInfo.call(self, downloadId);
+      PartList = localDownloadInfo.parts;
+      PartList.forEach(function(part) {
+        if (part.loaded) {
+          FinishSize += part.end - part.start;
+        }
+      });
+      ep.emit('start_download_chunks', { loaded: FinishSize });
+    } else {
+      // 创建空临时文件
+      fs.writeFile(TmpPath, '', (err) => {
+        if (err) {
+          ep.emit('error', err.code === 'EISDIR' ? { code: 'exist_same_dir', message: TmpPath } : err);
+        } else {
+          saveDownloadInfo();
+          ep.emit('start_download_chunks', { loaded: 0 });
+        }
+      });
+    }
   });
 
   // 计算合适的分片大小
   var result;
-  ep.on('start_download_chunks', function () {
-    onProgress({ loaded: 0, total: FileSize }, true);
+  ep.on('start_download_chunks', function (partsInfo) {
+    onProgress({ loaded: partsInfo.loaded || 0, total: FileSize }, true);
     var maxPartNumber = PartList.length;
+    var todoPartList = PartList.filter(function(part) {
+      return !part.loaded;
+    });
+    if (todoPartList.legnth === 0) {
+      // 缓存已经完成下载，为了获取回调只下载最后一块
+      todoPartList = PartList.filter(function(part) {
+        return part.partNumber === maxPartNumber;
+      });
+    }
     Async.eachLimit(
-      PartList,
+      todoPartList,
       ParallelLimit,
       function (part, nextChunk) {
         if (aborted) return;
@@ -1574,7 +1634,7 @@ function downloadFile(params, callback) {
             // FinishSize
             var Headers = util.clone(params.Headers);
             Headers.Range = 'bytes=' + part.start + '-' + part.end;
-            const writeStream = fs.createWriteStream(FilePath, {
+            const writeStream = fs.createWriteStream(TmpPath, {
               start: part.start,
               flags: 'r+',
             });
@@ -1614,9 +1674,11 @@ function downloadFile(params, callback) {
 
                 // 只校验文件大小和 crc64 是否有变更
                 var changed;
-                if (chunkHeaders['x-cos-hash-crc64ecma'] !== head.crc64ecma)
+                if (chunkHeaders['x-cos-hash-crc64ecma'] !== head.crc64ecma) {
                   changed = 'download error, x-cos-hash-crc64ecma has changed.';
-                else if (totalSize !== head.size) changed = 'download error, Last-Modified has changed.';
+                } else if (totalSize !== head.size) {
+                  changed = 'download error, Last-Modified has changed.';
+                }
                 // else if (data.ETag !== head.ETag) error = 'download error, ETag has changed.';
                 // else if (chunkHeaders['last-modified'] !== head.mtime) error = 'download error, Last-Modified has changed.';
 
@@ -1634,6 +1696,7 @@ function downloadFile(params, callback) {
                 } else {
                   FinishSize += chunkReadSize - preAddSize;
                   part.loaded = true;
+                  saveDownloadInfo();
                   onProgress({ loaded: FinishSize, total: FileSize });
                   tryCallback(err, data);
                 }
@@ -1657,7 +1720,43 @@ function downloadFile(params, callback) {
 
   // 下载已完成
   ep.on('download_chunks_complete', function () {
-    callback(null, result);
+    if (checkCrc64) {
+      // 对比 crc64
+      var originCrc64 = result.headers['x-cos-hash-crc64ecma'];
+      crc64.crc64File(TmpPath, {}, function(err, content) {
+        if (err) {
+          ep.emit('download_finished', {
+            code: err.code,
+            message: err.message,
+            statusCode: result.statusCode,
+            header: result.headers,
+          });
+        } else {
+          var isEqual = originCrc64 === content;
+          if (!isEqual) {
+            ep.emit('download_finished', {
+              code: 'ObjectHasChanged',
+              message: 'download error, x-cos-hash-crc64ecma has changed.',
+              statusCode: result.statusCode,
+              header: result.headers,
+            });
+          } else {
+            fs.rename(TmpPath, FilePath, (err) => {
+              ep.emit('download_finished', null, result);
+            });
+          }
+        }
+      });
+    } else {
+      fs.rename(TmpPath, FilePath, (err) => {
+        ep.emit('download_finished', null, result);
+      });
+    }
+  });
+
+  ep.on('download_finished', function(err, data) {
+    removeDownloadInfo(downloadId);
+    callback(err, data);
   });
 
   // 监听 取消任务

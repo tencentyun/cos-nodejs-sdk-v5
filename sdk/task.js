@@ -131,7 +131,7 @@ var initTask = function (cos) {
       try {
         var UploadId = task && task.params && task.params.UploadData.UploadId;
       } catch (e) {}
-      if (switchToState === 'canceled' && UploadId) session.removeUsing(UploadId);
+      if (switchToState === 'canceled' && UploadId) session.upload.removeUsing(UploadId);
       emitListUpdate();
       if (running) {
         uploadingFileCount--;

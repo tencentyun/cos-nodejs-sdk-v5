@@ -33,6 +33,7 @@
   "homepage": "https://github.com/tencentyun/cos-nodejs-sdk-v5#readme",
   "dependencies": {
     "conf": "^9.0.0",
+    "crc64-ecma182.js": "2.0.2",
     "fast-xml-parser": "4.2.5",
     "mime-types": "^2.1.24",
     "request": "^2.88.2"
@@ -40,7 +41,6 @@
   "devDependencies": {
     "@types/node": "^14.14.20",
     "batch": "^0.6.1",
-    "crc64-ecma182.js": "^2.0.2",
     "mocha": "^4.0.1",
     "nyc": "^15.1.0",
     "prettier": "^3.0.1",

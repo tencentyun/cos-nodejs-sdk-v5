@@ -1619,7 +1619,7 @@ function downloadFile(params, callback) {
     if (todoPartList.legnth === 0) {
       // 缓存已经完成下载，为了获取回调只下载最后一块
       todoPartList = PartList.filter(function(part) {
-        return part.partNumber === maxPartNumber;
+        return part.PartNumber === maxPartNumber;
       });
     }
     Async.eachLimit(
@@ -1754,21 +1754,25 @@ function downloadFile(params, callback) {
       }
       var remoteCrc64 = head['crc64ecma'];
       if (resCrc64.toString() === remoteCrc64) {
-        ep.emit('download_finished', null, result);
+        ep.emit('download_finished', { err: null, data: result });
       } else {
         ep.emit('download_finished', {
-          code: 'ObjectHasChanged',
-          message: 'download error, x-cos-hash-crc64ecma is not equal local crc64',
-          statusCode: result.statusCode,
-          header: result.headers,
+          err: {
+            code: 'ObjectHasChanged',
+            message: 'download error, x-cos-hash-crc64ecma is not equal local crc64',
+            statusCode: result.statusCode,
+            header: result.headers,
+          }
         });
       }
     } else {
-      ep.emit('download_finished', null, result);
+      ep.emit('download_finished', { err: null, data: result });
     }
   });
 
-  ep.on('download_finished', function(err, data) {
+  ep.on('download_finished', function(info) {
+    var err = info.err;
+    var data = info.data;
     fs.rename(TmpPath, FilePath, (error) => {
       if (error) {
         // 下载完成但是重命名失败

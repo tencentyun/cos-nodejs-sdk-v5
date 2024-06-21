@@ -1694,11 +1694,33 @@ function downloadFile(params, callback) {
                   });
                   self.emit('inner-kill-task', { TaskId: TaskId });
                 } else {
-                  FinishSize += chunkReadSize - preAddSize;
-                  part.loaded = true;
-                  saveDownloadInfo();
-                  onProgress({ loaded: FinishSize, total: FileSize });
-                  tryCallback(err, data);
+                  if (checkCrc64) {
+                    // 需要校验 crc64
+                    crc64.crc64_file(TmpPath, { start: part.start, end: part.end }, function(err, content) {
+                      if (err) {
+                        ep.emit('error', {
+                          code: 'ReadChunkError',
+                          message: e.message || '',
+                          statusCode: data.statusCode,
+                          header: chunkHeaders,
+                        });
+                        self.emit('inner-kill-task', { TaskId: TaskId });
+                      } else {
+                        FinishSize += chunkReadSize - preAddSize;
+                        part.loaded = true;
+                        part.crc64 = content;
+                        saveDownloadInfo();
+                        onProgress({ loaded: FinishSize, total: FileSize });
+                        tryCallback(err, data);
+                      }
+                    });
+                  } else {
+                    FinishSize += chunkReadSize - preAddSize;
+                    part.loaded = true;
+                    saveDownloadInfo();
+                    onProgress({ loaded: FinishSize, total: FileSize });
+                    tryCallback(err, data);
+                  }
                 }
               }
             );
@@ -1722,41 +1744,47 @@ function downloadFile(params, callback) {
   ep.on('download_chunks_complete', function () {
     if (checkCrc64) {
       // 对比 crc64
-      var originCrc64 = result.headers['x-cos-hash-crc64ecma'];
-      crc64.crc64File(TmpPath, {}, function(err, content) {
-        if (err) {
-          ep.emit('download_finished', {
-            code: err.code,
-            message: err.message,
-            statusCode: result.statusCode,
-            header: result.headers,
-          });
-        } else {
-          var isEqual = originCrc64 === content;
-          if (!isEqual) {
-            ep.emit('download_finished', {
-              code: 'ObjectHasChanged',
-              message: 'download error, x-cos-hash-crc64ecma has changed.',
-              statusCode: result.statusCode,
-              header: result.headers,
-            });
-          } else {
-            fs.rename(TmpPath, FilePath, (err) => {
-              ep.emit('download_finished', null, result);
-            });
-          }
-        }
-      });
-    } else {
-      fs.rename(TmpPath, FilePath, (err) => {
+      var max = PartList.length;
+      var resCrc64 = PartList[0].crc64;
+      for(var i = 1; i < max; i++) {
+        var partInfo = PartList[i];
+        var partCrc64 = partInfo.crc64;
+        var partLength = partInfo.end - partInfo.start + 1;
+        resCrc64 = crc64.crc64_combine(resCrc64, partCrc64, partLength);
+      }
+      var remoteCrc64 = head['crc64ecma'];
+      if (resCrc64.toString() === remoteCrc64) {
         ep.emit('download_finished', null, result);
-      });
+      } else {
+        ep.emit('download_finished', {
+          code: 'ObjectHasChanged',
+          message: 'download error, x-cos-hash-crc64ecma is not equal local crc64',
+          statusCode: result.statusCode,
+          header: result.headers,
+        });
+      }
+    } else {
+      ep.emit('download_finished', null, result);
     }
   });
 
   ep.on('download_finished', function(err, data) {
-    removeDownloadInfo(downloadId);
-    callback(err, data);
+    fs.rename(TmpPath, FilePath, (error) => {
+      if (error) {
+        // 下载完成但是重命名失败
+        callback({
+          code: 'RenameError',
+          message: error.message || '',
+          statusCode: result.statusCode,
+          header: result.headers,
+        });
+      } else {
+        // 下载成功
+        removeDownloadInfo(downloadId);
+        callback(err, data);
+      }
+    });
+
   });
 
   // 监听 取消任务

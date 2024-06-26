@@ -1597,6 +1597,9 @@ function downloadFile(params, callback) {
                 Output: writeStream,
               },
               function (err, data) {
+                if (err && writeStream.writableFinished === false) {
+                  writeStream.close && writeStream.close();
+                }
                 if (aborted) return;
 
                 // 处理错误和进度

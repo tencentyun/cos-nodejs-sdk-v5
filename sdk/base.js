@@ -4215,6 +4215,9 @@ function _submitRequest(params, callback) {
   };
 
   sender.on('error', function (err) {
+    if (params.outputStream) {
+      params.outputStream.close && params.outputStream.close();
+    }
     markLastBytesWritten();
     cb(util.error(err));
   });

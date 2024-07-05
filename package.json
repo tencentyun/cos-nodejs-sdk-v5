@@ -1,6 +1,6 @@
 {
   "name": "cos-nodejs-sdk-v5",
-  "version": "2.14.2-beta0",
+  "version": "2.14.3-beta0",
   "description": "cos nodejs sdk v5",
   "main": "index.js",
   "types": "index.d.ts",

@@ -4369,7 +4369,6 @@ function getFileCompressTask() {
 // 从 Bucket 里拆出 AppId
 const AppId = config.Bucket.substr(config.Bucket.lastIndexOf('-') + 1);
 
-createDataset();
 // 创建数据集
 function createDataset() {
   const key = 'dataset'; // 固定值

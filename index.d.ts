@@ -1849,7 +1849,7 @@ Bulk：批量模式，恢复时间为24 - 48小时。 */
     /** 上传的进度回调方法 */
     onProgress?: onProgress;
     /** 上传完成回调方法 */
-    onFileFinish?: (err: Error, data?: Record<string, any>) => void;
+    onFileFinish?: onFileFinish;
   };
   /** 要上传的单个文件参数 */
   interface UploadFileItemResult extends GeneralResult {
@@ -1868,7 +1868,7 @@ Bulk：批量模式，恢复时间为24 - 48小时。 */
     /** 所有文件整体上传进度回调方法 */
     onProgress?: onProgress;
     /** 所有文件上传完成回调方法 */
-    onFileFinish?: (err: CosError, data?: Record<string, any>) => void;
+    onFileFinish?: onFileFinish;
   }
   /** uploadFiles 接口返回值 */
   interface UploadFilesResult extends GeneralResult {

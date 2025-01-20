@@ -3665,7 +3665,9 @@ function getAuthorizationAsync(params, callback) {
   var headers = util.clone(params.Headers);
   var headerHost = '';
   util.each(headers, function (v, k) {
-    (v === '' || ['content-type', 'cache-control'].indexOf(k.toLowerCase()) > -1) && delete headers[k];
+    if (v === '') {
+      delete headers[k];
+    }
     if (k.toLowerCase() === 'host') headerHost = v;
   });
 
@@ -3736,9 +3738,11 @@ function getAuthorizationAsync(params, callback) {
 
   var calcAuthByTmpKey = function () {
     var KeyTime = '';
-    if (StsData.StartTime && params.Expires)
+    if (StsData.StartTime && params.Expires) {
       KeyTime = StsData.StartTime + ';' + (StsData.StartTime + params.Expires * 1);
-    else if (StsData.StartTime && StsData.ExpiredTime) KeyTime = StsData.StartTime + ';' + StsData.ExpiredTime;
+    } else if (StsData.StartTime && StsData.ExpiredTime) {
+       KeyTime = StsData.StartTime + ';' + StsData.ExpiredTime;
+    }
     var Authorization = util.getAuth({
       SecretId: StsData.TmpSecretId,
       SecretKey: StsData.TmpSecretKey,
@@ -3982,6 +3986,38 @@ function submitRequest(params, callback) {
   var Query = util.clone(params.qs);
   params.action && (Query[params.action] = '');
 
+
+  var contentType = '';
+  var contentLength = '';
+   // 指定一个默认的 content-type，如不指定浏览器默认会指定 text/plain;charset=UTF-8
+  var defaultContentType = 'text/plain';
+  util.each(params.headers, function (value, key) {
+    if (key.toLowerCase() === 'content-type') {
+      contentType = value;
+    }
+    if (key.toLowerCase() === 'content-length') {
+      contentLength = value;
+    }
+  });
+
+  var method = params.method.toLowerCase();
+  // 非 get、head 请求的空请求体需补充 content-length = 0
+  var noContentLengthMethods = ['get', 'head'].includes(method);
+  if (!params.body && !noContentLengthMethods) {
+    params.headers['Content-Length'] = 0;
+  }
+  // 传了请求体需补充 content-length
+  var body = params.body;
+  if (body && !contentLength) {
+    const buffer = Buffer.from(body, 'utf-8');
+    const contentLength = buffer.length;
+    params.headers['Content-Length'] = contentLength;
+  }
+  // 补充默认 content-type
+  // if (!contentType) {
+    // params.headers['Content-Type'] = defaultContentType;
+  // }
+
   var SignHost =
     params.SignHost || getSignHost.call(this, { Bucket: params.Bucket, Region: params.Region, Url: params.url });
   var next = function (tryTimes) {
@@ -4034,7 +4070,8 @@ function submitRequest(params, callback) {
               networkError,
             });
             params.SwitchHost = switchHost;
-            params.retry = true;
+            // 重试时增加请求体
+            params.headers['x-cos-sdk-retry'] = true;
             next(tryTimes + 1);
           } else {
             if (err && params.Action === 'name/cos:UploadPart') {
@@ -4128,9 +4165,6 @@ function _submitRequest(params, callback) {
 
   // 清理 undefined 和 null 字段
   opt.headers && (opt.headers = util.clearKey(opt.headers));
-  if (params.retry) {
-    opt.headers['x-cos-sdk-retry'] = true;
-  }
   opt = util.clearKey(opt);
 
   var Ip = this.options.Ip;

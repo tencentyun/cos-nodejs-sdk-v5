@@ -7,6 +7,7 @@ var xmlParser = new XMLParser({
   ignoreDeclaration: true, // 忽略 XML 声明
   ignoreAttributes: true, // 忽略属性
   parseTagValue: false, // 关闭自动解析
+  trimValues: false, // 关闭默认 trim
 });
 var xmlBuilder = new XMLBuilder();
 
@@ -55,10 +56,12 @@ var obj2str = function (obj, lowerCaseKey) {
 
 // 可以签入签名的headers
 var signHeaders = [
+  'cache-control',
   'content-disposition',
   'content-encoding',
   'content-length',
   'content-md5',
+  'content-type',
   'expect',
   'expires',
   'host',
@@ -76,7 +79,7 @@ var getSignHeaderObj = function (headers) {
   var signHeaderObj = {};
   for (var i in headers) {
     var key = i.toLowerCase();
-    if (key.indexOf('x-cos-') > -1 || signHeaders.indexOf(key) > -1) {
+    if (key.indexOf('x-cos-') > -1 || key.indexOf('x-ci-') > -1 || signHeaders.indexOf(key) > -1) {
       signHeaderObj[i] = headers[i];
     }
   }
@@ -207,11 +210,31 @@ var clearKey = function (obj) {
   return retObj;
 };
 
+// 删掉不需要的#text
+var textNodeName = '#text';
+var deleteTextNodes = function (obj) {
+  if (!isObject(obj)) return;
+  for (let i in obj) {
+    var item = obj[i];
+    if (typeof item === 'string') {
+      if (i === textNodeName) {
+        delete obj[i];
+      }
+    } else if (Array.isArray(item)) {
+      item.forEach(function (i) {
+        deleteTextNodes(i);
+      });
+    } else if (isObject(item)) {
+      deleteTextNodes(item);
+    }
+  }
+};
+
 // XML 对象转 JSON 对象
 var xml2json = function (bodyStr) {
-  var d = xmlParser.parse(bodyStr);
-
-  return d;
+  var json = xmlParser.parse(bodyStr);
+  deleteTextNodes(json);
+  return json;
 };
 
 // JSON 对象转 XML 对象
@@ -289,6 +312,10 @@ function extend(target, source) {
 
 function isArray(arr) {
   return arr instanceof Array;
+}
+
+function isObject(obj) {
+  return Object.prototype.toString.call(obj) === '[object Object]';
 }
 
 function isInArray(arr, item) {
@@ -801,6 +828,7 @@ var util = {
   binaryBase64: binaryBase64,
   extend: extend,
   isArray: isArray,
+  isObject: isObject,
   isInArray: isInArray,
   makeArray: makeArray,
   each: each,

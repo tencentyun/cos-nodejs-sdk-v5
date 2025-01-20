@@ -828,7 +828,6 @@ var util = {
   binaryBase64: binaryBase64,
   extend: extend,
   isArray: isArray,
-  isObject: isObject,
   isInArray: isInArray,
   makeArray: makeArray,
   each: each,

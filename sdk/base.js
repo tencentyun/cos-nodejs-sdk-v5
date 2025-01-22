@@ -3989,7 +3989,7 @@ function submitRequest(params, callback) {
 
   var contentType = '';
   var contentLength = '';
-   // 指定一个默认的 content-type，如不指定浏览器默认会指定 text/plain;charset=UTF-8
+   // 指定一个默认的 content-type
   var defaultContentType = 'text/plain';
   util.each(params.headers, function (value, key) {
     if (key.toLowerCase() === 'content-type') {

@@ -3986,7 +3986,6 @@ function submitRequest(params, callback) {
   var Query = util.clone(params.qs);
   params.action && (Query[params.action] = '');
 
-
   var contentType = '';
   var contentLength = '';
    // 指定一个默认的 content-type
@@ -4001,17 +4000,20 @@ function submitRequest(params, callback) {
   });
 
   var method = params.method.toLowerCase();
-  // 非 get、head 请求的空请求体需补充 content-length = 0
-  var noContentLengthMethods = ['get', 'head'].includes(method);
-  if (!params.body && !noContentLengthMethods) {
-    params.headers['Content-Length'] = 0;
-  }
-  // 传了请求体需补充 content-length
   var body = params.body;
-  if (body && !contentLength) {
-    const buffer = Buffer.from(body, 'utf-8');
-    const contentLength = buffer.length;
-    params.headers['Content-Length'] = contentLength;
+  if (body) {
+    if (!contentLength) {
+      // 传了请求体需补充 content-length
+      const buffer = Buffer.from(body, 'utf-8');
+      const contentLength = buffer.length;
+      params.headers['Content-Length'] = contentLength;
+    }
+  } else {
+    // 非 get、head 请求的空请求体需补充 content-length = 0
+    var noContentLengthMethods = ['get', 'head'].includes(method);
+    if (!noContentLengthMethods) {
+      params.headers['Content-Length'] = 0;
+    }
   }
   // 补充默认 content-type
   // if (!contentType) {

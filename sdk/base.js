@@ -2222,7 +2222,9 @@ function putObject(params, callback) {
 
   // 特殊处理 Cache-Control、Content-Type，避免代理更改这两个字段导致写入到 Object 属性里
   var headers = params.Headers;
-  if (!headers['Cache-Control'] && !headers['cache-control']) headers['Cache-Control'] = '';
+  if (!headers['Cache-Control'] && !headers['cache-control']) {
+    headers['Cache-Control'] = '';
+  }
 
   util.getBodyMd5(self.options.UploadCheckContentMd5, params.Body, function (md5) {
     if (md5) params.Headers['Content-MD5'] = util.binaryBase64(md5);
@@ -2962,9 +2964,12 @@ function multipartInit(params, callback) {
   var headers = params.Headers;
 
   // 特殊处理 Cache-Control、Content-Type
-  if (!headers['Cache-Control'] && !headers['cache-control']) headers['Cache-Control'] = '';
-  if (!headers['Content-Type'] && !headers['content-type'])
-    headers['Content-Type'] = (params.Body && params.Body.type) || '';
+  if (!headers['Cache-Control'] && !headers['cache-control']) {
+    headers['Cache-Control'] = '';
+  }
+  if (!headers['Content-Type'] && !headers['content-type']) {
+    headers['Content-Type'] = (params.Body && params.Body.type) || 'application/octet-stream';
+  }
 
   submitRequest.call(
     this,
@@ -4015,10 +4020,18 @@ function submitRequest(params, callback) {
       params.headers['Content-Length'] = 0;
     }
   }
-  // 补充默认 content-type
-  // if (!contentType) {
-    // params.headers['Content-Type'] = defaultContentType;
-  // }
+  // 上传接口补充默认 content-type
+  if (!contentType && body) {
+    var defaultContentType = 'application/octet-stream';
+    if (body.type) {
+      params.headers['Content-Type'] = body.type;
+    } else if (typeof body.pipe === 'function') {
+      var isReadStream = body && body.readable && body.path && body.mode;
+      params.headers['Content-Type'] = isReadStream ? (mime.lookup(body.path) || defaultContentType) : defaultContentType;
+    }  else  {
+      params.headers['Content-Type'] = defaultContentType;
+    }
+  }
 
   var SignHost =
     params.SignHost || getSignHost.call(this, { Bucket: params.Bucket, Region: params.Region, Url: params.url });

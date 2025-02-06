@@ -1,0 +1,6 @@
+.github/
+coverage/
+demo/
+test/
+.prettierrc
+CHANGELOG.md

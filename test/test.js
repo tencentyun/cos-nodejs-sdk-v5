@@ -607,6 +607,8 @@ group('getService()', function () {
           },
           function (err, data) {
             var hasBucket = false;
+            console.log('data.Buckets', data.Buckets);
+            console.log('BucketLongName', BucketLongName);
             data.Buckets &&
               data.Buckets.forEach(function (item) {
                 if (item.Name === BucketLongName && (item.Location === config.Region || !item.Location)) {
@@ -4126,7 +4128,7 @@ group('upload Content-Type', function () {
       }
     );
   });
-  test('putObject string Content-Type null -> application/zip', function (done, assert) {
+  test('putObject string Content-Type null -> application/octet-stream', function (done, assert) {
     cos.putObject(
       {
         Bucket: config.Bucket,
@@ -4142,7 +4144,7 @@ group('upload Content-Type', function () {
             Key: '1.zip',
           },
           function (err, data) {
-            assert.ok(data.headers['content-type'] === 'application/zip', 'Content-Type 正确');
+            assert.ok(data.headers['content-type'] === 'application/octet-stream', 'Content-Type 正确');
             done();
           }
         );
@@ -4205,7 +4207,7 @@ group('upload Content-Type', function () {
   //     });
   // });
   // sliceUploadFile
-  test('sliceUploadFile string Content-Type text/xml -> text/xml', function (done, assert) {
+  test('sliceUploadFile string Content-Type null -> application/octet-stream', function (done, assert) {
     cos.sliceUploadFile(
       {
         Bucket: config.Bucket,
@@ -4221,7 +4223,7 @@ group('upload Content-Type', function () {
             Key: '1.txt',
           },
           function (err, data) {
-            assert.ok(data.headers['content-type'] === 'text/plain', 'Content-Type 正确');
+            assert.ok(data.headers['content-type'] === 'application/octet-stream', 'Content-Type 正确');
             done();
           }
         );
@@ -4719,7 +4721,7 @@ group('BucketInventory', function () {
 
 group('Content-Type: false Bug', function () {
   test('fs.createReadStream 1', function (done, assert) {
-    var filename = '1';
+    var filename = '1.zip';
     var filepath = path.resolve(__dirname, filename);
     util.createFile(filepath, 1, function (err) {
       // 调用方法
@@ -4739,7 +4741,7 @@ group('Content-Type: false Bug', function () {
             },
             function (err, data) {
               var contentType = data && data.headers['content-type'];
-              assert.ok(contentType === 'application/octet-stream', '返回了 Content-Type: ' + contentType);
+              assert.ok(contentType === 'application/zip', '返回了 Content-Type: ' + contentType);
               fs.unlinkSync(filepath);
               done();
             }

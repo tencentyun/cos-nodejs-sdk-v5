@@ -1,5 +1,5 @@
 var pkg = require('../package.json');
-var REQUEST = require('@livehigh/request');
+var REQUEST = require('postman-request');
 var mime = require('mime-types');
 var Stream = require('stream');
 var util = require('./util');

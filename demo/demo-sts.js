@@ -25,7 +25,10 @@ var policy = {
         'effect': 'allow',
         'principal': {'qcs': ['*']},
         'resource': [
-            'qcs::cos:' + config.Region + ':uid/' + AppId + ':' + config.Bucket + '/*'
+            // COS 和 CI resource 有区别，示例：
+            // qcs::cos:ap-beijing:uid/1250000000:ci-1250000000/*"
+            // qcs::ci:ap-beijing:uid/1250000000:bucket/ci-1250000000/*"
+            'qcs::cos:' + config.Region + ':uid/' + AppId + ':' + config.Bucket + '/*',
         ]
     }]
 };

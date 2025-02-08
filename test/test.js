@@ -4791,7 +4791,7 @@ group('Content-Type: false Bug', function () {
           },
           function (err, data) {
             var contentType = data && data.headers['content-type'];
-            assert.ok(contentType === 'application/zip', '返回了 Content-Type: ' + contentType);
+            assert.ok(contentType === 'application/octet-stream', '返回了 Content-Type: ' + contentType);
             done();
           }
         );

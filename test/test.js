@@ -4126,7 +4126,7 @@ group('upload Content-Type', function () {
       }
     );
   });
-  test('putObject string Content-Type null -> application/octet-stream', function (done, assert) {
+  test('putObject string Content-Type null -> application/zip', function (done, assert) {
     cos.putObject(
       {
         Bucket: config.Bucket,
@@ -4142,7 +4142,7 @@ group('upload Content-Type', function () {
             Key: '1.zip',
           },
           function (err, data) {
-            assert.ok(data.headers['content-type'] === 'application/octet-stream', 'Content-Type 正确');
+            assert.ok(data.headers['content-type'] === 'application/zip', 'Content-Type 正确');
             done();
           }
         );
@@ -4791,7 +4791,7 @@ group('Content-Type: false Bug', function () {
           },
           function (err, data) {
             var contentType = data && data.headers['content-type'];
-            assert.ok(contentType === 'application/octet-stream', '返回了 Content-Type: ' + contentType);
+            assert.ok(contentType === 'application/zip', '返回了 Content-Type: ' + contentType);
             done();
           }
         );

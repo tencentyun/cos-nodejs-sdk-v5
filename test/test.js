@@ -2164,6 +2164,8 @@ group('sliceCopyFile()', function () {
                     delete data2.ETag;
                     delete data1.RequestId;
                     delete data2.RequestId;
+                    console.log('data1', data1);
+                    console.log('data2', data2);
                     assert.ok(comparePlainObject(data1, data2));
                     done();
                   }

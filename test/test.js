@@ -4207,7 +4207,7 @@ group('upload Content-Type', function () {
   //     });
   // });
   // sliceUploadFile
-  test('sliceUploadFile string Content-Type null -> application/octet-stream', function (done, assert) {
+  test('sliceUploadFile string Content-Type null -> text/plain', function (done, assert) {
     cos.sliceUploadFile(
       {
         Bucket: config.Bucket,
@@ -4223,7 +4223,7 @@ group('upload Content-Type', function () {
             Key: '1.txt',
           },
           function (err, data) {
-            assert.ok(data.headers['content-type'] === 'application/octet-stream', 'Content-Type 正确');
+            assert.ok(data.headers['content-type'] === 'text/plain', 'Content-Type 正确');
             done();
           }
         );

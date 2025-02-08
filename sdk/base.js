@@ -4029,7 +4029,7 @@ function submitRequest(params, callback) {
       var isReadStream = body && body.readable && body.path && body.mode;
       params.headers['Content-Type'] = isReadStream ? (mime.lookup(body.path) || defaultContentType) : defaultContentType;
     }  else  {
-      params.headers['Content-Type'] = defaultContentType;
+      // params.headers['Content-Type'] = defaultContentType;
     }
   }
 

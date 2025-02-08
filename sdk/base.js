@@ -2968,7 +2968,7 @@ function multipartInit(params, callback) {
     headers['Cache-Control'] = '';
   }
   if (!headers['Content-Type'] && !headers['content-type']) {
-    headers['Content-Type'] = (params.Body && params.Body.type) || 'application/octet-stream';
+    headers['Content-Type'] = (params.Body && params.Body.type) || '';
   }
 
   submitRequest.call(

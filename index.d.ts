@@ -1922,7 +1922,7 @@ Bulk：批量模式，恢复时间为24 - 48小时。 */
     /** 使用 sliceCopyFile 分块复制文件时，每片的大小字节数，默认值10485760（10MB） */
     CopyChunkSize?: number;
     /** 分片复制进度回调方法 */
-    onProgress: onProgress;
+    onProgress?: onProgress;
   }
   /** sliceCopyFile 接口返回值 */
   interface SliceCopyFileResult extends GeneralResult {}

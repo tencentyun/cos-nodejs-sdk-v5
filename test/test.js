@@ -6619,6 +6619,7 @@ group('request', function () {
         },
       },
       function (err, data) {
+        console.log('sliceUploadFile pic-operations', err || data);
         assert.ok(data.UploadResult.ProcessResults);
         done();
       }
@@ -6712,8 +6713,6 @@ group('RawBody error', function () {
           mode: 'exactframe',
         },
         RawBody: true,
-        // 可选返回文件格式为blob
-        DataType: 'blob',
       },
       function (err, data) {
         console.log('body is Blob', err || data);

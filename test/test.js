@@ -414,6 +414,9 @@ group('init cos', function () {
         var AuthData = cos.getAuth({
           Method: 'put',
           Key: '1.txt',
+          Headers: {
+            Host: `${config.Bucket}.${config.Region}.myqcloud.com}`,
+          }
         });
         callback({
           Authorization: AuthData,
@@ -431,6 +434,7 @@ group('init cos', function () {
         Body: '12345',
       },
       function (err, data) {
+        console.log('getAuthorization 使用临时密钥 putObject', err || data);
         assert.ok(!err);
         done();
       }
@@ -445,6 +449,7 @@ group('init cos', function () {
         Body: '12345',
       },
       function (err, data) {
+        console.log('getStsCOS 使用临时密钥 putObject', err || data);
         assert.ok(!err);
         done();
       }
@@ -672,6 +677,9 @@ group('getAuth();getV4Auth()', function () {
         var AuthData = cos.getAuth({
           Method: 'get',
           Key: key,
+          Headers: {
+            Host: `${config.Bucket}.${config.Region}.myqcloud.com}`,
+          }
         });
         if (typeof AuthData === 'string') {
           AuthData = { Authorization: AuthData };
@@ -693,6 +701,7 @@ group('getAuth();getV4Auth()', function () {
             proxy: proxy,
           },
           function (err, response, body) {
+            console.log('getAuth', err);
             assert.ok(response.statusCode === 200);
             assert.ok(body === content);
             done();
@@ -841,14 +850,16 @@ group('getObjectUrl()', function () {
       }
     );
   });
-  test('getObjectUrl() QueryString', function (done, assert) {
+  test('getObjectUrl() Query', function (done, assert) {
     var key = '1.txt';
     cos.getObjectUrl(
       {
         Bucket: config.Bucket,
         Region: config.Region,
         Key: key,
-        QueryString: 'a=1',
+        Query: {
+          a: '1'
+        },
         Sign: true,
       },
       function (err, data) {
@@ -5320,6 +5331,9 @@ group('Query 的键值带有特殊字符', function () {
           Method: 'GET',
           Key: key,
           Query: qs,
+          Headers: {
+            Host: `${config.Bucket}.${config.Region}.myqcloud.com}`,
+          }
         });
         if (typeof AuthData === 'string') {
           AuthData = { Authorization: AuthData };
@@ -6596,6 +6610,7 @@ group('request', function () {
             },
           },
           function (err, data) {
+            console.log('putObject pic-operations()', err || data);
             assert.ok(!err);
             done();
           }

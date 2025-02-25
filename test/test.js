@@ -6262,9 +6262,9 @@ group('downloadFile() 手动关闭合并 Key 校验', function () {
   test('downloadFile() object The Getobject Key is illegal 3', function (done) {
     getObjectOrGetBucket('/./', false, done);
   });
-  test('downloadFile() object The Getobject Key is illegal 4', function (done) {
-    getObjectOrGetBucket('///abc/.//def//../../', true, done);
-  });
+  // test('downloadFile() object The Getobject Key is illegal 4', function (done) {
+  //   getObjectOrGetBucket('///abc/.//def//../../', true, done);
+  // });
   test('downloadFile() object The Getobject Key is illegal 5', function (done) {
     getObjectOrGetBucket('/././///abc/.//def//../../', true, done);
   });

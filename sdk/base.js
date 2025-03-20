@@ -3993,8 +3993,8 @@ function submitRequest(params, callback) {
   var Query = util.clone(params.qs);
   params.action && (Query[params.action] = '');
 
-  var contentType = '';
-  var contentLength = '';
+  var contentType;
+  var contentLength = 0;
    // 指定一个默认的 content-type
   var defaultContentType = 'text/plain';
   util.each(params.headers, function (value, key) {
@@ -4023,7 +4023,7 @@ function submitRequest(params, callback) {
     }
   }
   // 上传接口补充默认 content-type
-  if (!contentType && body) {
+  if (contentType === undefined && body) {
     var defaultContentType = 'application/octet-stream';
     if (body.type) {
       params.headers['Content-Type'] = body.type;

@@ -3995,8 +3995,6 @@ function submitRequest(params, callback) {
 
   var contentType;
   var contentLength = 0;
-   // 指定一个默认的 content-type
-  var defaultContentType = 'text/plain';
   util.each(params.headers, function (value, key) {
     if (key.toLowerCase() === 'content-type') {
       contentType = value;

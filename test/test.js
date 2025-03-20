@@ -4727,7 +4727,7 @@ group('BucketInventory', function () {
 
 group('Content-Type: false Bug', function () {
   test('fs.createReadStream 1', function (done, assert) {
-    var filename = Date.now() + '_1.zip';
+    var filename = Date.now() + '_1';
     var filepath = path.resolve(__dirname, filename);
     util.createFile(filepath, 1, function (err) {
       // 调用方法
@@ -4747,7 +4747,7 @@ group('Content-Type: false Bug', function () {
             },
             function (err, data) {
               var contentType = data && data.headers['content-type'];
-              assert.ok(contentType === 'application/zip', '返回了 Content-Type: ' + contentType);
+              assert.ok(contentType === 'application/octet-stream', '返回了 Content-Type: ' + contentType);
               fs.unlinkSync(filepath);
               done();
             }

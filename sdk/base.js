@@ -4016,8 +4016,8 @@ function submitRequest(params, callback) {
       params.headers['Content-Length'] = contentLength;
     }
   } else {
-    // 非 get 请求的空请求体需补充 content-length = 0
-    var noContentLengthMethods = ['get'].includes(method);
+    // 非 get、head 请求的空请求体需补充 content-length = 0
+    var noContentLengthMethods = ['get', 'head'].includes(method);
     if (!noContentLengthMethods) {
       params.headers['Content-Length'] = 0;
     }

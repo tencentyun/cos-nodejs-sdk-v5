@@ -415,7 +415,7 @@ group('init cos', function () {
           Method: 'put',
           Key: '1.txt',
           Headers: {
-            Host: `${config.Bucket}.${config.Region}.myqcloud.com}`,
+            Host: `${config.Bucket}.${config.Region}.myqcloud.com`,
           }
         });
         callback({
@@ -673,7 +673,7 @@ group('getAuth();getV4Auth()', function () {
           Method: 'get',
           Key: key,
           Headers: {
-            Host: `${config.Bucket}.${config.Region}.myqcloud.com}`,
+            Host: `${config.Bucket}.${config.Region}.myqcloud.com`,
           }
         });
         if (typeof AuthData === 'string') {
@@ -5327,7 +5327,7 @@ group('Query 的键值带有特殊字符', function () {
           Key: key,
           Query: qs,
           Headers: {
-            Host: `${config.Bucket}.${config.Region}.myqcloud.com}`,
+            Host: `${config.Bucket}.${config.Region}.myqcloud.com`,
           }
         });
         if (typeof AuthData === 'string') {

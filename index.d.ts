@@ -1279,14 +1279,14 @@ declare namespace COS {
     VersionId?: string;
   }
 
-  type MetaHeader = {
+  type MetaHeaders = {
     /** 包括用户自定义元数据头部后缀和用户自定义元数据信息，将作为对象元数据保存，大小限制为2KB，注意：用户自定义元数据信息支持下划线（_），但用户自定义元数据头部后缀不支持下划线，仅支持减号（-） */
     [k in `x-cos-meta-${string}`]?: string;
   }
 
   // putObject
   /** putObject 接口参数 */
-  interface PutObjectParams extends ObjectParams, MetaHeader {
+  interface PutObjectParams extends ObjectParams, MetaHeaders {
     /** 要上传对象内容 */
     Body: UploadBody;
     /** 上传的文件大小，单位 Byte 字节，如果不传且 Body 是流，会走服务端流式上传 */
@@ -1510,7 +1510,7 @@ Bulk：批量模式，恢复时间为24 - 48小时。 */
 
   // putObjectCopy
   /** putObjectCopy 接口参数 */
-  interface PutObjectCopyParams extends ObjectParams, MetaHeader {
+  interface PutObjectCopyParams extends ObjectParams, MetaHeaders {
     /** 源对象的 URL，其中对象键需经过 URLEncode，可以通过 versionId 参数指定源对象的版本，例如： sourcebucket-1250000001.cos.ap-shanghai.myqcloud.com/example-%E8%85%BE%E8%AE%AF%E4%BA%91.jpg 或 sourcebucket-1250000001.cos.ap-shanghai.myqcloud.com/example-%E8%85%BE%E8%AE%AF%E4%BA%91.jpg?versionId=MTg0NDUxNzYzMDc0NDMzNDExOTc */
     CopySource: string;
     /** 是否复制源对象的元数据信息，枚举值：Copy，Replaced，默认为 Copy。如果标记为 Copy，则复制源对象的元数据信息；如果标记为 Replaced，则按本次请求的请求头中的元数据信息作为目标对象的元数据信息；当目标对象和源对象为同一对象时，即用户试图修改元数据时，则标记必须为 Replaced */
@@ -1583,7 +1583,7 @@ Bulk：批量模式，恢复时间为24 - 48小时。 */
 
   // multipartInit
   /** multipartInit 接口参数 */
-  interface MultipartInitParams extends ObjectParams, MetaHeader {
+  interface MultipartInitParams extends ObjectParams, MetaHeaders {
     /** RFC 2616 中定义的缓存指令，将作为对象元数据保存 */
     CacheControl?: string;
     /** RFC 2616 中定义的文件名称，将作为对象元数据保存 */
@@ -1768,7 +1768,7 @@ Bulk：批量模式，恢复时间为24 - 48小时。 */
 
   // sliceUploadFile
   /** sliceUploadFile 接口参数 */
-  interface SliceUploadFileParams extends ObjectParams, MetaHeader {
+  interface SliceUploadFileParams extends ObjectParams, MetaHeaders {
     /** 要上传的本地文件路径 */
     FilePath: string;
     /** 分块上传时，每片的字节数大小，默认值1048576（1MB） */

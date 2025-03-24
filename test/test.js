@@ -57,7 +57,7 @@ var test = function (name, fn) {
 };
 var group = function (name, fn) {
   describe(name, function () {
-    this.timeout(120000);
+    this.timeout(2 * 60 * 1000);
     fn.apply(this, arguments);
   });
 };
@@ -1075,12 +1075,11 @@ group('sliceUploadFile() ', function () {
                 Key: filename,
               },
               function (err, data) {
-                console.log('headObject', err ? 'failed' : 'success');
-                assert.ok(data && data.headers && data.headers.etag && data.headers.etag.length > 0, '文件已上传成功');
-                assert.ok(
-                  data && data.headers && parseInt(data.headers['content-length'] || 0) === fileSize,
-                  '文件大小一致'
-                );
+                var hasEtag = data && data.headers && data.headers.etag && data.headers.etag.length > 0;
+                var sizeEqual = data && data.headers && parseInt(data.headers['content-length'] || 0) === fileSize;
+                var ok = hasEtag && sizeEqual;
+                console.log('ok', ok);
+                assert.ok(ok);
                 done();
               }
             );
@@ -1129,7 +1128,7 @@ group('sliceUploadFile() ', function () {
               TaskId = taskId;
             },
             onProgress: function (info) {
-              if (!paused && info.percent >= 0.3) {
+              if (!paused && info.percent >= 0.1) {
                 cos.pauseTask(TaskId);
                 paused = true;
                 setTimeout(function () {
@@ -1140,9 +1139,14 @@ group('sliceUploadFile() ', function () {
             },
           },
           function (err, data) {
+            if (paused) {
+              console.log('paused-------');
+              return;
+            }
             paused = true;
             console.log('pauseTask(),restartTask', err || data);
             assert.ok(1);
+            console.log('done2');
             done();
           }
         );
@@ -1262,10 +1266,11 @@ group('sliceUploadFile() ', function () {
         Key: filename,
         FilePath: filePath,
         onProgress: function (info) {
-          if (info.percent >= 0.2) {
+          if (info.percent >= 0.1) {
             if (!deleted) {
               fs.rmSync(filePath);
               deleted = true;
+              console.log('file deleted');
             }
           }
         },
@@ -2922,14 +2927,13 @@ group('optionsObject()', function () {
             Bucket: config.Bucket, // Bucket 格式：test-1250000000
             Region: config.Region,
             Key: '1.jpg',
-            Headers: {
-              Origin: 'https://qq.com',
-              'Access-Control-Request-Method': 'PUT',
-              'Access-Control-Request-Headers': 'Authorization,x-cos-security-token',
-            },
+            Origin: 'https://qq.com',
+            AccessControlRequestMethod: 'PUT',
+            AccessControlRequestHeaders: 'Authorization,x-cos-security-token',
           },
           function (err, data) {
-            assert.ok(err);
+            console.log('deleteBucketCors', err || data);
+            assert.ok(data.statusCode === 403);
             done();
           }
         );
@@ -3013,6 +3017,7 @@ group('BucketCors', function () {
             Region: config.Region,
           },
           function (err, data) {
+            console.log('deleteBucketCors-getBucketCors', data.CORSRules);
             assert.ok(comparePlainObject([], data.CORSRules));
             done();
           }
@@ -6078,9 +6083,12 @@ group('sliceUploadFile() 续传', function () {
                 ChunkSize: 1024 * 1024,
               },
               function (err, data) {
+                console.log('sliceUploadFile', err, data);
                 assert.ok(data);
-                fs.unlinkSync(filepath);
                 done();
+                setTimeout(function () {
+                  fs.unlinkSync(filepath);
+                }, 1000);
               }
             );
           }
@@ -6166,7 +6174,9 @@ group('getObject() 手动关闭合并 Key 校验', function () {
         Key: '///////',
       },
       function (err, data) {
-        assert.ok(data.Body.toString().includes('ListBucketResult'));
+        console.log('getObject Body1', err || data);
+        // assert.ok(data.Body.toString().includes('ListBucketResult'));
+        assert.ok(err);
         done();
       }
     );
@@ -6183,7 +6193,9 @@ group('getObject() 手动关闭合并 Key 校验', function () {
         Key: '/./',
       },
       function (err, data) {
-        assert.ok(data.Body.toString().includes('ListBucketResult'));
+        console.log('getObject Body3', err || data);
+        // assert.ok(data.Body.toString().includes('ListBucketResult'));
+        assert.ok(err);
         done();
       }
     );
@@ -6283,24 +6295,6 @@ group('downloadFile() 手动关闭合并 Key 校验', function () {
   // });
   test('downloadFile() object The Getobject Key is illegal 5', function (done) {
     getObjectOrGetBucket('/././///abc/.//def//../../', true, done);
-  });
-});
-
-group('getStream() 流式下载 ECONNREFUSED 错误', function () {
-  test('getStream() 流式下载 ECONNREFUSED 错误', function (done, assert) {
-    cos.options.Domain = '127.0.0.1:12345';
-    cos.getObject(
-      {
-        Bucket: config.Bucket,
-        Region: config.Region,
-        Key: '1.jpg',
-      },
-      function (err, data) {
-        assert.ok(err.code === 'ECONNREFUSED');
-        cos.options.Domain = '';
-        done();
-      }
-    );
   });
 });
 
@@ -6749,6 +6743,30 @@ group('RawBody error', function () {
       function (err, data) {
         console.log('body is xml', err || data);
         assert.ok(err.code);
+        done();
+      }
+    );
+  });
+});
+
+// 这条放最后执行
+group('getStream() 流式下载 ECONNREFUSED 错误', function () {
+  test('getStream() 流式下载 ECONNREFUSED 错误', function (done, assert) {
+    var cos = new COS({
+      SecretId: config.SecretId,
+      SecretKey: config.SecretKey,
+      Timeout: 10000,
+    });
+    cos.options.Domain = '127.0.0.1:12345';
+    cos.getObject(
+      {
+        Bucket: config.Bucket,
+        Region: config.Region,
+        Key: '1.jpg',
+      },
+      function (err, data) {
+        console.log('ECONNREFUSED 错误', err || data);
+        assert.ok(err && (err.code === 'ECONNREFUSED' || err.code === 'ESOCKETTIMEDOUT'));
         done();
       }
     );

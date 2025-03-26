@@ -1089,7 +1089,7 @@ group('sliceUploadFile() ', function () {
     );
   });
   test('sliceUploadFile(),pauseTask(),restartTask()', function (done, assert) {
-    var cos = new COS({
+    var cos2 = new COS({
       SecretId: config.SecretId,
       SecretKey: config.SecretKey,
     });
@@ -1100,17 +1100,18 @@ group('sliceUploadFile() ', function () {
     var TaskId;
     var updateFn = function (info) {
       const fileTask = info.list.find((item) => item.id === TaskId);
+      console.log('fileTask', fileTask.state);
       if (fileTask && paused && restarted) {
         if (fileTask.state === 'success') {
-          fs.unlinkSync(filePath);
-          cos.off('list-update', updateFn);
+          cos2.off('list-update', updateFn);
           assert.ok(1);
           done();
+          fs.unlinkSync(filePath);
         }
       }
     };
-    cos.on('list-update', updateFn);
-    cos.abortUploadTask(
+    cos2.on('list-update', updateFn);
+    cos2.abortUploadTask(
       {
         Bucket: config.Bucket,
         Region: config.Region,
@@ -1118,7 +1119,7 @@ group('sliceUploadFile() ', function () {
         Level: 'file',
       },
       function (err, data) {
-        cos.sliceUploadFile(
+        cos2.sliceUploadFile(
           {
             Bucket: config.Bucket,
             Region: config.Region,
@@ -1128,12 +1129,12 @@ group('sliceUploadFile() ', function () {
               TaskId = taskId;
             },
             onProgress: function (info) {
-              if (!paused && info.percent >= 0.1) {
-                cos.pauseTask(TaskId);
+              if (!paused && info.percent >= 0.2) {
+                cos2.pauseTask(TaskId);
                 paused = true;
                 setTimeout(function () {
                   restarted = true;
-                  cos.restartTask(TaskId);
+                  cos2.restartTask(TaskId);
                 }, 100);
               }
             },

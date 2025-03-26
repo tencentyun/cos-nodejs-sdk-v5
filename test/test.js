@@ -1100,7 +1100,7 @@ group('sliceUploadFile() ', function () {
     var TaskId;
     var updateFn = function (info) {
       const fileTask = info.list.find((item) => item.id === TaskId);
-      console.log('fileTask', fileTask.state);
+      console.log('fileTask', fileTask.state, fileTask);
       if (fileTask && paused && restarted) {
         if (fileTask.state === 'success') {
           cos2.off('list-update', updateFn);

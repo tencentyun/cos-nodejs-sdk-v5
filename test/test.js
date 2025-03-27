@@ -1130,10 +1130,12 @@ group('sliceUploadFile() ', function () {
             },
             onProgress: function (info) {
               if (!paused && info.percent >= 0.1) {
+                console.log('-----paused', TaskId, info.percent);
                 cos2.pauseTask(TaskId);
                 paused = true;
                 setTimeout(function () {
                   restarted = true;
+                  console.log('-----restartTask', TaskId);
                   cos2.restartTask(TaskId);
                 }, 100);
               }
@@ -1141,7 +1143,7 @@ group('sliceUploadFile() ', function () {
           },
           function (err, data) {
             if (paused) {
-              console.log('paused-------');
+              console.log('paused-------', data);
               return;
             }
             paused = true;

@@ -1093,8 +1093,8 @@ group('sliceUploadFile() ', function () {
       SecretId: config.SecretId,
       SecretKey: config.SecretKey,
     });
-    var filename = Date.now().toString(36) + '-10m.zip';
-    var filePath = createFileSync(path.resolve(__dirname, filename), 1024 * 1024 * 10);
+    var filename = Date.now().toString(36) + '-20m.zip';
+    var filePath = createFileSync(path.resolve(__dirname, filename), 1024 * 1024 * 20);
     var paused = false;
     var restarted = false;
     var TaskId;
@@ -1129,7 +1129,7 @@ group('sliceUploadFile() ', function () {
               TaskId = taskId;
             },
             onProgress: function (info) {
-              if (!paused && info.percent >= 0.2) {
+              if (!paused && info.percent >= 0.1) {
                 cos2.pauseTask(TaskId);
                 paused = true;
                 setTimeout(function () {

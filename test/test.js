@@ -1125,6 +1125,9 @@ group('sliceUploadFile() ', function () {
             Region: config.Region,
             Key: filename,
             FilePath: filePath,
+            Headers: {
+              'x-cos-traffic-limit': 819200,
+            },
             onTaskReady: function (taskId) {
               TaskId = taskId;
             },

@@ -56,12 +56,10 @@ var obj2str = function (obj, lowerCaseKey) {
 
 // 可以签入签名的headers
 var signHeaders = [
-  'cache-control',
   'content-disposition',
   'content-encoding',
   'content-length',
   'content-md5',
-  'content-type',
   'expect',
   'expires',
   'host',

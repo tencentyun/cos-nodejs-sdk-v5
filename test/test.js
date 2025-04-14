@@ -1,7 +1,7 @@
 var fs = require('fs');
 var path = require('path');
 var COS = require('../index');
-var request = require('cos-request');
+var request = require('request');
 var util = require('../demo/util');
 var Stream = require('stream');
 

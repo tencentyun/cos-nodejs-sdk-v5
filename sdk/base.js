@@ -1,5 +1,5 @@
 var pkg = require('../package.json');
-var REQUEST = require('cos-request');
+var REQUEST = require('request');
 var mime = require('mime-types');
 var Stream = require('stream');
 var util = require('./util');
@@ -3672,9 +3672,7 @@ function getAuthorizationAsync(params, callback) {
   var headers = util.clone(params.Headers);
   var headerHost = '';
   util.each(headers, function (v, k) {
-    if (v === '') {
-      delete headers[k];
-    }
+    (v === '' || ['content-type', 'cache-control'].indexOf(k.toLowerCase()) > -1) && delete headers[k];
     if (k.toLowerCase() === 'host') headerHost = v;
   });
 
@@ -3993,47 +3991,6 @@ function submitRequest(params, callback) {
   var Query = util.clone(params.qs);
   params.action && (Query[params.action] = '');
 
-  var contentType;
-  var contentLength = 0;
-  util.each(params.headers, function (value, key) {
-    if (key.toLowerCase() === 'content-type') {
-      contentType = value;
-    }
-    if (key.toLowerCase() === 'content-length') {
-      contentLength = value;
-    }
-  });
-
-  var method = params.method.toLowerCase();
-  var body = params.body;
-  if (body) {
-    var isStringOrBuffer = typeof body === 'string' || Buffer.isBuffer(body);
-    if (!contentLength && isStringOrBuffer) {
-      // 传了请求体需补充 content-length
-      const buffer = Buffer.from(body, 'utf-8');
-      const contentLength = buffer.length;
-      params.headers['Content-Length'] = contentLength;
-    }
-  } else {
-    // 非 get 请求的空请求体需补充 content-length = 0
-    var noContentLengthMethods = ['get'].includes(method);
-    if (!noContentLengthMethods) {
-      params.headers['Content-Length'] = 0;
-    }
-  }
-  // 上传接口补充默认 content-type
-  if (contentType === undefined && body) {
-    var defaultContentType = 'application/octet-stream';
-    if (body.type) {
-      params.headers['Content-Type'] = body.type;
-    } else if (typeof body.pipe === 'function') {
-      var isReadStream = body && body.readable && body.path && body.mode;
-      params.headers['Content-Type'] = isReadStream ? (mime.lookup(body.path) || defaultContentType) : defaultContentType;
-    }  else  {
-      // params.headers['Content-Type'] = defaultContentType;
-    }
-  }
-
   var SignHost =
     params.SignHost || getSignHost.call(this, { Bucket: params.Bucket, Region: params.Region, Url: params.url });
   var next = function (tryTimes) {
@@ -4086,7 +4043,7 @@ function submitRequest(params, callback) {
               networkError,
             });
             params.SwitchHost = switchHost;
-            // 重试时增加请求体
+            // 重试时增加请求头
             params.headers['x-cos-sdk-retry'] = true;
             next(tryTimes + 1);
           } else {

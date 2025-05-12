@@ -6755,6 +6755,210 @@ group('RawBody error', function () {
   });
 });
 
+group('retry myqcloud.com', function () {
+  const cos = new COS({
+    SecretId: config.SecretId,
+    SecretKey: config.SecretKey,
+    Protocol: 'http',
+    AutoSwitchHost: false,
+    Timeout: 10000,
+  });
+  const config = {
+    Bucket: 'cos-sdk-err-retry-1253960454',
+    Region: 'ap-chengdu',
+  };
+  function getObject(Key, done, expectErr) {
+    cos.getObject(
+      {
+        Bucket: config.Bucket,
+        Region: config.Region,
+        Key,
+      },
+      function (err, data) {
+        const isOk = expectErr ? err : !err;
+        console.log(`retry ${Key}---res`, err ? 'err' : 'success', isOk);
+        assert.ok(isOk);
+        done();
+      }
+    );
+  }
+  test('get 200', function (done) {
+    getObject('200', done);
+  });
+  test('get 200r', function (done) {
+    getObject('200r', done);
+  });
+  test('get 204', function (done) {
+    getObject('204', done);
+  });
+  test('get 204r', function (done) {
+    getObject('204r', done);
+  });
+  test('get 206', function (done) {
+    getObject('206', done);
+  });
+  test('get 206r', function (done) {
+    getObject('206r', done);
+  });
+  test('get 301', function (done) {
+    getObject('301', done, true);
+  });
+  test('get 301r', function (done) {
+    getObject('301r', done, true);
+  });
+  test('get 302', function (done) {
+    getObject('302', done, true);
+  });
+  test('get 302r', function (done) {
+    getObject('302r', done, true);
+  });
+  test('get 400', function (done) {
+    getObject('400', done, true);
+  });
+  test('get 400r', function (done) {
+    getObject('400r', done, true);
+  });
+  test('get 403', function (done) {
+    getObject('403', done, true);
+  });
+  test('get 403r', function (done) {
+    getObject('403r', done, true);
+  });
+  test('get 404', function (done) {
+    getObject('404', done, true);
+  });
+  test('get 404r', function (done) {
+    getObject('404r', done, true);
+  });
+  test('get 500', function (done) {
+    getObject('500', done);
+  });
+  test('get 500r', function (done) {
+    getObject('500r', done);
+  });
+  test('get 503', function (done) {
+    getObject('503', done);
+  });
+  test('get 503r', function (done) {
+    getObject('503r', done);
+  });
+  test('get 504', function (done) {
+    getObject('504', done);
+  });
+  test('get 504r', function (done) {
+    getObject('504r', done);
+  });
+  test('get shutdown', function (done) {
+    getObject('shutdown', done);
+  });
+  test('get timeout', function (done) {
+    getObject('timeout', done);
+  });
+});
+
+group('retry tencentcos.cn', function () {
+  const cos = new COS({
+    SecretId: config.SecretId,
+    SecretKey: config.SecretKey,
+    Protocol: 'http',
+    AutoSwitchHost: false,
+    Timeout: 10000,
+    Domain: '{Bucket}.cos.{Region}.tencentcos.cn',
+  });
+  const config = {
+    Bucket: 'cos-sdk-err-retry-1253960454',
+    Region: 'ap-chengdu',
+  };
+  function getObject(Key, done, expectErr) {
+    cos.getObject(
+      {
+        Bucket: config.Bucket,
+        Region: config.Region,
+        Key,
+      },
+      function (err, data) {
+        const isOk = expectErr ? err : !err;
+        console.log(`retry ${Key}---res`, err ? 'err' : 'success', isOk);
+        assert.ok(isOk);
+        done();
+      }
+    );
+  }
+  test('get 200', function (done) {
+    getObject('200', done);
+  });
+  test('get 200r', function (done) {
+    getObject('200r', done);
+  });
+  test('get 204', function (done) {
+    getObject('204', done);
+  });
+  test('get 204r', function (done) {
+    getObject('204r', done);
+  });
+  test('get 206', function (done) {
+    getObject('206', done);
+  });
+  test('get 206r', function (done) {
+    getObject('206r', done);
+  });
+  test('get 301', function (done) {
+    getObject('301', done, true);
+  });
+  test('get 301r', function (done) {
+    getObject('301r', done, true);
+  });
+  test('get 302', function (done) {
+    getObject('302', done, true);
+  });
+  test('get 302r', function (done) {
+    getObject('302r', done, true);
+  });
+  test('get 400', function (done) {
+    getObject('400', done, true);
+  });
+  test('get 400r', function (done) {
+    getObject('400r', done, true);
+  });
+  test('get 403', function (done) {
+    getObject('403', done, true);
+  });
+  test('get 403r', function (done) {
+    getObject('403r', done, true);
+  });
+  test('get 404', function (done) {
+    getObject('404', done, true);
+  });
+  test('get 404r', function (done) {
+    getObject('404r', done, true);
+  });
+  test('get 500', function (done) {
+    getObject('500', done);
+  });
+  test('get 500r', function (done) {
+    getObject('500r', done);
+  });
+  test('get 503', function (done) {
+    getObject('503', done);
+  });
+  test('get 503r', function (done) {
+    getObject('503r', done);
+  });
+  test('get 504', function (done) {
+    getObject('504', done);
+  });
+  test('get 504r', function (done) {
+    getObject('504r', done);
+  });
+  test('get shutdown', function (done) {
+    getObject('shutdown', done);
+  });
+  test('get timeout', function (done) {
+    getObject('timeout', done);
+  });
+});
+
+
 // 这条放最后执行
 group('getStream() 流式下载 ECONNREFUSED 错误', function () {
   test('getStream() 流式下载 ECONNREFUSED 错误', function (done, assert) {

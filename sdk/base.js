@@ -3929,12 +3929,12 @@ function allowRetry(err) {
       ) {
         console.error('error: Local time is too skewed.');
         this.options.SystemClockOffset = serverTime - Date.now();
-        canRetry = true;
+        return { canRetry: true, networkError: false };
       }
     } else if (Math.floor(err.statusCode / 100) === 5) {
-      canRetry = true;
+      return { canRetry: true, networkError: false };
     } else if (err.code === 'ECONNRESET') {
-      canRetry = true;
+      return { canRetry: true, networkError: false };
     }
     /**
      * 归为网络错误
@@ -3942,8 +3942,8 @@ function allowRetry(err) {
      * 2、statusCode === 3xx || 4xx || 5xx && no requestId
      */
     if (!err.statusCode) {
-      canRetry = self.options.AutoSwitchHost;
-      networkError = true;
+      canRetry = true;
+      networkError = self.options.AutoSwitchHost;
     } else {
       const statusCode = Math.floor(err.statusCode / 100);
       const requestId = err.headers ? err.headers['x-cos-request-id'] : '';
@@ -4070,7 +4070,8 @@ function submitRequest(params, callback) {
             canRetry = info.canRetry || oldClockOffset !== self.options.SystemClockOffset;
             networkError = info.networkError;
           }
-          if (err && !(params.body && params.body.pipe) && !params.outputStream && tryTimes < 2 && canRetry) {
+          // 默认重试 3 次
+          if (err && !(params.body && params.body.pipe) && !params.outputStream && tryTimes < 4 && canRetry) {
             if (params.headers) {
               delete params.headers.Authorization;
               delete params.headers['token'];

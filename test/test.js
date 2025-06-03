@@ -6763,15 +6763,15 @@ group('retry myqcloud.com', function () {
     AutoSwitchHost: false,
     Timeout: 10000,
   });
-  const config = {
+  const retryConfig = {
     Bucket: 'cos-sdk-err-retry-1253960454',
     Region: 'ap-chengdu',
   };
   function getObject(Key, done, expectErr) {
     cos.getObject(
       {
-        Bucket: config.Bucket,
-        Region: config.Region,
+        Bucket: retryConfig.Bucket,
+        Region: retryConfig.Region,
         Key,
       },
       function (err, data) {
@@ -6865,15 +6865,15 @@ group('retry tencentcos.cn', function () {
     Timeout: 10000,
     Domain: '{Bucket}.cos.{Region}.tencentcos.cn',
   });
-  const config = {
+  const retryConfig = {
     Bucket: 'cos-sdk-err-retry-1253960454',
     Region: 'ap-chengdu',
   };
   function getObject(Key, done, expectErr) {
     cos.getObject(
       {
-        Bucket: config.Bucket,
-        Region: config.Region,
+        Bucket: retryConfig.Bucket,
+        Region: retryConfig.Region,
         Key,
       },
       function (err, data) {

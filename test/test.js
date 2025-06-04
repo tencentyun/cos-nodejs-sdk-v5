@@ -6181,8 +6181,7 @@ group('getObject() 手动关闭合并 Key 校验', function () {
       },
       function (err, data) {
         console.log('getObject Body1', err || data);
-        assert.ok(data.Body.toString().includes('ListBucketResult'));
-        // assert.ok(err);
+        assert.ok(err);
         done();
       }
     );
@@ -6200,8 +6199,7 @@ group('getObject() 手动关闭合并 Key 校验', function () {
       },
       function (err, data) {
         console.log('getObject Body3', err || data);
-        assert.ok(data.Body.toString().includes('ListBucketResult'));
-        // assert.ok(err);
+        assert.ok(err);
         done();
       }
     );

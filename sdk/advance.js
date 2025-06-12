@@ -1427,6 +1427,7 @@ function downloadFile(params, callback) {
   var PartList;
   var aborted = false;
   var head = {};
+  var Headers = util.clone(params.Headers);
 
   ep.on('error', function (err) {
     callback(err);
@@ -1439,6 +1440,7 @@ function downloadFile(params, callback) {
         Bucket: Bucket,
         Region: Region,
         Key: Key,
+        Headers,
       },
       function (err, data) {
         if (err) return ep.emit('error', err);
@@ -1497,6 +1499,7 @@ function downloadFile(params, callback) {
               Bucket: Bucket,
               Region: Region,
               Key: Key,
+              Headers,
               onProgress: onProgress,
               Output: fs.createWriteStream(FilePath),
             },

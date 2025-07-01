@@ -1614,9 +1614,11 @@ function downloadFile(params, callback) {
 
                 // 只校验文件大小和 crc64 是否有变更
                 var changed;
-                if (chunkHeaders['x-cos-hash-crc64ecma'] !== head.crc64ecma)
+                if (chunkHeaders['x-cos-hash-crc64ecma'] && head.crc64ecma && chunkHeaders['x-cos-hash-crc64ecma'] !== head.crc64ecma) {
                   changed = 'download error, x-cos-hash-crc64ecma has changed.';
-                else if (totalSize !== head.size) changed = 'download error, Last-Modified has changed.';
+                } else if (totalSize !== head.size) {
+                  changed = 'download error, Last-Modified has changed.';
+                }
                 // else if (data.ETag !== head.ETag) error = 'download error, ETag has changed.';
                 // else if (chunkHeaders['last-modified'] !== head.mtime) error = 'download error, Last-Modified has changed.';
 

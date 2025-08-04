@@ -582,6 +582,27 @@ function getBucketPolicy(params, callback) {
           return callback(util.error(err, { ErrorStatus: 'Method Not Allowed' }));
         }
         if (err.statusCode && err.statusCode === 404) {
+          /**
+           * 兼容 New COS 404 错误
+           */
+          try {
+            if (err
+              && err.error
+              && err.error.Code
+              && (err.error.Code === 'NoSuchPolicy' || err.error.Code === 'NoSuchPolicyVersion')
+            ) {
+              err.code = '404';
+              err.message = 'Policy Not found';
+              err.error.code = '404';
+              err.error.message = 'Policy Not found';
+              err.error.statusCode = err.statusCode;
+              err.error.headers = err.headers;
+              err.error.url = err.url;
+              err.error.method = err.method;
+              err.error.ErrorStatus = 'Policy Not Found';
+            }
+          } catch (error) {
+          }
           return callback(util.error(err, { ErrorStatus: 'Policy Not Found' }));
         }
         return callback(err);

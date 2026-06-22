@@ -11,7 +11,7 @@ var getCache = function () {
     opt = { configName: 'cos-nodejs-sdk-v5-storage' };
   if (this.options.ConfCwd) opt.cwd = this.options.ConfCwd;
   try {
-    var Conf = require('conf');
+    var Conf = require('./conf-lite');
     store = new Conf(opt);
     val = store.get(cacheKey);
   } catch (e) {}

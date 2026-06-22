@@ -3769,7 +3769,7 @@ function getAuthorizationAsync(params, callback) {
     if (StsData.StartTime && params.Expires) {
       KeyTime = StsData.StartTime + ';' + (StsData.StartTime + params.Expires * 1);
     } else if (StsData.StartTime && StsData.ExpiredTime) {
-       KeyTime = StsData.StartTime + ';' + StsData.ExpiredTime;
+      KeyTime = StsData.StartTime + ';' + StsData.ExpiredTime;
     }
     var Authorization = util.getAuth({
       SecretId: StsData.TmpSecretId,
@@ -3923,16 +3923,75 @@ function getAuthorizationAsync(params, callback) {
   return '';
 }
 
-// 判断当前请求出错时能否重试
-function allowRetry(err) {
-  var self = this;
-  var canRetry = false;
-  var networkError = false;
-  var isTimeError = false;
-  var serverDate = (err.headers && (err.headers.date || err.headers.Date)) || (err.error && err.error.ServerTime);
+/**
+ * 判断请求的域名类型
+ * 入参兼容带 protocol 的完整 url（如 https://xxx.cos.ap-guangzhou.myqcloud.com/key）
+ * 以及裸 host（如 xxx.cos.ap-guangzhou.myqcloud.com）
+ */
+function getRequestHostType(requestUrl) {
+  if (!requestUrl) {
+    return '';
+  }
+  // 各正则的 protocol 前缀做成可选，兼容裸 host 输入
+  const cosDefaultHostReg = /^(https?:\/\/)?[^\/]*\.cos\.[^\/]*\.myqcloud\.com(\/.*)?$/;
+  const cosAccelerateHostReg = /^(https?:\/\/)?[^\/]*\.cos\.accelerate\.myqcloud\.com(\/.*)?$/;
+  // CI 域名识别两种形态：
+  //   *.ci.{Region}.myqcloud.com（带 bucket/appid 前缀）
+  //   ci.{Region}.myqcloud.com（根域，无前缀）
+  const ciDefaultHostReg = /^(https?:\/\/)?[^\/]*\.ci\.[^\/]*\.myqcloud\.com(\/.*)?$/;
+  const ciRootHostReg = /^(https?:\/\/)?ci\.[^\/]*\.myqcloud\.com(\/.*)?$/;
+  if (cosAccelerateHostReg.test(requestUrl)) {
+    return 'COS_ACCELERATE_HOST';
+  }
+  if (cosDefaultHostReg.test(requestUrl) && !cosAccelerateHostReg.test(requestUrl)) {
+    return 'COS_DEFAULT_HOST';
+  }
+  if (ciDefaultHostReg.test(requestUrl) || ciRootHostReg.test(requestUrl)) {
+    return 'CI_DEFAULT_HOST';
+  }
+  return 'OTHER_HOST';
+}
+
+/**
+ * 根据原 host 类型返回对应的备用域名替换结果
+ * CI 主域名 → tencentci.cn
+ * 其余（COS 主域名 / 其他含 myqcloud.com 的域名）→ tencentcos.cn（兼容旧行为兜底）
+ */
+function getBackupHost(host) {
+  const hostType = getRequestHostType(host);
+  if (hostType === 'CI_DEFAULT_HOST') {
+    return host.replace(/myqcloud\.com/, 'tencentci.cn');
+  }
+  return host.replace(/myqcloud\.com/, 'tencentcos.cn');
+}
+
+/**
+ * 判断是否是 copy 类接口（putObjectCopy / uploadPartCopy）
+ * 特征：method 为 PUT，且 Scope 是包含 GetObject + PutObject 两个 action 的数组（顺序无关）
+ */
+function isCopyApi(params) {
+  if (!params || params.method !== 'PUT') return false;
+  var scope = params.Scope;
+  if (!Array.isArray(scope) || scope.length !== 2) return false;
+  var action0 = scope[0] && scope[0].action;
+  var action1 = scope[1] && scope[1].action;
+  return (action0 === 'name/cos:GetObject' && action1 === 'name/cos:PutObject')
+      || (action0 === 'name/cos:PutObject' && action1 === 'name/cos:GetObject');
+}
+
+/**
+ * 判断当前请求是否应该重试
+ * 如果支持重试，是否需要切换备用域名
+ */
+function getRetryInfo({ err, data, authData = {}, tryTimes, params }) {
+  let canRetry = false;
+  let switchHost = false;
+  let isTimeError = false;
+  let serverDate = err ? ((err.headers && (err.headers.date || err.headers.Date)) || (err.error && err.error.ServerTime)) : null;
+  let clientCalcSign = authData && authData.SignFrom === 'client';
   try {
-    var errorCode = err.error.Code;
-    var errorMessage = err.error.Message;
+    let errorCode = err.error.Code;
+    let errorMessage = err.error.Message;
     if (
       errorCode === 'RequestTimeTooSkewed' ||
       (errorCode === 'AccessDenied' && errorMessage === 'Request has expired')
@@ -3941,57 +4000,97 @@ function allowRetry(err) {
     }
   } catch (e) {}
   if (err) {
+    const requestUrl = err.url || '';
+    const hostType = getRequestHostType(requestUrl);
+    // 按域名类型选 requestId 头：CI 域名查 x-ci-request-id，其他查 x-cos-request-id
+    // headers 由 Node http 模块规范化为小写，无需大小写不敏感处理
+    const requestIdHeader = hostType === 'CI_DEFAULT_HOST' ? 'x-ci-request-id' : 'x-cos-request-id';
+    const requestId = err.headers ? err.headers[requestIdHeader] : '';
+    const allowSwitchHost = Boolean(
+      this.options.AutoSwitchHost
+      && clientCalcSign
+      && (hostType === 'COS_DEFAULT_HOST' || hostType === 'CI_DEFAULT_HOST')
+      && !requestId
+    );
     // 调整时间偏差
     if (isTimeError && serverDate) {
-      var serverTime = Date.parse(serverDate);
+      let serverTime = Date.parse(serverDate);
       if (
         this.options.CorrectClockSkew &&
         Math.abs(util.getSkewTime(this.options.SystemClockOffset) - serverTime) >= 30000
       ) {
         console.error('error: Local time is too skewed.');
         this.options.SystemClockOffset = serverTime - Date.now();
-        return { canRetry: true, networkError: false };
+        return { canRetry: true, switchHost: false };
       }
+    } else if (
+      isCopyApi(params)
+      && err.statusCode
+      && Math.floor(err.statusCode / 100) === 2
+      && err.code
+      && ['InternalError', 'SlowDown', 'ServiceUnavailable'].includes(err.code)
+    ) {
+      /**
+       * copy 类接口（putObjectCopy / uploadPartCopy）的假 200 错误
+       * 当 errorcode 为 InternalError / SlowDown / ServiceUnavailable 时，重试 3 次
+       * 不涉及域名切换
+       */
+      return {
+        canRetry: true,
+        switchHost: false,
+      };
     } else if (Math.floor(err.statusCode / 100) === 5) {
-      return { canRetry: true, networkError: false };
+      /**
+       * 5xx 错误支持重试
+       * 如果满足切换备用域名的条件，且是最后一次重试，则支持切换备用域名
+       */
+      return {
+        canRetry: true,
+        switchHost: Boolean(allowSwitchHost && tryTimes === 3),
+      };
+    } else if (Math.floor(err.statusCode / 100) === 4) {
+      /**
+       * 4xx 错误不支持重试
+       */
+      return {
+        canRetry: false,
+        switchHost: false,
+      };
+    } else if (Math.floor(err.statusCode / 100) === 3) {
+      /**
+       * 3xx 错误部分支持重试
+       * 必须状态码为 301 / 302 / 307 ，且满足切换备用域名的条件，才支持重试
+       * 注意 308 故意排除：万象只支持 https，http 请求会被服务端 308 重定向到 https
+       *   这种场景不应换域名重试，由用户改用 https 解决
+       */
+      return {
+        canRetry: Boolean(
+          [301, 302, 307].includes(Number(err.statusCode)) && allowSwitchHost
+        ),
+        switchHost: Boolean(allowSwitchHost),
+      };
     } else if (err.code === 'ECONNRESET') {
-      return { canRetry: true, networkError: false };
+      /**
+       * ECONNRESET 归为未收到回包，按需求处理
+       * 支持重试，且最后一次重试时如满足切换条件则切备用域名
+       */
+      return {
+        canRetry: true,
+        switchHost: Boolean(allowSwitchHost && tryTimes === 3),
+      };
     }
     /**
-     * 归为网络错误
-     * 1、no statusCode
-     * 2、statusCode === 3xx || 4xx || 5xx && no requestId
+     * 网络错误支持重试
+     * 如果满足切换备用域名的条件，且是最后一次重试，则支持切换备用域名
      */
     if (!err.statusCode) {
-      canRetry = true;
-      networkError = self.options.AutoSwitchHost;
-    } else {
-      const statusCode = Math.floor(err.statusCode / 100);
-      const requestId = err.headers ? err.headers['x-cos-request-id'] : '';
-      if ([3, 4, 5].includes(statusCode) && !requestId) {
-        canRetry = self.options.AutoSwitchHost;
-        networkError = true;
-      }
+      return {
+        canRetry: true,
+        switchHost: Boolean(allowSwitchHost && tryTimes === 3)
+      };
     }
   }
-  return { canRetry, networkError };
-}
-
-/**
- * requestUrl：请求的url，用于判断是否cos主域名，true才切
- * clientCalcSign：是否客户端计算签名，服务端返回的签名不能切，true才切
- * networkError：是否未知网络错误，true才切
- * */
-function canSwitchHost({ requestUrl, clientCalcSign, networkError }) {
-  if (!this.options.AutoSwitchHost) return false;
-  if (!requestUrl) return false;
-  if (!clientCalcSign) return false;
-  if (!networkError) return false;
-  const commonReg = /^https?:\/\/[^\/]*\.cos\.[^\/]*\.myqcloud\.com(\/.*)?$/;
-  const accelerateReg = /^https?:\/\/[^\/]*\.cos\.accelerate\.myqcloud\.com(\/.*)?$/;
-  // 当前域名是cos主域名才切换
-  const isCommonCosHost = commonReg.test(requestUrl) && !accelerateReg.test(requestUrl);
-  return isCommonCosHost;
+  return { canRetry, switchHost };
 }
 
 // 获取签名并发起请求
@@ -4060,8 +4159,8 @@ function submitRequest(params, callback) {
   var next = function (tryTimes) {
     var oldClockOffset = self.options.SystemClockOffset;
     if (params.SwitchHost) {
-      // 更换要签的host
-      SignHost = SignHost.replace(/myqcloud.com/, 'tencentcos.cn');
+      // 更换要签的host，按 COS / CI 类型映射到对应备用域名
+      SignHost = getBackupHost(SignHost);
     }
 
     getAuthorizationAsync.call(
@@ -4085,11 +4184,20 @@ function submitRequest(params, callback) {
         params.AuthData = AuthData;
         _submitRequest.call(self, params, function (err, data) {
           let canRetry = false;
-          let networkError = false;
+          let switchHost = false;
+          const retryInfo = getRetryInfo.call(self, {
+            err,
+            data,
+            authData: AuthData,
+            tryTimes,
+            params,
+          });
           if (err) {
-            const info = allowRetry.call(self, err);
-            canRetry = info.canRetry || oldClockOffset !== self.options.SystemClockOffset;
-            networkError = info.networkError;
+            canRetry = retryInfo.canRetry || oldClockOffset !== self.options.SystemClockOffset;
+            switchHost = retryInfo.switchHost;
+          } else {
+            canRetry = retryInfo.canRetry;
+            switchHost = retryInfo.switchHost;
           }
           // 默认重试 3 次
           if (err && !(params.body && params.body.pipe) && !params.outputStream && tryTimes < 4 && canRetry) {
@@ -4101,23 +4209,13 @@ function submitRequest(params, callback) {
               params.headers['x-cos-security-token'] && delete params.headers['x-cos-security-token'];
               params.headers['x-ci-security-token'] && delete params.headers['x-ci-security-token'];
             }
-            // 进入重试逻辑时 需判断是否需要切换cos备用域名
-            const switchHost = canSwitchHost.call(self, {
-              requestUrl: err.url || '',
-              clientCalcSign: AuthData.SignFrom === 'client',
-              networkError,
-            });
+            // 进入重试逻辑时 需判断是否需要切换备用域名
             params.SwitchHost = switchHost;
             // 重试时增加请求头
             params.headers['x-cos-sdk-retry'] = true;
             next(tryTimes + 1);
           } else {
             if (err && params.Action === 'name/cos:UploadPart') {
-              const switchHost = canSwitchHost.call(self, {
-                requestUrl: err.url || '',
-                clientCalcSign: AuthData.SignFrom === 'client',
-                networkError,
-              });
               err.switchHost = switchHost;
             }
             callback(err, data);
@@ -4166,8 +4264,8 @@ function _submitRequest(params, callback) {
       object: object,
     });
   if (params.SwitchHost) {
-    // 更换请求的url
-    url = url.replace(/myqcloud.com/, 'tencentcos.cn');
+    // 更换请求的url，按 COS / CI 类型映射到对应备用域名
+    url = getBackupHost(url);
   }
   if (params.action) {
     url = url + '?' + params.action;
@@ -4312,8 +4410,8 @@ function _submitRequest(params, callback) {
         util.error(
           new Error(
             'file size large than ' +
-              process.binding('buffer').kMaxLength +
-              ', please use "Output" Stream to getObject.'
+            process.binding('buffer').kMaxLength +
+            ', please use "Output" Stream to getObject.'
           )
         )
       );
@@ -4339,8 +4437,12 @@ function _submitRequest(params, callback) {
         // 处理返回值
         var errorBody = json && json.Error;
         if (statusSuccess) {
-          // 正确返回，状态码 2xx 时，body 不会有 Error
-          cb(null, json);
+          // CompleteMultipartUpload / copy 类接口（putObjectCopy / uploadPartCopy）可能返回 2xx 但 body 里有 Error
+          if (errorBody && (params.Action === 'name/cos:CompleteMultipartUpload' || isCopyApi(params))) {
+            cb(util.error(new Error(errorBody.Message), { code: errorBody.Code, error: errorBody }));
+          } else {
+            cb(null, json);
+          }
         } else if (errorBody) {
           // 正常返回了 xml body，且有 Error 节点
           cb(util.error(new Error(errorBody.Message), { code: errorBody.Code, error: errorBody }));

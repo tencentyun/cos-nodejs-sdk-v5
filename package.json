@@ -1,6 +1,6 @@
 {
   "name": "cos-nodejs-sdk-v5",
-  "version": "2.16.0-beta.8",
+  "version": "2.16.0-beta.9",
   "description": "cos nodejs sdk v5",
   "main": "index.js",
   "types": "index.d.ts",
@@ -31,9 +31,8 @@
   },
   "homepage": "https://github.com/tencentyun/cos-nodejs-sdk-v5#readme",
   "dependencies": {
-    "conf": "^9.0.0",
-    "cos-request": "^1.1.0",
-    "fast-xml-parser": "4.2.5",
+    "cos-request": "^1.3.0",
+    "cos-fast-xml-parser": "^1.0.0",
     "mime-types": "^2.1.35"
   },
   "devDependencies": {

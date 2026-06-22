@@ -2,12 +2,15 @@
 
 var fs = require('fs');
 var crypto = require('crypto');
-var { XMLParser, XMLBuilder } = require('fast-xml-parser');
+var { XMLParser, XMLBuilder } = require('cos-fast-xml-parser');
 var xmlParser = new XMLParser({
   ignoreDeclaration: true, // 忽略 XML 声明
   ignoreAttributes: true, // 忽略属性
   parseTagValue: false, // 关闭自动解析
   trimValues: false, // 关闭默认 trim
+  processEntities: {
+    maxTotalExpansions: Infinity, // COS 返回的 XML 实体数量可能很多，不限制
+  },
 });
 var xmlBuilder = new XMLBuilder();
 

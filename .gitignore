@@ -1,5 +1,6 @@
 .idea/
 .vscode
+.codebuddy
 package-lock.json
 node_modules
 demo/config.js

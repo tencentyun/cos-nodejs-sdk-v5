@@ -3717,12 +3717,12 @@ group('BucketDomain', function () {
   var DomainRule = [
     {
       Status: 'DISABLED',
-      Name: 'www.testDomain1.com',
+      Name: 'test1.cos-test.cn',
       Type: 'REST',
     },
     {
       Status: 'DISABLED',
-      Name: 'www.testDomain2.com',
+      Name: 'test2.cos-test.cn',
       Type: 'WEBSITE',
     },
   ];
@@ -6846,6 +6846,119 @@ group('retry myqcloud.com', function () {
   test('get 504r', function (done) {
     getObject('504r', done);
   });
+  test('get 599', function (done) {
+    getObject('599', done, true);
+  });
+  test('get 500l', function (done) {
+    getObject('500l', done, true);
+  });
+  test('get shutdown', function (done) {
+    getObject('shutdown', done);
+  });
+  test('get timeout', function (done) {
+    getObject('timeout', done);
+  });
+});
+
+group('retry myqcloud.com with AutoSwitchHost', function () {
+  const cos = new COS({
+    SecretId: config.SecretId,
+    SecretKey: config.SecretKey,
+    Protocol: 'http',
+    AutoSwitchHost: true,
+    Timeout: 10000,
+  });
+  const retryConfig = {
+    Bucket: 'cos-sdk-err-retry-1253960454',
+    Region: 'ap-chengdu',
+  };
+  function getObject(Key, done, expectErr) {
+    cos.getObject(
+      {
+        Bucket: retryConfig.Bucket,
+        Region: retryConfig.Region,
+        Key,
+      },
+      function (err, data) {
+        const isOk = expectErr ? err : !err;
+        console.log(`retry ${Key}---res`, err ? 'err' : 'success', isOk);
+        assert.ok(isOk);
+        done();
+      }
+    );
+  }
+  test('get 200', function (done) {
+    getObject('200', done);
+  });
+  test('get 200r', function (done) {
+    getObject('200r', done);
+  });
+  test('get 204', function (done) {
+    getObject('204', done);
+  });
+  test('get 204r', function (done) {
+    getObject('204r', done);
+  });
+  test('get 206', function (done) {
+    getObject('206', done);
+  });
+  test('get 206r', function (done) {
+    getObject('206r', done);
+  });
+  test('get 301', function (done) {
+    getObject('301', done);
+  });
+  test('get 301r', function (done) {
+    getObject('301r', done, true);
+  });
+  test('get 302', function (done) {
+    getObject('302', done);
+  });
+  test('get 302r', function (done) {
+    getObject('302r', done, true);
+  });
+  test('get 400', function (done) {
+    getObject('400', done, true);
+  });
+  test('get 400r', function (done) {
+    getObject('400r', done, true);
+  });
+  test('get 403', function (done) {
+    getObject('403', done, true);
+  });
+  test('get 403r', function (done) {
+    getObject('403r', done, true);
+  });
+  test('get 404', function (done) {
+    getObject('404', done, true);
+  });
+  test('get 404r', function (done) {
+    getObject('404r', done, true);
+  });
+  test('get 500', function (done) {
+    getObject('500', done);
+  });
+  test('get 500r', function (done) {
+    getObject('500r', done);
+  });
+  test('get 503', function (done) {
+    getObject('503', done);
+  });
+  test('get 503r', function (done) {
+    getObject('503r', done);
+  });
+  test('get 504', function (done) {
+    getObject('504', done);
+  });
+  test('get 504r', function (done) {
+    getObject('504r', done);
+  });
+  test('get 599', function (done) {
+    getObject('599', done, true);
+  });
+  test('get 500l', function (done) {
+    getObject('500l', done, true);
+  });
   test('get shutdown', function (done) {
     getObject('shutdown', done);
   });
@@ -6948,11 +7061,238 @@ group('retry tencentcos.cn', function () {
   test('get 504r', function (done) {
     getObject('504r', done);
   });
+  test('get 599', function (done) {
+    getObject('599', done, true);
+  });
+  test('get 500l', function (done) {
+    getObject('500l', done, true);
+  });
   test('get shutdown', function (done) {
     getObject('shutdown', done);
   });
   test('get timeout', function (done) {
     getObject('timeout', done);
+  });
+});
+
+group('retry tencentcos.cn with AutoSwitchHost', function () {
+  const cos = new COS({
+    SecretId: config.SecretId,
+    SecretKey: config.SecretKey,
+    Protocol: 'http',
+    AutoSwitchHost: true,
+    Timeout: 10000,
+    Domain: '{Bucket}.cos.{Region}.tencentcos.cn',
+  });
+  const retryConfig = {
+    Bucket: 'cos-sdk-err-retry-1253960454',
+    Region: 'ap-chengdu',
+  };
+  function getObject(Key, done, expectErr) {
+    cos.getObject(
+      {
+        Bucket: retryConfig.Bucket,
+        Region: retryConfig.Region,
+        Key,
+      },
+      function (err, data) {
+        const isOk = expectErr ? err : !err;
+        console.log(`retry ${Key}---res`, err ? 'err' : 'success', isOk);
+        assert.ok(isOk);
+        done();
+      }
+    );
+  }
+  test('get 200', function (done) {
+    getObject('200', done);
+  });
+  test('get 200r', function (done) {
+    getObject('200r', done);
+  });
+  test('get 204', function (done) {
+    getObject('204', done);
+  });
+  test('get 204r', function (done) {
+    getObject('204r', done);
+  });
+  test('get 206', function (done) {
+    getObject('206', done);
+  });
+  test('get 206r', function (done) {
+    getObject('206r', done);
+  });
+  test('get 301', function (done) {
+    getObject('301', done, true);
+  });
+  test('get 301r', function (done) {
+    getObject('301r', done, true);
+  });
+  test('get 302', function (done) {
+    getObject('302', done, true);
+  });
+  test('get 302r', function (done) {
+    getObject('302r', done, true);
+  });
+  test('get 400', function (done) {
+    getObject('400', done, true);
+  });
+  test('get 400r', function (done) {
+    getObject('400r', done, true);
+  });
+  test('get 403', function (done) {
+    getObject('403', done, true);
+  });
+  test('get 403r', function (done) {
+    getObject('403r', done, true);
+  });
+  test('get 404', function (done) {
+    getObject('404', done, true);
+  });
+  test('get 404r', function (done) {
+    getObject('404r', done, true);
+  });
+  test('get 500', function (done) {
+    getObject('500', done);
+  });
+  test('get 500r', function (done) {
+    getObject('500r', done);
+  });
+  test('get 503', function (done) {
+    getObject('503', done);
+  });
+  test('get 503r', function (done) {
+    getObject('503r', done);
+  });
+  test('get 504', function (done) {
+    getObject('504', done);
+  });
+  test('get 504r', function (done) {
+    getObject('504r', done);
+  });
+  test('get 599', function (done) {
+    getObject('599', done, true);
+  });
+  test('get 500l', function (done) {
+    getObject('500l', done, true);
+  });
+  test('get shutdown', function (done) {
+    getObject('shutdown', done);
+  });
+  test('get timeout', function (done) {
+    getObject('timeout', done);
+  });
+});
+
+group('retry copy api 2xx errcode', function () {
+  const cos = new COS({
+    SecretId: config.SecretId,
+    SecretKey: config.SecretKey,
+    Protocol: 'http',
+    AutoSwitchHost: false,
+    Timeout: 10000,
+  });
+  const retryConfig = {
+    Bucket: 'cos-sdk-err-retry-1253960454',
+    Region: 'ap-chengdu',
+  };
+  // 207 key 的 mock 行为：首次响应 statusCode=207 + <Error><Code>InternalError</Code></Error>，重试成功
+  // 用真实源 1M + 目的 207 触发 putObjectCopy 假 2xx 错误场景，验证 SDK 重试后恢复
+  test('copy 207 with InternalError', function (done) {
+    cos.putObjectCopy(
+      {
+        Bucket: retryConfig.Bucket,
+        Region: retryConfig.Region,
+        Key: '207',
+        CopySource: retryConfig.Bucket + '.cos.' + retryConfig.Region + '.myqcloud.com/1M',
+      },
+      function (err, data) {
+        console.log('copy 207---res', err ? 'err' : 'success', err && err.code);
+        assert.ok(!err && data && data.ETag);
+        done();
+      }
+    );
+  });
+});
+
+
+group('retry ci.myqcloud.com without AutoSwitchHost', function () {
+  const cos = new COS({
+    SecretId: config.SecretId,
+    SecretKey: config.SecretKey,
+    Protocol: 'http',
+    AutoSwitchHost: false,
+    Timeout: 10000,
+  });
+  const retryConfig = {
+    Bucket: 'cos-sdk-err-retry-1253960454',
+    Region: 'ap-chengdu',
+  };
+  // CI 域名 mock：与 COS 同 bucket 的 ci 子域，key 名约定一致
+  // 注意：CI mock 2xx 响应是 text/plain 空 body（COS mock 是 XML body）
+  //       所以只覆盖能正常被 SDK 处理的 key（错误状态码 + 重定向）
+  const ciHost = retryConfig.Bucket + '.ci.' + retryConfig.Region + '.myqcloud.com';
+  function requestCi(Key, done, expectErr) {
+    cos.request(
+      {
+        Method: 'GET',
+        Key: Key,
+        Url: 'http://' + ciHost + '/' + Key,
+      },
+      function (err, data) {
+        const isOk = expectErr ? err : !err;
+        console.log(`ci retry ${Key}---res`, err ? 'err' : 'success', isOk);
+        assert.ok(isOk);
+        done();
+      }
+    );
+  }
+  test('ci get 301', function (done) {
+    requestCi('301', done, true);
+  });
+  test('ci get 400', function (done) {
+    requestCi('400', done, true);
+  });
+  test('ci get 500l', function (done) {
+    requestCi('500l', done, true);
+  });
+});
+
+group('retry ci.myqcloud.com with AutoSwitchHost', function () {
+  const cos = new COS({
+    SecretId: config.SecretId,
+    SecretKey: config.SecretKey,
+    Protocol: 'http',
+    AutoSwitchHost: true,
+    Timeout: 10000,
+  });
+  const retryConfig = {
+    Bucket: 'cos-sdk-err-retry-1253960454',
+    Region: 'ap-chengdu',
+  };
+  const ciHost = retryConfig.Bucket + '.ci.' + retryConfig.Region + '.myqcloud.com';
+  function requestCi(Key, done, expectErr) {
+    cos.request(
+      {
+        Method: 'GET',
+        Key: Key,
+        Url: 'http://' + ciHost + '/' + Key,
+      },
+      function (err, data) {
+        const isOk = expectErr ? err : !err;
+        console.log(`ci retry ${Key}---res`, err ? 'err' : 'success', isOk);
+        assert.ok(isOk);
+        done();
+      }
+    );
+  }
+  test('ci get 301', function (done) {
+    requestCi('301', done, true);
+  });
+  test('ci get 400', function (done) {
+    requestCi('400', done, true);
+  });
+  test('ci get 500l', function (done) {
+    requestCi('500l', done, true);
   });
 });
 

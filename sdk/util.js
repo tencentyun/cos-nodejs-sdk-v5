@@ -763,7 +763,7 @@ var encodeBase64 = function (str, safe) {
   let base64Str = Buffer.from(str).toString('base64');
   // 万象使用的安全base64格式需要特殊处理
   if (safe) {
-    base64Str = base64Str.replaceAll('+', '-').replaceAll('/', '_').replaceAll('=', '');
+    base64Str = base64Str.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
   }
   return base64Str;
 };

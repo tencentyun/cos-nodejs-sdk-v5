@@ -6,6 +6,8 @@
 
 ## install
 
+> 环境要求：Node.js >= 9.0.0（自 v3.0.0 起，不再支持 Node 6 / 7 / 8）
+
 [npm 地址](https://www.npmjs.com/package/cos-nodejs-sdk-v5)
 
 ```

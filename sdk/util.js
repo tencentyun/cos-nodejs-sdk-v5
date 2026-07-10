@@ -2,12 +2,15 @@
 
 var fs = require('fs');
 var crypto = require('crypto');
-var { XMLParser, XMLBuilder } = require('fast-xml-parser');
+var { XMLParser, XMLBuilder } = require('cos-fast-xml-parser');
 var xmlParser = new XMLParser({
   ignoreDeclaration: true, // 忽略 XML 声明
   ignoreAttributes: true, // 忽略属性
   parseTagValue: false, // 关闭自动解析
   trimValues: false, // 关闭默认 trim
+  processEntities: {
+    maxTotalExpansions: Infinity, // COS 返回的 XML 实体数量可能很多，不限制
+  },
 });
 var xmlBuilder = new XMLBuilder();
 
@@ -56,10 +59,12 @@ var obj2str = function (obj, lowerCaseKey) {
 
 // 可以签入签名的headers
 var signHeaders = [
+  'cache-control',
   'content-disposition',
   'content-encoding',
   'content-length',
   'content-md5',
+  'content-type',
   'expect',
   'expires',
   'host',
@@ -758,7 +763,7 @@ var encodeBase64 = function (str, safe) {
   let base64Str = Buffer.from(str).toString('base64');
   // 万象使用的安全base64格式需要特殊处理
   if (safe) {
-    base64Str = base64Str.replaceAll('+', '-').replaceAll('/', '_').replaceAll('=', '');
+    base64Str = base64Str.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
   }
   return base64Str;
 };
